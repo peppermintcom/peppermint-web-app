@@ -1,3 +1,8 @@
+exports.tags = ['recorder'];
+exports.summary = 'Register a new recorder.';
+exports.operationId = 'CreateRecorder';
+exports.consumes = exports.produces = ['application/json'];
+
 exports.parameters = [
   {
     name: 'payload',

@@ -29,11 +29,17 @@ module.exports = function() {
     swagger: '2.0',
     info: {
       title: 'Peppermint.com',
+      description: 'Peppermint backend on AWS API Gateway',
       version: '1.0.0',
     },
+    host: 'api.peppermint.com',
     basePath: '/v1',
+    schemes: ['https'],
     paths: paths,
     definitions: require('../definitions'),
+    tags: [
+      {name: 'recorder'},
+    ],
   };
 
   fs.writeFileSync('swagger.json', JSON.stringify(spec));

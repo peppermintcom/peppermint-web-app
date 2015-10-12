@@ -28,20 +28,20 @@ module.exports = function() {
   //include all node_modules in the zip except devDependencies and blacklisted
   var nodeModules = fs.readdirSync(path.join(__dirname, '../node_modules'));
   var deps = _.difference(nodeModules, blacklist)
-    .map(function(name) {
-      return 'node_modules/' + name + '/';
-    });
+      .map(function(name) {
+        return 'node_modules/' + name + '/';
+      });
 
   return through2.obj(function(file, enc, cb) {
     var dest = path.join(file.base, 'lambda.zip');
     var include = _.difference(fs.readdirSync(file.base), nozip)
-      .map(function(file) {
-        //TODO
-        return 'resources/recorder/post/' + file;
-      });
+        .map(function(f) {
+          return path.join(path.relative(process.cwd(), file.base), f);
+        });
     var args = ['-rFS', dest].concat(deps).concat(include);
 
     spawnSync('zip', args);
+    return;
     lambda.createFunction({
       Code: {
         ZipFile: fs.readFileSync(dest),
