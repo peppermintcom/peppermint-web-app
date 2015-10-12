@@ -1,5 +1,7 @@
 var fs = require('fs');
 var path = require('path');
+var util = require('util');
+var swagger = require('swagger-tools');
 
 module.exports = function() {
   var methods = {
@@ -23,15 +25,25 @@ module.exports = function() {
         });
         return paths;
       }, {});
-
-  fs.writeFileSync('swagger.json', JSON.stringify({
+  var spec = {
     swagger: '2.0',
     info: {
-      info: 'Peppermint.com',
+      title: 'Peppermint.com',
       version: '1.0.0',
     },
     basePath: '/v1',
     paths: paths,
     definitions: require('../definitions'),
-  }));
+  };
+
+  fs.writeFileSync('swagger.json', JSON.stringify(spec));
+
+  swagger.specs.v2.validate(spec, function(err, res) {
+    if (err) throw err;
+    if (!res) return;
+
+    res.errors.concat(res.warnings).forEach(function(err) {
+      console.log(util.inspect(err, {depth: null}));
+    });
+  });
 };

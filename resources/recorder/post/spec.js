@@ -3,8 +3,11 @@ exports.parameters = [
     name: 'payload',
     'in': 'body',
     schema: {
-      api_key: {type: 'string'},
-      recorder: {$ref: '#/definitions/recorder'},
+      type: 'object',
+      properties: {
+        api_key: {type: 'string'},
+        recorder: {$ref: '#/definitions/recorder'},
+      },
     },
   },
 ];
@@ -13,8 +16,12 @@ exports.responses = {
   '201': {
     description: 'new recorder and a jwt',
     schema: {
-      at: {$ref: '#/definitions/jwt'},
-      recorder: {$ref: '#/definitions/recorder'},
+      type: 'object',
+      properties: {
+        at: {$ref: '#/definitions/jwt'},
+        recorder: {$ref: '#/definitions/recorder'},
+      },
+      required: ['at', 'recorder'],
     },
     headers: {
       'Content-Type': {type: 'string'},
