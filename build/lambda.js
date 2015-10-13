@@ -9,6 +9,8 @@ var through2 = require('through2');
 var aws = require('aws-sdk');
 var devDeps = require('../package.json').devDependencies;
 
+const EXEC_ROLE = 'arn:aws:iam::290766561564:role/LambdaExec';
+
 var lambda = new aws.Lambda({
   apiVersion: '2015-03-31',
   region: 'us-west-2',
@@ -31,31 +33,62 @@ module.exports = function() {
       .map(function(name) {
         return 'node_modules/' + name + '/';
       });
+  var functions = new Promise(function(resolve, reject) {
+    lambda.listFunctions({}, function(err, data) {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(data.Functions.reduce(function(accm, fn) {
+        accm[fn.FunctionName] = fn;
+        return accm;
+      }, {}));
+    });
+  });
 
   return through2.obj(function(file, enc, cb) {
-    var dest = path.join(file.base, 'lambda.zip');
-    var include = _.difference(fs.readdirSync(file.base), nozip)
-        .map(function(f) {
-          return path.join(path.relative(process.cwd(), file.base), f);
+    var relativeDir = path.relative(process.cwd(), file.base);
+    var dest = path.join(relativeDir, 'lambda.zip');
+    var include = _.difference(fs.readdirSync(relativeDir), nozip)
+        .map(function(filename) {
+          return path.join(relativeDir, filename);
         });
+    var name = require('../' + relativeDir + '/spec').operationId;
     var args = ['-rFS', dest].concat(deps).concat(include);
 
     spawnSync('zip', args);
-    return;
-    lambda.createFunction({
-      Code: {
-        ZipFile: fs.readFileSync(dest),
-      },
-      FunctionName: 'CreateRecorder',
-      //TODO
-      Handler: 'resources/recorder/post/index.handler',
-      Role: 'arn:aws:iam::290766561564:role/LambdaExec',
-      Runtime: 'nodejs',
-      Publish: true,
-    }, function(err, data) {
-      //TODO get the FunctionArn from data for swagger spec
-      console.log(err, data);
-      cb();
-    });
+    var code = fs.readFileSync(path.join(relativeDir, 'lambda.zip'));
+
+    functions
+      .then(function(functions) {
+        if (functions[name]) {
+          update(name, code, cb);
+        } else {
+          create(name, code, dir + '/index.handler', cb);
+        }
+      })
+      .catch(cb);
+
   });
 };
+
+function create(name, code, handler, cb) {
+  lambda.createFunction({
+    Code: {
+      ZipFile: code,
+    },
+    FunctionName: name,
+    Handler: handler,
+    Role: EXEC_ROLE,
+    Runtime: 'nodejs',
+    Publish: true,
+  }, cb);
+}
+
+function update(name, code, cb) {
+  lambda.updateFunctionCode({
+    FunctionName: name,
+    Publish: true,
+    ZipFile: code,
+  }, cb);
+}
