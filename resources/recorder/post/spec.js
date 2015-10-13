@@ -18,7 +18,7 @@ exports.parameters = [
 ];
 
 exports.responses = {
-  '201': {
+  '200': {
     description: 'new recorder and a jwt',
     schema: {
       type: 'object',
@@ -46,3 +46,26 @@ exports.responses = {
     },
   },
 };
+
+exports['x-amazon-apigateway-auth'] = {
+  type: 'none',
+};
+
+exports['x-amazon-apigateway-integration'] = {
+  type: 'aws',
+  uri : 'arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:290766561564:function:CreateRecorder/invocations',
+  httpMethod: 'POST',
+  credentials: 'arn:aws:iam::290766561564:role/LambdaExec',
+  requestTemplates: {},
+  requestParameters: {},
+  responses: {
+    '201': {
+      statusCode: '201',
+    },
+    'default': {
+      statusCode: '200',
+    },
+  },
+};
+
+

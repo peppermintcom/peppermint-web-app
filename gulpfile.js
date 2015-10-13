@@ -3,6 +3,7 @@ var nodemon = require('gulp-nodemon');
 
 var lambda = require('./build/lambda');
 var swagger = require('./build/swagger');
+var gateway = require('./build/gateway');
 
 //generate swagger.json specification file
 gulp.task('swagger', swagger);
@@ -19,3 +20,5 @@ gulp.task('serve', ['swagger'], function() {
     script: 'server.js',
   });
 });
+
+gulp.task('deploy', ['swagger'], gateway);

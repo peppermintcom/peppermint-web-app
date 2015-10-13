@@ -1,0 +1,4 @@
+[submodule "build/aws-apigateway-swagger-importer"]
+	path = build/aws-apigateway-swagger-importer
+	url = https://github.com/awslabs/aws-apigateway-swagger-importer.git
+	ignore = dirty
