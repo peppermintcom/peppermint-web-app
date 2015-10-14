@@ -9,7 +9,9 @@ var through2 = require('through2');
 var aws = require('aws-sdk');
 var devDeps = require('../package.json').devDependencies;
 
-const EXEC_ROLE = 'arn:aws:iam::290766561564:role/LambdaExec';
+const EXEC_ROLE = 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole';
+
+aws.config.credentials = new aws.SharedIniFileCredentials({profile: 'peppermint'});
 
 var lambda = new aws.Lambda({
   apiVersion: '2015-03-31',
@@ -64,7 +66,7 @@ module.exports = function() {
         if (functions[name]) {
           update(name, code, cb);
         } else {
-          create(name, code, dir + '/index.handler', cb);
+          create(name, code, relativeDir + '/index.handler', cb);
         }
       })
       .catch(cb);

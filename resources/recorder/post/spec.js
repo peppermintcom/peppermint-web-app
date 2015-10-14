@@ -53,9 +53,9 @@ exports['x-amazon-apigateway-auth'] = {
 
 exports['x-amazon-apigateway-integration'] = {
   type: 'aws',
-  uri : 'arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:290766561564:function:CreateRecorder/invocations',
+  uri : 'arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:819923996052:function:CreateRecorder/invocations',
   httpMethod: 'POST',
-  credentials: 'arn:aws:iam::290766561564:role/LambdaExec',
+  credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecPolicy',
   requestTemplates: {},
   requestParameters: {},
   responses: {
