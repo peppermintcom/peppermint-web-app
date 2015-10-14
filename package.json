@@ -20,6 +20,7 @@
   "homepage": "https://github.com/peppermintcom/peppermint-api#readme",
   "devDependencies": {
     "aws-sdk": "^2.2.9",
+    "eslint-plugin-react": "^3.5.1",
     "gulp": "^3.9.0",
     "gulp-nodemon": "git://github.com/JacksonGariety/gulp-nodemon.git#8ee28a46a9f335d9babf0131fde29b646cc621c3",
     "hapi": "^10.4.1",

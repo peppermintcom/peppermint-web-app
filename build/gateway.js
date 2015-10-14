@@ -1,7 +1,7 @@
 var execSync = require('child_process').execSync;
 var fs = require('fs');
 
-const API_ID = process.env.PEPPERMINT_API_ID;
+const API_ID = 'qdkkavugcd';
 const STAGE = 'prod';
 
 module.exports = function() {
