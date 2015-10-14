@@ -1,10 +1,14 @@
-var execSync = require('child_process').execSync;
+var exec = require('child_process').exec;
 var fs = require('fs');
+var path = require('path');
 
 const API_ID = 'qdkkavugcd';
 const STAGE = 'prod';
 
 module.exports = function() {
   process.chdir('build/aws-apigateway-swagger-importer');
-  execSync('./aws-api-import.sh --update ' + API_ID + ' --deploy ' + STAGE + ' ../../swagger.json');
+  exec('./aws-api-import.sh --profile peppermint --update ' + API_ID + ' --deploy ' + STAGE + ' ../../swagger.json', function(err, stdout, stderr) {
+    console.log(stdout.toString());
+    console.log(stderr.toString());
+  });
 };
