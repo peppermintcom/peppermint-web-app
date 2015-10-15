@@ -1,7 +1,7 @@
 var expect = require('chai').expect;
 var request = require('request');
 
-describe('POST /resources', function() {
+describe('POST /recorder', function() {
   var clientID = Date.now().toString();
   var params = {
     recorder: {
@@ -11,13 +11,14 @@ describe('POST /resources', function() {
   var res = null;
   var body = null;
 
-  describe('with a unique recorder_client_id parameter and valid description', function() {
+  describe('Valid Requests', function() {
     before(function(done) {
       request({
         url: 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1/recorder',
         method: 'POST',
         json: true,
         body: {
+          api_key: 'abc123',
           recorder: {
             recorder_client_id: clientID,
             description: 'Mocha',
@@ -46,7 +47,7 @@ describe('POST /resources', function() {
     });
   });
 
-  describe.only('Invalid Input Data', function() {
+  describe('Invalid Input Data', function() {
     describe('without recorder_client_id', function() {
       before(function(done) {
         request({

@@ -27,3 +27,8 @@ note the stage. Then the API can be updated with
 ```
 ./aws-api-import.sh --update API_ID --deploy STAGE ../../swagger.json
 ```
+
+## Tests
+Unit tests are in the subdirectory of the file they're testing. Run them with
+```npm test```. Integration tests are all in the test directory. Run them with
+```npm run tests```.

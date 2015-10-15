@@ -1,6 +1,7 @@
 var tv4 = require('tv4');
 var bcrypt = require('bcrypt-nodejs');
 var schema = require('./spec').parameters[0].schema;
+var _ = require('utils');
 
 /**
  * Registers a new instance of an app. The app can be identified by the API key
@@ -21,6 +22,8 @@ exports.handler = function(e, context) {
     context.fail(['Bad Request:', tv4.error.message].join(' '));
     return;
   }
+  //generate key (password)
+  var key = _.token(40);
 
   //stub
   context.succeed({
@@ -28,10 +31,10 @@ exports.handler = function(e, context) {
     recorder: {
       recorder_id: 1234567890,
       user_account_id: 2345678901,
-      recorder_client_id: 'some 123 client',
+      recorder_client_id: e.recorder.recorder_client_id,
       recorder_key: 'abcDEF123',
       recorder_ts: '2015-10-19 09:19:55',
-      description: 'Android 4.1 Nexus 5',
+      description: e.recorder.description,
     },
   });
 };
