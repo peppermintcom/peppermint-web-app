@@ -25,7 +25,6 @@ var blacklist = Object.keys(devDeps).concat([
 //individual files in operation directories that should not be zipped for upload
 var nozip = [
   'lambda.zip',
-  'spec.js',
 ];
 
 module.exports = function() {

@@ -36,7 +36,6 @@ module.exports = function() {
     basePath: '/v1',
     schemes: ['https'],
     paths: paths,
-    definitions: require('../definitions'),
     tags: [
       {name: 'recorder'},
     ],

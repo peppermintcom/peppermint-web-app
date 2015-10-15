@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha",
+    "test": "mocha -t 10000 --bail resources/recorder/test",
     "start": "gulp serve",
     "swagger": "gulp swagger"
   },
@@ -25,11 +25,16 @@
     "gulp-nodemon": "git://github.com/JacksonGariety/gulp-nodemon.git#8ee28a46a9f335d9babf0131fde29b646cc621c3",
     "hapi": "^10.4.1",
     "inert": "^3.1.0",
+    "request": "^2.65.0",
     "swagger-tools": "^0.9.7",
     "swagger-ui": "^2.1.3",
+    "chai": "^3.3.0",
+    "mocha": "^2.3.3",
     "through2": "^2.0.0"
   },
   "dependencies": {
-    "lodash": "^3.10.1"
+    "bcrypt-nodejs": "0.0.3",
+    "lodash": "^3.10.1",
+    "tv4": "^1.2.7"
   }
 }
