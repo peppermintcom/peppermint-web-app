@@ -1,19 +1,10 @@
 var tv4 = require('tv4');
-var bcrypt = require('bcrypt-nodejs');
 var schema = require('./spec').parameters[0].schema;
 var _ = require('utils');
 
 /**
  * Registers a new instance of an app. The app can be identified by the API key
  * provided in the payload.
- * 1. Get app id from apps table by api key.
- * 2. Generate password (key) for recorder.
- * 3. Timestamp.
- * 4. Save app id, client id, timestamp, description, bcrypted key in database
- * and get recorder id.
- * 5. Generate JWT.
- * 6. Return JWT, recorder id, client id, plaintext key, timestamp, description
- * in response.
  */
 exports.handler = function(e, context) {
   var isValid = tv4.validate(e, schema);
@@ -24,17 +15,45 @@ exports.handler = function(e, context) {
   }
   //generate key (password)
   var key = _.token(40);
+  var hash = _.bcryptHash(key);
 
-  //stub
-  context.succeed({
-    at: 'abc.def.ghi',
-    recorder: {
-      recorder_id: 1234567890,
-      user_account_id: 2345678901,
-      recorder_client_id: e.recorder.recorder_client_id,
-      recorder_key: 'abcDEF123',
-      recorder_ts: '2015-10-19 09:19:55',
-      description: e.recorder.description,
-    },
+  _.bcryptHash(key)
+    .then(function(hash) {
+      return _.db.execRow('create_recorder', [
+          e.api_key,
+          e.recorder.recorder_client_id,
+          hash,
+          e.recorder.description
+        ])
+        .then(function(r) {
+          //TODO generate JWT
+          var jwt = '';
+
+          context.succeed({
+            at: jwt,
+            recorder: {
+              recorder_id: r._id,
+              recorder_client_id: e.recorder.recorder_client_id,
+              recorder_key: key,
+              recorder_ts: r._ts,
+              description: e.recorder.description,
+            },
+          });
+        })
+        .catch(function(err) {
+          if (err.code === '23505' && /recorder_client_id/.test(err.detail)) {
+            context.fail('Conflict: recorder_client_id');
+            return;
+          }
+          if (err.code === 'P0002' && /api_key/.test(err.message)) {
+            context.fail('Unauthorized: ' + err.message);
+            return;
+          }
+          throw err;
+        });
+  })
+  .catch(function(err) {
+    console.log(err);
+    context.fail('Internal Server Error');
   });
 };

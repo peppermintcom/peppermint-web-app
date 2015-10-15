@@ -1,7 +1,88 @@
 var expect = require('chai').expect;
 var handler = require('./').handler;
+var _ = require('utils');
+
+//has to exist in the database app table
+const APP_API_KEY = 'abc123';
+//optional
+const DESCRIPTION = 'Mocha';
 
 describe('lambda:CreateRecorder', function() {
+  describe('Valid', function() {
+    it('should invoke succeed with a Recorder', function(done) {
+      var clientID = _.token(12);
+
+      handler({
+        api_key: APP_API_KEY,
+        recorder: {
+          recorder_client_id: clientID,
+          description: 'Mocha',
+        },
+      }, {
+        succeed: function(r) {
+          //TODO check JWT
+          expect(r).to.have.property('at');
+          expect(r).to.have.property('recorder');
+          expect(r.recorder).to.have.property('recorder_id');
+          expect(r.recorder).to.have.property('recorder_client_id', clientID);
+          expect(r.recorder).to.have.property('recorder_key');
+          expect(r.recorder).to.have.property('recorder_ts');
+          expect(r.recorder).to.have.property('description', 'Mocha');
+          done();
+        }
+      });
+    });
+  });
+
+  describe('Duplicate recorder_client_id', function() {
+    var clientID = _.token(12);
+
+    before(function(done) {
+      handler({
+        api_key: APP_API_KEY,
+        recorder: {
+          recorder_client_id: clientID,
+        },
+      }, {
+        succeed: function() {
+          done();
+        },
+      });
+    });
+
+    it('should return a invoke context.fail with a Conflict error', function(done) {
+      handler({
+        api_key: APP_API_KEY,
+        recorder: {
+          recorder_client_id: clientID,
+        },
+      }, {
+        fail: function(err) {
+          expect(err).to.match(/^Conflict/);
+          expect(err).to.match(/recorder_client_id/);
+          done();
+        },
+      });
+    });
+  });
+
+  describe('unknown api_key', function() {
+    it('should invoke context.fail with a Not Found error', function(done) {
+      handler({
+        api_key: 'xyz',
+        recorder: {
+          recorder_client_id: _.token(12),
+        },
+      }, {
+        fail: function(err) {
+          expect(err).to.match(/^Unauthorized/);
+          expect(err).to.match(/api_key/);
+          done();
+        },
+      });
+    });
+  });
+
   describe('Invalid Input Data', function() {
     [{
       given: 'no api_key',

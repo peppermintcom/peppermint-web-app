@@ -4,6 +4,16 @@
 ```
 npm install
 ```
+Create a local postgres database and save the connection string in the
+PEPPERMINTDB env var.
+```
+export PEPPERMINTDB=postgres://areed:@localhost/peppermint
+```
+Define tables, views, and functions in your database.
+```
+cd sql
+psql -f build.sql peppermint
+```
 
 ## Docs
 ```
