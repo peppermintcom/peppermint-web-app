@@ -15,7 +15,6 @@ exports.handler = function(e, context) {
   }
   //generate key (password)
   var key = _.token(40);
-  var hash = _.bcryptHash(key);
 
   _.bcryptHash(key)
     .then(function(hash) {
@@ -26,8 +25,8 @@ exports.handler = function(e, context) {
           e.recorder.description
         ])
         .then(function(r) {
-          //TODO generate JWT
-          var jwt = '';
+          //generate jwt with account_id and recorder_id
+          var jwt = _.jwt(null, r._id);
 
           context.succeed({
             at: jwt,
@@ -53,6 +52,7 @@ exports.handler = function(e, context) {
         });
   })
   .catch(function(err) {
+    console.log('unknown error');
     console.log(err);
     context.fail('Internal Server Error');
   });

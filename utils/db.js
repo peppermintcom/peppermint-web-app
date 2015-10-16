@@ -1,7 +1,8 @@
 var pg = require('pg');
 var _ = require('lodash');
+var conf = require('./conf.js');
 
-const conn = process.env.PEPPERMINTDB;
+const conn = conf.PEPPERMINT_DB;
 
 /**
  * Run a stored procedure and get result rows.
@@ -22,6 +23,7 @@ var exec = exports.exec = function(procedure, args, parse, cb) {
       return;
     }
     client.query('SELECT * FROM ' + procedure + '(' + params(args) + ');', args, function(err, result) {
+      done();
       if (err) {
         cb(err);
         return;

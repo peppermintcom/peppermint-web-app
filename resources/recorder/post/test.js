@@ -19,9 +19,12 @@ describe('lambda:CreateRecorder', function() {
           description: 'Mocha',
         },
       }, {
+        fail: function(err) {
+          done(new Error(err));
+        },
         succeed: function(r) {
-          //TODO check JWT
           expect(r).to.have.property('at');
+          expect(r.at).to.match(/^[\w\-]+\.[\w\-]+\.[\w\-]+$/);
           expect(r).to.have.property('recorder');
           expect(r.recorder).to.have.property('recorder_id');
           expect(r.recorder).to.have.property('recorder_client_id', clientID);
@@ -50,7 +53,7 @@ describe('lambda:CreateRecorder', function() {
       });
     });
 
-    it('should return a invoke context.fail with a Conflict error', function(done) {
+    it('should invoke context.fail with a Conflict error', function(done) {
       handler({
         api_key: APP_API_KEY,
         recorder: {
@@ -67,7 +70,7 @@ describe('lambda:CreateRecorder', function() {
   });
 
   describe('unknown api_key', function() {
-    it('should invoke context.fail with a Not Found error', function(done) {
+    it('should invoke context.fail with an Unauthorized error', function(done) {
       handler({
         api_key: 'xyz',
         recorder: {

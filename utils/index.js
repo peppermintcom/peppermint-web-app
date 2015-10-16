@@ -1,11 +1,23 @@
+require('es6-promise').polyfill();
 var _ = require('lodash');
 var randomstring = require('randomstring');
-var bcrypt = require('bcrypt-nodejs');
+var bcrypt = require('bcryptjs');
+var jwt = require('jwt-simple');
+var errors = require('./errors');
+var conf = require('./conf.js');
 
-const BCRYPT_COST = 11;
+//while using js
+const BCRYPT_COST = 8;
+const JWT_SECRET = conf.PEPPERMINT_JWT_SECRET;
+
+if (JWT_SECRET.length < 40) {
+  throw new Error('set env var PEPPERMINT_JWT_SECRET to a string 40 characters long');
+}
 
 exports.db = require('./db');
+exports.errors = errors;
 
+//generate random tokens
 exports.token = function(length) {
   return randomstring.generate({
     length: length || 32,
@@ -13,6 +25,7 @@ exports.token = function(length) {
   });
 };
 
+//current time in YYYY-MM-DD HH:MM:SS string format
 exports.timestamp = function(d) {
   d = new Date(d);
 
@@ -31,22 +44,16 @@ exports.timestamp = function(d) {
 };
 
 /**
- * @param {String} s
+ * @param {String} plaintext
  */
-exports.bcryptHash = function(s) {
+exports.bcryptHash = function(plaintext) {
   return new Promise(function(resolve, reject) {
-    bcrypt.genSalt(BCRYPT_COST, function(err, salt) {
+    bcrypt.hash(plaintext, BCRYPT_COST, function(err, hash) {
       if (err) {
         reject(err);
         return;
       }
-      bcrypt.hash(s, salt, null, function(err, hash) {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(hash);
-      });
+      resolve(hash);
     });
   });
 };
@@ -65,6 +72,38 @@ exports.bcryptCheck = function(plain, hash) {
       resolve(ok);
     });
   });
+};
+
+exports.jwt = (function() {
+  var day = 60 * 60 * 24;
+
+  return function(user_id, recorder_id) {
+    var now = Math.floor(Date.now() / 1000)
+
+    return jwt.encode({
+      exp: now + (30 * day),
+      iat: now,
+      iss: 'peppermint.com',
+      sub: [user_id || '', recorder_id].join('.'),
+    }, JWT_SECRET);
+  };
+})();
+
+exports.jwtVerify = function(token) {
+  var r = {};
+
+  try {
+    r.payload = jwt.decode(token, JWT_SECRET);
+  } catch(e) {
+    r.err = e;
+    return r;
+  }
+
+  if (r.payload.exp < Math.ceil(Date.now() / 1000)) {
+    r.err = errors.EXPIRED;
+  }
+
+  return r;
 };
 
 module.exports = _.assign(exports, _);

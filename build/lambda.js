@@ -83,6 +83,7 @@ function create(name, code, handler, cb) {
     Role: EXEC_ROLE,
     Runtime: 'nodejs',
     Publish: true,
+    Timeout: 10,
   }, cb);
 }
 

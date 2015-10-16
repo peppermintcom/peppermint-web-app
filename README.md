@@ -5,15 +5,22 @@
 npm install
 ```
 Create a local postgres database and save the connection string in the
-PEPPERMINTDB env var.
+PEPPERMINT_DB env var.
 ```
-export PEPPERMINTDB=postgres://areed:@localhost/peppermint
+export PEPPERMINT_DB=postgres://areed:@localhost/peppermint
 ```
 Define tables, views, and functions in your database.
 ```
 cd sql
 psql -f build.sql peppermint
 ```
+
+Set a secret for signing JWTs at least 40 characters long.
+```
+export PEPPERMINT_JWT_SECRET=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN
+```
+
+For Lambda, set the env vars as keys in utils/conf.json.
 
 ## Docs
 ```

@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --bail --recursive utils/ resources/",
-    "tests": "mocha -t 10000 --bail test/",
+    "test": "mocha -t 10000 --bail --recursive utils/ resources/",
+    "integration-tests": "mocha -t 10000 --bail test/",
     "start": "gulp serve",
     "swagger": "gulp swagger"
   },
@@ -21,7 +21,6 @@
   "homepage": "https://github.com/peppermintcom/peppermint-api#readme",
   "devDependencies": {
     "aws-sdk": "^2.2.9",
-    "eslint-plugin-react": "^3.5.1",
     "gulp": "^3.9.0",
     "gulp-nodemon": "git://github.com/JacksonGariety/gulp-nodemon.git#8ee28a46a9f335d9babf0131fde29b646cc621c3",
     "hapi": "^10.4.1",
@@ -34,7 +33,9 @@
     "through2": "^2.0.0"
   },
   "dependencies": {
-    "bcrypt-nodejs": "0.0.3",
+    "bcryptjs": "^2.3.0",
+    "es6-promise": "^3.0.2",
+    "jwt-simple": "^0.3.1",
     "lodash": "^3.10.1",
     "pg": "^4.4.2",
     "randomstring": "^1.1.0",

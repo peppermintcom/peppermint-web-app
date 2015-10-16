@@ -58,6 +58,27 @@ exports.responses = {
       type: 'string',
     },
   },
+  '401': {
+    description: 'Invalid API Key',
+    schema: {
+      title: 'CreateRecorder401',
+      type: 'string',
+    },
+  },
+  '409': {
+    description: 'Already Registered',
+    schema: {
+      title: 'CreateRecorder409',
+      type: 'string',
+    },
+  },
+  '500': {
+    description: 'Internal Server Error',
+    schema: {
+      title: 'CreateRecorder500',
+      type: 'string',
+    },
+  },
 };
 
 exports['x-amazon-apigateway-auth'] = {
@@ -86,5 +107,26 @@ exports['x-amazon-apigateway-integration'] = {
       responseParameters: {},
       responseTemplates: {},
     },
+    'Unauthorized: .*': {
+      statusCode: '401',
+      responseParameters: {},
+      responseTemplates: {
+        'application/json': "$input.json('$')",
+      },
+    },
+    'Conflict: .*': {
+      statusCode: '409',
+      responseParameters: {},
+      responseTemplates: {
+        'application/json': "$input.json('$')",
+      },
+    },
+    '^(?!Bad Request|Unauthorized|Conflict)(.|\\n)+' :{
+      statusCode: '500',
+      responseParameters: {},
+      responseTemplates: {
+        'application/json': "{\"errorMessage\": \"Internal Server Error\"",
+      },
+    }
   },
 };

@@ -28,3 +28,17 @@ describe('token', function() {
     expect(t).to.match(/[\-_]/);
   });
 });
+
+describe('jwt', function() {
+  var recorder_id = 12345;
+
+  it('should generate a token', function() {
+    var token = _.jwt(null, recorder_id);
+    var decoded = _.jwtVerify(token);
+
+    expect(decoded).not.to.have.property('err');
+    expect(decoded).to.have.property('payload');
+    expect(decoded.payload).to.have.property('exp');
+    expect(decoded.payload).to.have.property('sub', '.' + recorder_id);
+  });
+});
