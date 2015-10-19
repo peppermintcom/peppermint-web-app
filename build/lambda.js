@@ -49,6 +49,7 @@ module.exports = function() {
 
   return through2.obj(function(file, enc, cb) {
     var relativeDir = path.relative(process.cwd(), file.base);
+    console.log(relativeDir);
     var dest = path.join(relativeDir, 'lambda.zip');
     var include = _.difference(fs.readdirSync(relativeDir), nozip)
         .map(function(filename) {

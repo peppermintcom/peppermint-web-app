@@ -10,8 +10,11 @@ gulp.task('swagger', swagger);
 
 //zip and upload handlers to AWS Lambda
 gulp.task('lambda', function() {
-  return gulp.src('resources/recorder/post/index.js')
-  .pipe(lambda());
+  return gulp.src([
+      './resources/uploads/post/index.js',
+      './resources/recorder/post/index.js',
+    ])
+    .pipe(lambda());
 });
 
 //serve the docs with swagger-ui

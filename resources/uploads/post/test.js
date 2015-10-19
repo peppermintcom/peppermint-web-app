@@ -14,8 +14,9 @@ describe.only('lambda:CreateUpload', function() {
 
   it('should return a signed_url for the peppermint-cdn bucket.', function(done) {
     handler({
-      jwt: jwt,
-      record: {
+      Authorization: 'Bearer ' + jwt,
+      body: {
+        contentType: 'audio/aac',
         recorder_id: recorder.recorder_id,
       },
     }, {
