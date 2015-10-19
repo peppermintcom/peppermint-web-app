@@ -3,8 +3,10 @@ var _ = require('lodash');
 var randomstring = require('randomstring');
 var bcrypt = require('bcryptjs');
 var jwt = require('jwt-simple');
+var Hashids = require('hashids');
 var errors = require('./errors');
 var conf = require('./conf.js');
+var hashids = new Hashids(conf.PEPPERMINT_HASHIDS_SALT);
 
 //while using js
 const BCRYPT_COST = 8;
@@ -103,7 +105,16 @@ exports.jwtVerify = function(token) {
     r.err = errors.EXPIRED;
   }
 
+  r.recorder_id = r.payload.sub.split('.')[1];
   return r;
+};
+
+exports.hashID = function(id) {
+  return hashids.encode(parseInt(id, 10));
+};
+
+exports.unhashID = function(hash) {
+  return hashids.decode(hash)[0];
 };
 
 module.exports = _.assign(exports, _);
