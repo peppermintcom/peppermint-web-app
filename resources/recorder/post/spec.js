@@ -32,6 +32,10 @@ exports.parameters = [
 exports.responses = {
   '201': {
     description: 'new recorder and a jwt',
+    headers: {
+      'Content-Type': {type: 'string'},
+      'Access-Control-Allow-Origin': {type: 'string'},
+    },
     schema: {
       title: 'CreateRecorderOK',
       type: 'object',
@@ -40,9 +44,6 @@ exports.responses = {
         recorder: use(recorder, ['description'], ['recorder_id', 'recorder_client_id', 'recorder_key', 'recorder_ts']),
       },
       required: ['at', 'recorder'],
-    },
-    headers: {
-      'Content-Type': {type: 'string'},
     },
     examples: {
       'application/json': {

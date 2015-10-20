@@ -56,7 +56,7 @@ describe('POST /recorder', function() {
   });
 
   describe('Invalid Input Data', function() {
-    describe.only('wihtout api_key', function() {
+    describe('wihtout api_key', function() {
       it('should return a 400 error.', function() {
         return call(_.omit(params, 'api_key'))
           .then(function(res) {

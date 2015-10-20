@@ -3,13 +3,13 @@ var responses = require('definitions/responses');
 var integrations = require('definitions/integrations');
 
 exports.tags = ['record'];
-exports.summary = 'Initialize a new upload';
+exports.summary = 'Finalize an upload';
 exports.operationId = 'CreateRecord';
 exports.consumes = exports.produces = ['application/json'];
 
 exports.parameters = [
   {
-    name: 'jwt',
+    name: 'Authorization',
     'in': 'header',
     description: 'Auth Bearer token',
     required: true,
@@ -34,6 +34,10 @@ exports.parameters = [
 exports.responses = {
   '201': {
     description: 'Record',
+    headers: {
+      'Access-Control-Allow-Origin': {type: 'string'},
+      'Content-Type': {type: 'string'},
+    },
     schema: {
       title: 'CreateRecordOK',
       type: 'object',

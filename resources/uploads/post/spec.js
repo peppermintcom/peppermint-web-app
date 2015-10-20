@@ -3,7 +3,7 @@ var recorder = require('definitions/recorder');
 var responses = require('definitions/responses');
 var integrations = require('definitions/integrations');
 
-exports.tags = ['upload'];
+exports.tags = ['uploads'];
 exports.summary = 'Initialize a new upload';
 exports.description = 'The API will generate a signed URL where a file can be uploaded. The client must include the content type of the file in the request and in the PUT operation to the returned signed_url.';
 exports.operationId = 'CreateUpload';
@@ -11,7 +11,7 @@ exports.consumes = exports.produces = ['application/json'];
 
 exports.parameters = [
   {
-    name: 'jwt',
+    name: 'Authorization',
     'in': 'header',
     description: 'Auth Bearer token',
     required: true,
@@ -40,6 +40,10 @@ exports.parameters = [
 exports.responses = {
   '201': {
     description: 'Signed Insert Url',
+    headers: {
+      'Content-Type': {type: 'string'},
+      'Access-Control-Allow-Origin': {type: 'string'},
+    },
     schema: {
       title: 'CreateUploadOK',
       type: 'object',
@@ -47,9 +51,6 @@ exports.responses = {
         signed_url: {type: 'string'},
       },
       required: ['signed_url'],
-    },
-    headers: {
-      'Content-Type': {type: 'string'},
     },
     examples: {
       'application/json': {

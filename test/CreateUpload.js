@@ -69,7 +69,6 @@ describe('POST /uploads', function() {
               done(err);
               return;
             }
-            console.log(s3resp.statusCode);
             expect(s3resp.statusCode).to.equal(200);
             done();
           });

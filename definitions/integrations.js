@@ -1,30 +1,40 @@
 exports.Created = {
   statusCode: '201',
-  responseParameters: {},
+  responseParameters: {
+    'method.response.header.Access-Control-Allow-Origin': "'*'",
+  },
   responseTemplates: {},
 };
 
 exports.BadRequest = {
   statusCode: '400',
-  responseParameters: {},
+  responseParameters: {
+    'method.response.header.Access-Control-Allow-Origin': "'*'",
+  },
   responseTemplates: {},
 };
 
 exports.Unauthorized = {
   statusCode: '401',
-  responseParameters: {},
+  responseParameters: {
+    'method.response.header.Access-Control-Allow-Origin': "'*'",
+  },
   responseTemplates: {},
 };
 
 exports.Conflict = {
   statusCode: '409',
-  responseParameters: {},
+  responseParameters: {
+    'method.response.header.Access-Control-Allow-Origin': "'*'",
+  },
   responseTemplates: {},
 };
 
 exports.Internal = {
   statusCode: '500',
-  responseParameters: {},
+  responseParameters: {
+    'method.response.header.Access-Control-Allow-Origin': "'*'",
+  },
   responseTemplates: {
     'application/json': "{\"errorMessage\": \"Internal Server Error\"",
   },

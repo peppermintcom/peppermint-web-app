@@ -1,5 +1,8 @@
 exports.BadRequest = {
   description: 'Bad Request',
+  headers: {
+    'Access-Control-Allow-Origin': {type: 'string'},
+  },
   schema: {
     type: 'object',
     properties: {
@@ -13,6 +16,9 @@ exports.BadRequest = {
 
 exports.Unauthorized = {
   description: 'Unauthorized',
+  headers: {
+    'Access-Control-Allow-Origin': {type: 'string'},
+  },
   schema: {
     type: 'object',
     properties: {
@@ -26,6 +32,9 @@ exports.Unauthorized = {
 
 exports.Conflict = {
   description: 'Conflict',
+  headers: {
+    'Access-Control-Allow-Origin': {type: 'string'},
+  },
   schema: {
     type: 'object',
     properties: {
@@ -38,6 +47,9 @@ exports.Conflict = {
 
 exports.Internal = {
   description: 'Internal Server Error',
+  headers: {
+    'Access-Control-Allow-Origin': {type: 'string'},
+  },
   schema: {
     type: 'string',
   }
