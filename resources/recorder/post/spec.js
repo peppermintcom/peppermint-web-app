@@ -1,8 +1,12 @@
 var _ = require('lodash');
 var recorder = require('definitions/recorder');
+var responses = require('definitions/responses');
+var integrations = require('definitions/integrations');
+var use = require('definitions/use');
 
 exports.tags = ['recorder'];
 exports.summary = 'Register a new recorder.';
+exports.description = 'This operation is performed only once for each install of an application or extension. The client must provide a unique recorder_client_id. The response will provide a JWT token that should be used to authenticate future requests to the API. The response also provides a recorder_client_key that works like a password when it\'s time to get a new JWT from the API.';
 exports.operationId = 'CreateRecorder';
 exports.consumes = exports.produces = ['application/json'];
 
@@ -11,11 +15,14 @@ exports.parameters = [
     name: 'payload',
     'in': 'body',
     schema: {
-      title: 'CreateRecorderReqBody',
+      title: 'CreateRecorderRequestBody',
       type: 'object',
       properties: {
-        api_key: {type: 'string'},
-        recorder: _.assign({}, recorder, {required: ['recorder_client_id']}),
+        api_key: {
+          description: 'The API key assigned to a given application or extension. All installations of the iOS app, for example, will have the same API key.',
+          type: 'string'
+        },
+        recorder: use(recorder, ['description'], ['recorder_client_id']),
       },
       required: ['api_key', 'recorder'],
     },
@@ -30,7 +37,7 @@ exports.responses = {
       type: 'object',
       properties: {
         at: require('definitions/jwt'),
-        recorder: recorder,
+        recorder: use(recorder, ['description'], ['recorder_id', 'recorder_client_id', 'recorder_key', 'recorder_ts']),
       },
       required: ['at', 'recorder'],
     },
@@ -42,7 +49,6 @@ exports.responses = {
         at: 'abc.def.ghi',
         recorder: {
           recorder_id: 1234567890,
-          user_account_id: 2345678901,
           recorder_client_id: 'some 123 client',
           recorder_key: 'abcDEF123',
           recorder_ts: '2015-10-19 09:19:55',
@@ -51,34 +57,10 @@ exports.responses = {
       },
     },
   },
-  '400': {
-    description: 'Invalid Input Data',
-    schema: {
-      title: 'CreateRecorder400',
-      type: 'string',
-    },
-  },
-  '401': {
-    description: 'Invalid API Key',
-    schema: {
-      title: 'CreateRecorder401',
-      type: 'string',
-    },
-  },
-  '409': {
-    description: 'Already Registered',
-    schema: {
-      title: 'CreateRecorder409',
-      type: 'string',
-    },
-  },
-  '500': {
-    description: 'Internal Server Error',
-    schema: {
-      title: 'CreateRecorder500',
-      type: 'string',
-    },
-  },
+  '400': responses.BadRequest,
+  '401': responses.Unauthorized,
+  '409': responses.Conflict,
+  '500': responses.Internal,
 };
 
 exports['x-amazon-apigateway-auth'] = {
@@ -95,38 +77,10 @@ exports['x-amazon-apigateway-integration'] = {
   },
   requestParameters: {},
   responses: {
-    'default': {
-      statusCode: '201',
-      responseParameters: {},
-      responseTemplates: {
-        'application/json': "$input.json('$')"
-      }
-    },
-    'Bad Request: .*': {
-      statusCode: '400',
-      responseParameters: {},
-      responseTemplates: {},
-    },
-    'Unauthorized: .*': {
-      statusCode: '401',
-      responseParameters: {},
-      responseTemplates: {
-        'application/json': "$input.json('$')",
-      },
-    },
-    'Conflict: .*': {
-      statusCode: '409',
-      responseParameters: {},
-      responseTemplates: {
-        'application/json': "$input.json('$')",
-      },
-    },
-    '^(?!Bad Request|Unauthorized|Conflict)(.|\\n)+' :{
-      statusCode: '500',
-      responseParameters: {},
-      responseTemplates: {
-        'application/json': "{\"errorMessage\": \"Internal Server Error\"",
-      },
-    }
+    'default': integrations.Created,
+    'Bad Request: .*': integrations.BadRequest,
+    'Unauthorized: .*': integrations.Unauthorized,
+    'Conflict: .*': integrations.Conflict,
+    '^(?!Bad Request|Unauthorized|Conflict)(.|\\n)+': integrations.Internal,
   },
 };

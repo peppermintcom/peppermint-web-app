@@ -1,8 +1,11 @@
 var _ = require('lodash');
 var recorder = require('definitions/recorder');
+var responses = require('definitions/responses');
+var integrations = require('definitions/integrations');
 
 exports.tags = ['upload'];
 exports.summary = 'Initialize a new upload';
+exports.description = 'The API will generate a signed URL where a file can be uploaded. The client must include the content type of the file in the request and in the PUT operation to the returned signed_url.';
 exports.operationId = 'CreateUpload';
 exports.consumes = exports.produces = ['application/json'];
 
@@ -21,11 +24,15 @@ exports.parameters = [
     description: 'File Metadata',
     required: true,
     schema: {
+      title: 'CreateUploadRequestBody',
       type: 'object',
       properties: {
-        contentType: {type: 'string'},
+        content_type: {
+          type: 'string',
+          description: 'The content type of the file that will be uploaded, such as "audio/x-aac".'
+        },
       },
-      required: ['contentType'],
+      required: ['content_type'],
     },
   }
 ];
@@ -50,20 +57,8 @@ exports.responses = {
       },
     },
   },
-  '401': {
-    description: 'Invalid API Key',
-    schema: {
-      title: 'CreateUpload401',
-      type: 'string',
-    },
-  },
-  '500': {
-    description: 'Internal Server Error',
-    schema: {
-      title: 'CreateUpload500',
-      type: 'string',
-    },
-  },
+  '401': responses.Unauthorized,
+  '500': responses.Internal,
 };
 
 exports['x-amazon-apigateway-auth'] = {
@@ -80,26 +75,8 @@ exports['x-amazon-apigateway-integration'] = {
   },
   requestParameters: {},
   responses: {
-    'default': {
-      statusCode: '201',
-      responseParameters: {},
-      responseTemplates: {
-        'application/json': "$input.json('$')"
-      }
-    },
-    'Unauthorized: .*': {
-      statusCode: '401',
-      responseParameters: {},
-      responseTemplates: {
-        'application/json': "$input.json('$')",
-      },
-    },
-    '^(?!Unauthorized)(.|\\n)+' :{
-      statusCode: '500',
-      responseParameters: {},
-      responseTemplates: {
-        'application/json': "{\"errorMessage\": \"Internal Server Error\"",
-      },
-    }
+    'default': integrations.Created,
+    'Unauthorized: .*': integrations.Unauthorized,
+    '^(?!Unauthorized)(.|\\n)+': integrations.Internal,
   },
 };

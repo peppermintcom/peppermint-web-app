@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var fake = require('utils/fake');
 var handler = require('./').handler;
 
-describe.only('lambda:CreateUpload', function() {
+describe('lambda:CreateUpload', function() {
   var jwt, recorder;
 
   before(function() {

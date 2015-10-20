@@ -14,7 +14,6 @@ exports.handler = function(req, res) {
   var auth = req.Authorization.split(' ');
 
   if (!auth || auth[0] !== 'Bearer' || !auth[1]) {
-    //TODO 400
     res.fail('Unauthorized');
     return;
   }

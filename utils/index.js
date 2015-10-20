@@ -91,7 +91,7 @@ exports.jwt = (function() {
   };
 })();
 
-exports.jwtVerify = function(token) {
+var jwtVerify = exports.jwtVerify = function(token) {
   var r = {};
 
   try {
@@ -107,6 +107,22 @@ exports.jwtVerify = function(token) {
 
   r.recorder_id = r.payload.sub.split('.')[1];
   return r;
+};
+
+/**
+ * Checks and parses the JWT from an Authorization Bearer header.
+ * @param {Authorization} string
+ */
+exports.authenticate = function(Authorization) {
+  var parts = Authorization.trim().split(' ');
+
+  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    return {
+      err: errors.UNAUTHORIZED,
+    };
+  }
+
+  return jwt.verify(parts[1]);
 };
 
 exports.hashID = function(id) {
