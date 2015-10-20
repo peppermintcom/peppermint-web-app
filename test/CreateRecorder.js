@@ -50,6 +50,8 @@ describe('POST /recorder', function() {
     it('should return a full representation of the Recorder resource.', function() {
       expect(res.body).to.have.property('at');
       expect(res.body).to.have.property('recorder');
+      expect(res.body.recorder).to.have.property('recorder_id');
+      expect(typeof res.body.recorder.recorder_id).to.equal('number');
       expect(res.body.recorder).to.have.property('recorder_client_id', clientID);
       expect(res.body.recorder).to.have.property('description', 'Mocha');
     });

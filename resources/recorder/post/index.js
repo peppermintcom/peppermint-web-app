@@ -31,10 +31,10 @@ exports.handler = function(e, context) {
           context.succeed({
             at: jwt,
             recorder: {
-              recorder_id: r._id,
+              recorder_id: parseInt(r._id, 10),
               recorder_client_id: e.recorder.recorder_client_id,
               recorder_key: key,
-              recorder_ts: r._ts,
+              recorder_ts: _.timestamp(r._ts),
               description: e.recorder.description,
             },
           });
