@@ -1,6 +1,8 @@
 var aws = require('aws-sdk');
+var tv4 = require('tv4');
 var _ = require('utils');
 var conf = require('utils/conf');
+var bodySchema = _.bodySchema(require('./spec').parameters);
 
 const BUCKET = 'peppermint-cdn';
 
@@ -11,16 +13,15 @@ var s3 = new aws.S3({
   });
 
 exports.handler = function(req, res) {
-  var auth = req.Authorization.split(' ');
-
-  if (!auth || auth[0] !== 'Bearer' || !auth[1]) {
+  var jwt = _.authenticate(req.Authorization);
+  if (jwt.err) {
     res.fail('Unauthorized');
     return;
   }
 
-  var jwt = _.jwtVerify(auth[1]);
-  if (jwt.err) {
-    res.fail('Unauthorized');
+  var isValid = tv4.validate(req.body, bodySchema);
+  if (!isValid) {
+    res.fail(['Bad Request:', tv4.error.message].join(' '));
     return;
   }
 
@@ -29,7 +30,7 @@ exports.handler = function(req, res) {
   s3.getSignedUrl('putObject', {
     Bucket: BUCKET,
     Key: key,
-    ContentType: req.body.contentType,
+    ContentType: req.body.content_type,
   }, function(err, url) {
     if (err) {
       res.fail(err);

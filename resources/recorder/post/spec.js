@@ -79,9 +79,9 @@ exports['x-amazon-apigateway-integration'] = {
   requestParameters: {},
   responses: {
     'default': integrations.Created,
-    'Bad Request: .*': integrations.BadRequest,
-    'Unauthorized: .*': integrations.Unauthorized,
-    'Conflict: .*': integrations.Conflict,
+    'Bad Request.*': integrations.BadRequest,
+    'Unauthorized.*': integrations.Unauthorized,
+    'Conflict.*': integrations.Conflict,
     '^(?!Bad Request|Unauthorized|Conflict)(.|\\n)+': integrations.Internal,
   },
 };

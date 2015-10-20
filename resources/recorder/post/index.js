@@ -1,13 +1,13 @@
 var tv4 = require('tv4');
-var schema = require('./spec').parameters[0].schema;
 var _ = require('utils');
+var bodySchema = _.bodySchema(require('./spec').parameters);
 
 /**
  * Registers a new instance of an app. The app can be identified by the API key
  * provided in the payload.
  */
 exports.handler = function(e, context) {
-  var isValid = tv4.validate(e, schema);
+  var isValid = tv4.validate(e, bodySchema);
 
   if (!isValid) {
     context.fail(['Bad Request:', tv4.error.message].join(' '));

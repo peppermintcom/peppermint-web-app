@@ -105,7 +105,7 @@ var jwtVerify = exports.jwtVerify = function(token) {
     r.err = errors.EXPIRED;
   }
 
-  r.recorder_id = r.payload.sub.split('.')[1];
+  r.recorder_id = parseInt(r.payload.sub.split('.')[1], 10);
   return r;
 };
 
@@ -114,7 +114,7 @@ var jwtVerify = exports.jwtVerify = function(token) {
  * @param {Authorization} string
  */
 exports.authenticate = function(Authorization) {
-  var parts = Authorization.trim().split(' ');
+  var parts = (Authorization || '').trim().split(' ');
 
   if (parts.length !== 2 || parts[0] !== 'Bearer') {
     return {
@@ -122,7 +122,7 @@ exports.authenticate = function(Authorization) {
     };
   }
 
-  return jwt.verify(parts[1]);
+  return jwtVerify(parts[1]);
 };
 
 exports.hashID = function(id) {
@@ -131,6 +131,18 @@ exports.hashID = function(id) {
 
 exports.unhashID = function(hash) {
   return hashids.decode(hash)[0];
+};
+
+/**
+ * Each path operation includes a spec with an array of paramters. This utility
+ * gets the schema for the body parameter.
+ */
+exports.bodySchema = function(parameters) {
+  var param =  _.find(parameters, function(param) {
+    return param['in'] === 'body';
+  });
+
+  return param && param.schema;
 };
 
 module.exports = _.assign(exports, _);

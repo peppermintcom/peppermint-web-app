@@ -42,3 +42,20 @@ describe('jwt', function() {
     expect(decoded.payload).to.have.property('sub', '.' + recorder_id);
   });
 });
+
+describe('authenticate', function() {
+  it('should parse and verify an Authorization header with a Bearer token', function() {
+    var token = _.jwt(null, 1);
+    var jwt = _.authenticate('Bearer ' + token);
+
+    expect(jwt).to.have.property('payload');
+    expect(jwt).not.to.have.property('err');
+    expect(jwt).to.have.property('recorder_id', 1);
+
+    jwt = _.authenticate(token);
+    expect(jwt).to.have.property('err');
+
+    jwt = _.authenticate('Bearer ' + 'x' + token);
+    expect(jwt).to.have.property('err');
+  });
+});
