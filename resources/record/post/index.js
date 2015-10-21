@@ -1,7 +1,11 @@
 var url = require('url');
+var aws = require('aws-sdk');
+var http = require('request');
 var tv4 = require('tv4');
 var _ = require('utils');
 
+//# of characters in path of short urls
+const KEY_LENGTH = 12;
 var bodySchema = _.bodySchema(require('./spec').parameters);
 
 exports.handler = function(request, reply) {
@@ -18,8 +22,49 @@ exports.handler = function(request, reply) {
   }
 
   var parts = url.parse(request.body.signed_url);
+  var canonical = url.format(_.omit(parts, ['search', 'query']));
+  var shortKey = _.token(KEY_LENGTH);
 
-  reply.succeed({
-    canonical_url: url.format(_.omit(parts, ['search', 'query']))
-  }); 
+  //confirm the user who made the request owns the url
+  var hashedRecorderID = _.hashID(jwt.recorder_id);
+  var signedPathParts = parts.path.split('/');
+
+  if (signedPathParts[1] !== hashedRecorderID) {
+    console.log(hashedRecorderID + ' does not match ' + signedPathParts[1]);
+    reply.fail('Forbidden');
+    return;
+  }
+
+  http({
+    method: 'HEAD',
+    url: canonical,
+  }, function(err, resp) {
+    if (err) {
+      console.log('Could not HEAD ' + canonical);
+      reply.fail('Internal Server Error');
+      return;
+    }
+    if (resp.statusCode === 403) {
+      reply.fail('Not Found');
+      return;
+    }
+    _.dynamo.putItem({
+      Item: {
+        key: {S: shortKey},
+        url: {S: canonical},
+        created: {N: Date.now().toString()},
+      },
+      TableName: 'short-urls',
+    }, function(err, data) {
+      if (err) {
+        console.log(err);
+        reply.fail('Internal Server Error');
+        return;
+      }
+      reply.succeed({
+        canonical_url: canonical,
+        short_url: 'https://peppermint.com/' + shortKey,
+      });
+    });
+  });
 };

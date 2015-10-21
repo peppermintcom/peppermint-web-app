@@ -17,6 +17,7 @@ if (JWT_SECRET.length < 40) {
 }
 
 exports.db = require('./db');
+exports.dynamo = require('./dynamo');
 exports.errors = errors;
 
 //generate random tokens

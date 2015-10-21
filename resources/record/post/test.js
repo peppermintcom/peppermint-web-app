@@ -2,8 +2,13 @@ var expect = require('chai').expect;
 var handler = require('./').handler;
 var _ = require('utils');
 
+/**
+ * WARNING: DEPENDENCIES
+ * The hashid function's salt causes 70 to return 'AW3'.
+ * The peppermint-cdn bucket has a file at /AW3/cpLPai2DIqcETFtWsn0cWc
+ */
 describe('lambda:CreateRecord', function() {
-  var jwt = _.jwt(null, 1);
+  var jwt = _.jwt(null, 70);
   var signedURL = 'https://peppermint-cdn.s3.amazonaws.com/AW3/cpLPai2DIqcETFtWsn0cWc?AWSAccessKeyId=AKIAJZTQ4SASPHAFE5AQ&Expires=1445220215&Signature=47q4xCdhIc89K0SMm2YHH%2BQIAdI%3D';
 
   describe('Valid Requests', function() {
@@ -20,6 +25,7 @@ describe('lambda:CreateRecord', function() {
           },
           succeed: function(res) {
             expect(res).to.have.property('canonical_url', 'https://peppermint-cdn.s3.amazonaws.com/AW3/cpLPai2DIqcETFtWsn0cWc');
+            expect(res).to.have.property('short_url');
             done();
           }
         });
