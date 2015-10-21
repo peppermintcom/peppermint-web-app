@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var responses = require('definitions/responses');
 var integrations = require('definitions/integrations');
+var headers = require('definitions/headers');
 
 exports.tags = ['record'];
 exports.summary = 'Finalize an upload';
@@ -8,14 +9,7 @@ exports.operationId = 'CreateRecord';
 exports.consumes = exports.produces = ['application/json'];
 
 exports.parameters = [
-  {
-    name: 'Authorization',
-    'in': 'header',
-    description: 'Auth Bearer token',
-    required: true,
-    type: 'string',
-    pattern: '^Bearer .*',
-  },
+  headers.AuthorizationBearer,
   {
     name: 'payload',
     'in': 'body',
