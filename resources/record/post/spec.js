@@ -49,6 +49,7 @@ exports.responses = {
   '400': responses.BadRequest,
   '401': responses.Unauthorized,
   '403': responses.Forbidden,
+  '404': responses.NotFound,
   '500': responses.Internal,
 };
 
@@ -70,6 +71,7 @@ exports['x-amazon-apigateway-integration'] = {
     'Bad Request.*': integrations.BadRequest,
     'Unauthorized.*': integrations.Unauthorized,
     'Forbidden.*': integrations.Forbidden,
-    '^(?!Bad Request|Unauthorized)(.|\\n)+': integrations.Internal,
+    'Not Found.*': integrations.NotFound,
+    '^(?!Bad Request|Unauthorized|Forbidden|Not Found)(.|\\n)+': integrations.Internal,
   },
 };

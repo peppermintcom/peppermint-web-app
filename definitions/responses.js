@@ -30,6 +30,36 @@ exports.Unauthorized = {
   },
 };
 
+exports.Forbidden = {
+  description: 'Forbidden - the authenticated user is not authorized to perform the requested action',
+  headers: {
+    'Access-Control-Allow-Origin': {type: 'string'},
+  },
+  schema: {
+    type: 'object',
+    properties: {
+      errorMessage: {
+        type: 'string',
+      },
+    },
+  },
+};
+
+exports.NotFound = {
+  description: 'Not Found',
+  headers: {
+    'Access-Control-Allow-Origin': {type: 'string'},
+  },
+  schema: {
+    type: 'object',
+    properties: {
+      errorMessage: {
+        type: 'string',
+      },
+    },
+  },
+};
+
 exports.Conflict = {
   description: 'Conflict',
   headers: {

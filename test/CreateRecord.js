@@ -1,4 +1,5 @@
 var fs = require('fs');
+var url = require('url');
 var expect = require('chai').expect;
 var request = require('request');
 var _ = require('utils');
@@ -72,7 +73,7 @@ describe('POST /record', function() {
   });
 
   describe('Valid Requests', function() {
-    it('should return a 201 response with a canonical_url', function() {
+    it('should return a 201 response', function() {
       return post(RECORD_URL, {
         signed_url: signedURL,
       }, {
@@ -81,6 +82,7 @@ describe('POST /record', function() {
       .then(function(res) {
         expect(res.statusCode).to.equal(201);
         expect(res.body).to.have.property('canonical_url');
+        expect(res.body).to.have.property('short_url');
       });
     });
   });
@@ -137,6 +139,40 @@ describe('POST /record', function() {
           expect(res.statusCode).to.equal(401);
           expect(res.body.errorMessage).to.match(/Unauthorized/);
         });
+      });
+    });
+  });
+
+  describe('Requester is not owner of url', function() {
+    it('should return a 403 Forbidden error.', function() {
+      var parts = url.parse(signedURL);
+      parts.pathname = '/x' + parts.pathname;
+
+      return post(RECORD_URL, {
+        signed_url: url.format(parts),
+      }, {
+        Authorization: 'Bearer ' + jwt,
+      })
+      .then(function(res) {
+        expect(res.statusCode).to.equal(403);
+        expect(res.body.errorMessage).to.match(/Forbidden/);
+      });
+    });
+  });
+
+  describe.only('No file exists at signed_url', function() {
+    it('should return a 404 Not Found error.', function() {
+      var parts = url.parse(signedURL);
+      parts.pathname += 'x';
+
+      return post(RECORD_URL, {
+        signed_url: url.format(parts),
+      }, {
+        Authorization: 'Bearer ' + jwt,
+      })
+      .then(function(res) {
+        expect(res.statusCode).to.equal(404);
+        expect(res.body.errorMessage).to.match(/Not Found/);
       });
     });
   });

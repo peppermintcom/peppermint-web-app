@@ -51,7 +51,7 @@ exports.handler = function(request, reply) {
     _.dynamo.putItem({
       Item: {
         key: {S: shortKey},
-        url: {S: canonical},
+        pathname: {S: _.trimLeft(parts.pathname, '/')},
         created: {N: Date.now().toString()},
       },
       TableName: 'short-urls',

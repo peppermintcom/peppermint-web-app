@@ -22,6 +22,22 @@ exports.Unauthorized = {
   responseTemplates: {},
 };
 
+exports.Forbidden = {
+  statusCode: '403',
+  responseParameters: {
+    'method.response.header.Access-Control-Allow-Origin': "'*'",
+  },
+  responseTemplates: {},
+};
+
+exports.Forbidden = {
+  statusCode: '404',
+  responseParameters: {
+    'method.response.header.Access-Control-Allow-Origin': "'*'",
+  },
+  responseTemplates: {},
+};
+
 exports.Conflict = {
   statusCode: '409',
   responseParameters: {
