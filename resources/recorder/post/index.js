@@ -30,7 +30,7 @@ exports.handler = function(e, context) {
   _.bcryptHash(key).then(function(hash) {
     var item = _.assign({
         client_id: {S: e.recorder.recorder_client_id},
-        uu_id: {S: e.recorder.recorder_client_id},
+        uu_id: {S: uuid},
         api_key: {S: e.api_key},
         recorder_key: {S: hash},
         registration_ts: {N: ts.valueOf().toString()},
