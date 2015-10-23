@@ -115,6 +115,7 @@ describe('POST /record', function() {
         }
         expect(resp.statusCode).to.equal(302);
         expect(resp.headers).to.have.property('location', res.body.canonical_url);
+        done();
       });
     });
   });
