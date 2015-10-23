@@ -51,7 +51,7 @@ describe('POST /recorder', function() {
       expect(res.body).to.have.property('at');
       expect(res.body).to.have.property('recorder');
       expect(res.body.recorder).to.have.property('recorder_id');
-      expect(typeof res.body.recorder.recorder_id).to.equal('number');
+      expect(typeof res.body.recorder.recorder_id).to.equal('string');
       expect(res.body.recorder).to.have.property('recorder_client_id', clientID);
       expect(res.body.recorder).to.have.property('description', 'Mocha');
     });

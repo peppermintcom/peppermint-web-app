@@ -26,8 +26,8 @@ to /record to get the canonical_url where the file can be read by the public.
 The clients can then share this url in an email or text message, or download the
 file and send it as an attachment in an email.
 
-## Coming By Oct 23, 2015
-* The POST /record request will return a short_url like peppermint.com/abc876dbe
-that redirects to the canonical_url.
-* A POST /recorder/{recorder_id}/auth endpoint will be available for replacing
-expired JWT tokens.
+## Changes
+
+### Oct 23, 2015
+The recorder_id field in recorder models has been changed from type int64 to
+type string.

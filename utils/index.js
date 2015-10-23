@@ -16,7 +16,6 @@ if (JWT_SECRET.length < 40) {
   throw new Error('set env var PEPPERMINT_JWT_SECRET to a string 40 characters long');
 }
 
-exports.db = require('./db');
 exports.dynamo = require('./dynamo');
 exports.errors = errors;
 
@@ -106,7 +105,7 @@ var jwtVerify = exports.jwtVerify = function(token) {
     r.err = errors.EXPIRED;
   }
 
-  r.recorder_id = parseInt(r.payload.sub.split('.')[1], 10);
+  r.recorder_id = r.payload.sub.split('.')[1];
   return r;
 };
 

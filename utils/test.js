@@ -50,7 +50,7 @@ describe('authenticate', function() {
 
     expect(jwt).to.have.property('payload');
     expect(jwt).not.to.have.property('err');
-    expect(jwt).to.have.property('recorder_id', 1);
+    expect(jwt).to.have.property('recorder_id', '1');
 
     jwt = _.authenticate(token);
     expect(jwt).to.have.property('err');

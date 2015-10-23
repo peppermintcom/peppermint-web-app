@@ -25,7 +25,7 @@ exports.handler = function(req, res) {
     return;
   }
 
-  var key = [_.hashID(jwt.recorder_id), _.token(22)].join('/');
+  var key = [jwt.recorder_id, _.token(22)].join('/');
 
   s3.getSignedUrl('putObject', {
     Bucket: BUCKET,

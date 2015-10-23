@@ -29,11 +29,10 @@ exports.handler = function(request, reply) {
   var shortKey = _.token(KEY_LENGTH);
 
   //confirm the user who made the request owns the url
-  var hashedRecorderID = _.hashID(jwt.recorder_id);
   var signedPathParts = parts.path.split('/');
 
-  if (signedPathParts[1] !== hashedRecorderID) {
-    console.log(hashedRecorderID + ' does not match ' + signedPathParts[1]);
+  if (signedPathParts[1] !== jwt.recorder_id) {
+    console.log(jwt.recorder_id + ' does not match ' + signedPathParts[1]);
     reply.fail('Forbidden');
     return;
   }

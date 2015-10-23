@@ -1,5 +1,4 @@
 var _ = require('utils');
-var id = require('./id');
 var timestamp = require('./timestamp');
 
 module.exports = {
@@ -7,9 +6,10 @@ module.exports = {
   description: 'A Recorder represents a single installation of an app or extension.',
   type: 'object',
   properties: {
-    recorder_id: _.assign({
-      description: 'The id assigned by the API when the recorder is registered.',
-    }, id),
+    recorder_id: {
+      description: 'The uuid assigned by the API when the recorder is registered.',
+      type: 'string',
+    },
     recorder_client_id: {
       description: 'A unique identifier supplied by the client application when registering a new recorder. It functions as the username portion when authenticating with Basic access.',
       type: 'string',

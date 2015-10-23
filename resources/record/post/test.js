@@ -8,7 +8,7 @@ var _ = require('utils');
  * The peppermint-cdn bucket has a file at /AW3/cpLPai2DIqcETFtWsn0cWc
  */
 describe('lambda:CreateRecord', function() {
-  var jwt = _.jwt(null, 70);
+  var jwt = _.jwt(null, 'AW3');
   var signedURL = 'https://peppermint-cdn.s3.amazonaws.com/AW3/cpLPai2DIqcETFtWsn0cWc?AWSAccessKeyId=AKIAJZTQ4SASPHAFE5AQ&Expires=1445220215&Signature=47q4xCdhIc89K0SMm2YHH%2BQIAdI%3D';
 
   describe('Valid Requests', function() {
