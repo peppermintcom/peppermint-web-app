@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha -t 10000 --bail --recursive utils/ resources/",
-    "integration-tests": "mocha -t 10000 --bail test/",
+    "integration-tests": "mocha -t 20000 --bail test/",
     "start": "gulp serve",
     "swagger": "gulp swagger"
   },

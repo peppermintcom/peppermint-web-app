@@ -30,7 +30,7 @@ exports.Forbidden = {
   responseTemplates: {},
 };
 
-exports.Forbidden = {
+exports.NotFound = {
   statusCode: '404',
   responseParameters: {
     'method.response.header.Access-Control-Allow-Origin': "'*'",

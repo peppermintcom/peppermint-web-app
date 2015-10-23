@@ -73,16 +73,48 @@ describe('POST /record', function() {
   });
 
   describe('Valid Requests', function() {
-    it('should return a 201 response', function() {
+    var res = null;
+
+    before(function() {
       return post(RECORD_URL, {
         signed_url: signedURL,
       }, {
         Authorization: 'Bearer ' + jwt,
       })
-      .then(function(res) {
-        expect(res.statusCode).to.equal(201);
-        expect(res.body).to.have.property('canonical_url');
-        expect(res.body).to.have.property('short_url');
+      .then(function(_res) {
+        res = _res;
+      });
+    });
+
+    it('should return a 201 response', function() {
+      expect(res.statusCode).to.equal(201);
+    });
+
+    it('should return a canonical_url where the file is available.', function(done) {
+      expect(res.body).to.have.property('canonical_url');
+      request.get(res.body.canonical_url, function(err, resp, body) {
+        if (err) {
+          done(err);
+          return;
+        }
+        expect(resp.statusCode).to.equal(200);
+        done();
+      });
+    });
+
+    it('should return a short_url that redirects to the canonical_url.', function(done) {
+      expect(res.body).to.have.property('short_url');
+      request({
+        method: 'GET',
+        url: res.body.short_url,
+        followRedirect: false,
+      }, function(err, resp, body) {
+        if (err) {
+          done(err);
+          return;
+        }
+        expect(resp.statusCode).to.equal(302);
+        expect(resp.headers).to.have.property('location', res.body.canonical_url);
       });
     });
   });
@@ -160,10 +192,10 @@ describe('POST /record', function() {
     });
   });
 
-  describe.only('No file exists at signed_url', function() {
+  describe('No file exists at signed_url', function() {
     it('should return a 404 Not Found error.', function() {
       var parts = url.parse(signedURL);
-      parts.pathname += 'x';
+      parts.pathname += 'xxxxx';
 
       return post(RECORD_URL, {
         signed_url: url.format(parts),
