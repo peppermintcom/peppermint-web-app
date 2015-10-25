@@ -2,43 +2,28 @@ var _ = require('lodash');
 var recorder = require('definitions/recorder');
 var responses = require('definitions/responses');
 var integrations = require('definitions/integrations');
+var headers = require('definitions/headers');
 var use = require('definitions/use');
 
 exports.tags = ['recorder-token'];
 exports.summary = 'Authenticate a recorder.';
 exports.description = 'Use the recorder_client_id and recorder_key from the POST /recorder request that registered this recorder to generate a new JWT token. This route uses Basic access authentication with an Authorization header like this: Basic Base64(recorder_client_id:recorder_key). If your recorder_client_id is UoZU5kTfnETz and your recorder_key is _tBqwNfVJI7-h86VOdhd0BvglTBRCJeuE3L4hDs3, then the Authorzation header should be "Basic VW9aVTVrVGZuRVR6Ol90QnF3TmZWSkk3LWg4NlZPZGhkMEJ2Z2xUQlJDSmV1RTNMNGhEczM=".';
-exports.description = 'This operation is performed only once for each install of an application or extension. The client must provide a unique recorder_client_id. The response will provide a JWT token that should be used to authenticate future requests to the API. The response also provides a recorder_client_key that works like a password when it\'s time to get a new JWT from the API.';
-exports.operationId = 'CreateRecorder';
+exports.operationId = 'CreateRecorderToken';
 exports.consumes = exports.produces = ['application/json'];
 
 exports.parameters = [
-  {
-    name: 'payload',
-    'in': 'body',
-    schema: {
-      title: 'CreateRecorderRequestBody',
-      type: 'object',
-      properties: {
-        api_key: {
-          description: 'The API key assigned to a given application or extension. All installations of the iOS app, for example, will have the same API key.',
-          type: 'string'
-        },
-        recorder: use(recorder, ['description', 'recorder_client_id', 'recorder_key']),
-      },
-      required: ['api_key', 'recorder'],
-    },
-  },
+  headers.AuthorizationBasic,
 ];
 
 exports.responses = {
   '201': {
-    description: 'new recorder and a jwt',
+    description: 'New JWT and recorder',
     headers: {
       'Content-Type': {type: 'string'},
       'Access-Control-Allow-Origin': {type: 'string'},
     },
     schema: {
-      title: 'CreateRecorderOK',
+      title: 'CreateRecorderTokenOK',
       type: 'object',
       properties: {
         at: require('definitions/jwt'),
@@ -58,9 +43,7 @@ exports.responses = {
       },
     },
   },
-  '400': responses.BadRequest,
   '401': responses.Unauthorized,
-  '409': responses.Conflict,
   '500': responses.Internal,
 };
 
@@ -70,7 +53,7 @@ exports['x-amazon-apigateway-auth'] = {
 
 exports['x-amazon-apigateway-integration'] = {
   type: 'aws',
-  uri : 'arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:819923996052:function:CreateRecorder/invocations',
+  uri : 'arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:819923996052:function:CreateRecorderToken/invocations',
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {
@@ -79,9 +62,7 @@ exports['x-amazon-apigateway-integration'] = {
   requestParameters: {},
   responses: {
     'default': integrations.Created,
-    'Bad Request.*': integrations.BadRequest,
     'Unauthorized.*': integrations.Unauthorized,
-    'Conflict.*': integrations.Conflict,
     '^(?!Bad Request|Unauthorized|Conflict)(.|\\n)+': integrations.Internal,
   },
 };
