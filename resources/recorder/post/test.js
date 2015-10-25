@@ -101,13 +101,6 @@ describe('lambda:CreateRecorder', function() {
         api_key: 'abc123',
       },
       errMatches: [/^Bad Request/, /Missing required property/, /recorder/],
-    }, {
-      given: 'no recorder_client_id',
-      req: {
-        api_key: 'abc123',
-        recorder: {},
-      },
-      errMatches: [/^Bad Request/, /Missing required property/, /recorder_client_id/],
     }].forEach(function(t) {
       describe(t.given, function() {
         it('should invoke context.fail with a Bad Request error.', function(done) {

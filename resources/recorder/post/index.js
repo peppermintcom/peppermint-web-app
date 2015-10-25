@@ -2,10 +2,6 @@ var tv4 = require('tv4');
 var _ = require('utils');
 var bodySchema = _.bodySchema(require('./spec').parameters);
 
-var apps = {
-  'abc123': true,
-};
-
 /**
  * Registers a new instance of an app. The app can be identified by the API key
  * provided in the payload.
@@ -17,23 +13,24 @@ exports.handler = function(e, context) {
     context.fail(['Bad Request:', tv4.error.message].join(' '));
     return;
   }
-  if (!apps[e.api_key]) {
+  if (!_.apps[e.api_key]) {
     context.fail('Unauthorized: unknown api_key');
     return;
   }
-  //generate key (password)
-  var key = _.token(40);
-  var uuid = _.token(22);
-  var ts = new Date();
+
+  var recorderID = _.token(22);
+  var clientID = e.recorder.recorder_client_id || _.token(22);
+  var key = e.recorder.recorder_key || _.token(40);
   var desc = e.recorder.description;
+  var ts = new Date();
 
   _.bcryptHash(key).then(function(hash) {
     var item = _.assign({
-        client_id: {S: e.recorder.recorder_client_id},
-        uu_id: {S: uuid},
+        recorder_id: {S: recorderID},
+        client_id: {S: clientID},
         api_key: {S: e.api_key},
         recorder_key: {S: hash},
-        registration_ts: {N: ts.valueOf().toString()},
+        recorder_ts: {N: ts.valueOf().toString()},
       },
       desc ? {description: {S: desc}} : {});
 
@@ -52,16 +49,16 @@ exports.handler = function(e, context) {
         return;
       }
       //generate jwt with account_id and recorder_id
-      var jwt = _.jwt(null, uuid);
+      var jwt = _.jwt(null, recorderID);
 
       context.succeed({
         at: jwt,
         recorder: {
-          recorder_id: uuid,
-          recorder_client_id: e.recorder.recorder_client_id,
+          recorder_id: recorderID,
+          recorder_client_id: clientID,
           recorder_key: key,
           recorder_ts: _.timestamp(ts),
-          description: e.recorder.description,
+          description: desc,
         },
       });
     });
@@ -71,13 +68,4 @@ exports.handler = function(e, context) {
     console.log(err);
     context.fail('Internal Server Error');
   });
-        /*
-        .catch(function(err) {
-          if (err.code === '23505' && /recorder_client_id/.test(err.detail)) {
-            context.fail('Conflict: recorder_client_id');
-            return;
-          }
-          throw err;
-        });
-        */
 };

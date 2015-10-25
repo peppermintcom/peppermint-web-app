@@ -16,6 +16,7 @@ if (JWT_SECRET.length < 40) {
   throw new Error('set env var PEPPERMINT_JWT_SECRET to a string 40 characters long');
 }
 
+exports.apps = require('./apps');
 exports.dynamo = require('./dynamo');
 exports.errors = errors;
 
