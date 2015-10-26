@@ -74,7 +74,7 @@ describe('POST /recorder-token', function() {
     });
 
     describe('Malformed Authorization header', function() {
-      it('should return a 401 error', function() {
+      it('should return a 401 error.', function() {
         return post(RECORDER_TOKEN_URL, {}, {
           Authorization: 'Basic ' + header,
         })
@@ -85,14 +85,26 @@ describe('POST /recorder-token', function() {
       });
     });
 
-    describe.only('Unknown client_id', function() {
-      it('should return a 401 error', function() {
+    describe('Unknown recorder_client_id', function() {
+      it('should return a 401 error.', function() {
         return post(RECORDER_TOKEN_URL, {}, {
           Authorization: 'Basic ' + new Buffer(clientID + 'x:' + key).toString('base64'),
         })
         .then(function(res) {
           expect(res.statusCode).to.equal(401);
-          expect(res.body.errorMessage).to.match(/Unauthorized/);
+          expect(res.body.errorMessage).to.match(/Unauthorized.*recorder_client_id/);
+        });
+      });
+    });
+
+    describe('Incorrect recorder_key', function() {
+      it('should return a 401 error.', function() {
+        return post(RECORDER_TOKEN_URL, {}, {
+          Authorization: 'Basic ' + new Buffer(clientID + ':x' + key).toString('base64'),
+        })
+        .then(function(res) {
+          expect(res.statusCode).to.equal(401);
+          expect(res.body.errorMessage).to.match(/Unauthorized.*recorder_key/);
         });
       });
     });
