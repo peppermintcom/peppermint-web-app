@@ -21,6 +21,7 @@ gulp.task('lambda', function() {
       './resources/record/post/index.js',
       './resources/uploads/post/index.js',
       './resources/recorder/post/index.js',
+      './resources/recorder-token/post/index.js',
     ])
     .pipe(lambda());
 });

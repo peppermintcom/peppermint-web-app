@@ -1,10 +1,10 @@
 var _ = require('utils');
 
 exports.handler = function(request, reply) {
-  var auth = request.Authorization.split(' ');
+  var auth = (request.Authorization || '').trim().split(' ');
 
   if (auth.length !== 2 || auth[0] !== 'Basic') {
-    reply.fail('Bad Request: Authorization header for Basic authentication is required');
+    reply.fail('Unauthorized: Authorization header for Basic access authentication is required');
     return;
   }
 
@@ -23,6 +23,10 @@ exports.handler = function(request, reply) {
     if (err) {
       console.log(err);
       reply.fail('Internal Server Error');
+      return;
+    }
+    if (!data.Item) {
+      reply.fail('Unauthorized: unknown recorder_client_id');
       return;
     }
     //check the key

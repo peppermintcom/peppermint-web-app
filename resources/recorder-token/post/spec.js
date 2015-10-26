@@ -57,7 +57,7 @@ exports['x-amazon-apigateway-integration'] = {
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {
-    'application/json': "$input.json('$')"
+    'application/json': "{\"Authorization\": \"$input.params().header.get('Authorization')\"}",
   },
   requestParameters: {},
   responses: {

@@ -24,11 +24,13 @@ function call(body) {
 }
 
 describe('POST /recorder', function() {
-  var clientID = Date.now().toString();
+  var clientID = _.token(12);
+  var key = _.token(14);
   var params = {
     api_key: API_KEY,
     recorder: {
       recorder_client_id: clientID,
+      recorder_key: key,
       description: 'Mocha',
     },
   };
@@ -53,7 +55,27 @@ describe('POST /recorder', function() {
       expect(res.body.recorder).to.have.property('recorder_id');
       expect(typeof res.body.recorder.recorder_id).to.equal('string');
       expect(res.body.recorder).to.have.property('recorder_client_id', clientID);
+      expect(res.body.recorder).to.have.property('recorder_key', key);
       expect(res.body.recorder).to.have.property('description', 'Mocha');
+    });
+
+    describe('without recorder_client_id or recorder_key', function() {
+      it('should return a 201 response.', function() {
+        return call({
+          api_key: API_KEY,
+          recorder: {
+            description: 'Mocha',
+          },
+        }).then(function(res) {
+          expect(res.body).to.have.property('at');
+          expect(res.body).to.have.property('recorder');
+          expect(res.body.recorder).to.have.property('recorder_id');
+          expect(typeof res.body.recorder.recorder_id).to.equal('string');
+          expect(res.body.recorder).to.have.property('recorder_client_id');
+          expect(res.body.recorder).to.have.property('description', 'Mocha');
+          expect(res.body.recorder).to.have.property('recorder_key');
+        });
+      });
     });
   });
 
@@ -79,21 +101,6 @@ describe('POST /recorder', function() {
             expect(res.body.errorMessage).to.match(/Bad Request/);
             expect(res.body.errorMessage).to.match(/recorder/);
           });
-      });
-    });
-
-    describe('without recorder_client_id', function() {
-      it('should return a 400 error.', function() {
-        return call({
-          api_key: API_KEY,
-          recorder: {
-            description: 'Mocha',
-          },
-        }).then(function(res) {
-          expect(res).to.have.property('statusCode', 400);
-          expect(res.body.errorMessage).to.match(/Bad Request/);
-          expect(res.body.errorMessage).to.match(/recorder_client_id/);
-        });
       });
     });
   });

@@ -43,4 +43,40 @@ describe('recorder-token', function() {
       },
     });
   });
+
+  describe('Unknown recorder_client_id', function() {
+    it('should return an Unauthorized error.', function(done) {
+      var Authorization = 'Basic ' + new Buffer(clientID + 'x:' + recorder.recorder_key).toString('base64');
+
+      handler({
+        Authorization: Authorization,
+      }, {
+        fail: function(err) {
+          expect(err).to.match(/Unauthorized.*recorder_client_id/);
+          done();
+        },
+        succeed: function(r) {
+          done(new Error('success with bad clientID!'));
+        },
+      });
+    });
+  });
+
+  describe('Wrong recorder_key', function() {
+    it('should return an Unauthorized error.', function(done) {
+      var Authorization = 'Basic ' + new Buffer(clientID + ':x' + recorder.recorder_key).toString('base64');
+
+      handler({
+        Authorization: Authorization,
+      }, {
+        fail: function(err) {
+          expect(err).to.match(/Unauthorized.*recorder_key/);
+          done();
+        },
+        succeed: function(r) {
+          done(new Error('success with wrong recorder_key!'));
+        },
+      });
+    });
+  });
 });
