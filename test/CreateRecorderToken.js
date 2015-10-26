@@ -56,7 +56,6 @@ describe('POST /recorder-token', function() {
 
     it('should return a 201 response', function() {
       expect(res.statusCode).to.equal(201);
-      console.log(res.body);
       expect(res.body).to.have.property('at');
       expect(res.body).to.have.property('recorder');
     });
