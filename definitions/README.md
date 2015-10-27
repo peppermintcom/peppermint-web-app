@@ -33,7 +33,7 @@ The recorder_id field in recorder models has been changed from type int64 to
 type string.
 
 ### Oct 24, 2015
-The recorder_id field has been removed. The recorder_client_id field is used to
+The recorder_client_id field is used to
 identify a recorder.  It must be a value that is unique across all apps. The
 recorder_client_id and the recorder_key are both optional when registering a
 recorder. The API will generate random base64URL tokens for them if not

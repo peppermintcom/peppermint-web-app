@@ -24,7 +24,7 @@ describe('lambda:CreateRecord', function() {
             done(new Error(err));
           },
           succeed: function(res) {
-            expect(res).to.have.property('canonical_url', 'https://duw3fm6pm35xc.cloudfront.net/AW3/cpLPai2DIqcETFtWsn0cWc');
+            expect(res).to.have.property('canonical_url', 'http://go.peppermint.com/AW3/cpLPai2DIqcETFtWsn0cWc');
             expect(res).to.have.property('short_url');
             done();
           }

@@ -6,7 +6,7 @@ var _ = require('utils');
 
 //# of characters in path of short urls
 const KEY_LENGTH = 12;
-const CDN_HOST = 'duw3fm6pm35xc.cloudfront.net';
+const CDN_HOST = 'go.peppermint.com';
 
 var bodySchema = _.bodySchema(require('./spec').parameters);
 
@@ -25,6 +25,7 @@ exports.handler = function(request, reply) {
 
   var parts = url.parse(request.body.signed_url);
   parts.host = CDN_HOST;
+  parts.protocol = 'http';
   var canonical = url.format(_.omit(parts, ['search', 'query']));
   var shortKey = _.token(KEY_LENGTH);
 
