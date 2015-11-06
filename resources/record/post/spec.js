@@ -37,12 +37,14 @@ exports.responses = {
       type: 'object',
       properties: {
         canonical_url: {type: 'string'},
+        short_url: {type: 'string'},
       },
-      required: ['canonical_url'],
+      required: ['canonical_url', 'short_url'],
     },
     examples: {
       'application/json': {
         canonical_url: 'https://peppermint-cdn.s3.amazonaws.com/AW3/cpLPai2DIqcETFtWsn0cWc',
+        short_url: 'https://peppermint.com/lEh-MpCYGEpY',
       },
     },
   },
