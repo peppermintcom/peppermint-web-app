@@ -1,15 +1,13 @@
 var _ = require('utils');
 var timestamp = require('./timestamp');
+var uuid = require('./uuid');
 
 module.exports = {
   title: 'Recorder',
   description: 'A Recorder represents a single installation of an app or extension.',
   type: 'object',
   properties: {
-    recorder_id: {
-      description: 'UUID assigned by the API when the recorder is registered.',
-      type: 'string',
-    },
+    recorder_id: uuid,
     recorder_client_id: {
       description: 'A unique identifier supplied by the client application when registering a new recorder. It functions as the username portion when authenticating with Basic access. It could be a randomly generated uuid, a serial number of the device concatenated with the app api_key, or any other value guaranteed to be unique across all apps. Just using an email address could lead to duplicates if the same user has multiple apps they use with pepermint. The API will generate and return an id if the client does not provide one.',
       type: 'string',

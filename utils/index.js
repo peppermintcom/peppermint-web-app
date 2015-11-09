@@ -1,11 +1,12 @@
 require('es6-promise').polyfill();
+var conf = require('./conf.js');
+var mandrill = require('mandrill-api');
 var _ = require('lodash');
 var randomstring = require('randomstring');
 var bcrypt = require('bcryptjs');
 var jwt = require('jwt-simple');
 var Hashids = require('hashids');
 var errors = require('./errors');
-var conf = require('./conf.js');
 var hashids = new Hashids(conf.PEPPERMINT_HASHIDS_SALT);
 
 //while using js
@@ -18,6 +19,7 @@ if (JWT_SECRET.length < 40) {
 
 exports.apps = require('./apps');
 exports.dynamo = require('./dynamo');
+exports.mandrill = new mandrill.Mandrill(conf.PEPPERMINT_MANDRILL_KEY);
 exports.errors = errors;
 
 //generate random tokens

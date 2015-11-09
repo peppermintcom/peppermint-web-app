@@ -1,3 +1,11 @@
+exports.Ok = {
+  statusCode: '200',
+  responseParameters: {
+    'method.response.header.Access-Control-Allow-Origin': "'*'",
+  },
+  responseTemplates: {},
+};
+
 exports.Created = {
   statusCode: '201',
   responseParameters: {

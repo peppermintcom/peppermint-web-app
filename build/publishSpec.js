@@ -8,5 +8,6 @@ module.exports = function(cb) {
     Key: 'swagger.json',
     ACL: 'public-read',
     Body: fs.readFileSync('./swagger.json'),
+    CacheControl: 'max-age=60',
   }, cb);
 };

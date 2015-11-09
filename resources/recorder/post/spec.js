@@ -2,6 +2,7 @@ var _ = require('lodash');
 var recorder = require('definitions/recorder');
 var responses = require('definitions/responses');
 var integrations = require('definitions/integrations');
+var api_key = require('definitions/api_key');
 var use = require('definitions/use');
 
 exports.tags = ['recorder'];
@@ -18,10 +19,7 @@ exports.parameters = [
       title: 'CreateRecorderRequestBody',
       type: 'object',
       properties: {
-        api_key: {
-          description: 'The API key assigned to a given application or extension. All installations of the iOS app, for example, will have the same API key.',
-          type: 'string'
-        },
+        api_key: api_key,
         recorder: use(recorder, ['description', 'recorder_client_id', 'recorder_key']),
       },
       required: ['api_key', 'recorder'],

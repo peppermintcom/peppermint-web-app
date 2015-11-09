@@ -25,16 +25,3 @@ included. After the client completes the upload, it should submit a POST request
 to /record to get the canonical_url where the file can be read by the public.
 The clients can then share this url in an email or text message, or download the
 file and send it as an attachment in an email.
-
-## Changes
-
-### Oct 23, 2015
-The recorder_id field in recorder models has been changed from type int64 to
-type string.
-
-### Oct 24, 2015
-The recorder_client_id field is used to
-identify a recorder.  It must be a value that is unique across all apps. The
-recorder_client_id and the recorder_key are both optional when registering a
-recorder. The API will generate random base64URL tokens for them if not
-supplied.

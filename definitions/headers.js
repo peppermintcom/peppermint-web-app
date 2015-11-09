@@ -1,3 +1,5 @@
+var _ = require('utils');
+
 exports.AuthorizationBearer = {
   name: 'Authorization',
   'in': 'header',
@@ -7,7 +9,7 @@ exports.AuthorizationBearer = {
   pattern: '^Bearer .*',
 };
 
-exports.AuthorizationBasic = {
+var basic = exports.AuthorizationBasic = {
   name: 'Authorization',
   'in': 'header',
   description: 'Must contain the word "Basic" then a space, then the Base64 encoded recorder_client_id, ":", and recorder_key.',
@@ -15,3 +17,7 @@ exports.AuthorizationBasic = {
   type: 'string',
   pattern: '^Basic .*',
 };
+
+exports.AuthorizationBasicAccount = _.assign({}, basic, {
+  description: 'Must contain the word "Basic" then a space, then the Base64 encoded email, ":", and password.',
+});
