@@ -34,6 +34,7 @@ describe('lambda:CreateAccount', function() {
           expect(r.u).to.have.property('email', user.email);
           expect(r.u).to.have.property('first_name', FIRST);
           expect(r.u).to.have.property('last_name', LAST);
+          expect(r.u).to.have.property('registration_ts');
           expect(r.u).not.to.have.property('password');
 
           mandrillID = reply.mandrill_id;

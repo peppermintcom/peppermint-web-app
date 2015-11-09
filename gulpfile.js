@@ -1,6 +1,6 @@
 var gulp = require('gulp');
 var nodemon = require('gulp-nodemon');
-
+var sources = require('./build/sources');
 var lambda = require('./build/lambda');
 var swagger = require('./build/swagger');
 var gateway = require('./build/gateway');
@@ -17,7 +17,7 @@ gulp.task('swaggerUI', function() {
 
 //zip and upload handlers to AWS Lambda
 gulp.task('lambda', function() {
-  return gulp.src(methodHandlers())
+  return gulp.src(sources.handlers)
     .pipe(lambda());
 });
 

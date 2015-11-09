@@ -7,7 +7,7 @@ var headers = require('definitions/headers');
 var jwt = require('definitions/jwt');
 var use = require('definitions/use');
 
-exports.tags = ['accounts PROPOSAL'];
+exports.tags = ['accounts'];
 exports.summary = 'Login with email and password.';
 exports.description = 'Exchange an email and password for a JWT.';
 exports.operationId = 'AccountSignIn';
@@ -58,14 +58,8 @@ exports.responses = {
       },
     },
   },
-  '400': responses.BadRequest,
   '401': responses.Unauthorized,
-  '409': responses.Conflict,
   '500': responses.Internal,
-};
-
-exports['x-amazon-apigateway-auth'] = {
-  type: 'none',
 };
 
 exports['x-amazon-apigateway-integration'] = {
@@ -74,14 +68,12 @@ exports['x-amazon-apigateway-integration'] = {
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {
-    'application/json': "$input.json('$')"
+    'application/json': "{\"body\": $input.json('$'), \"Authorization\": \"$input.params().header.get('Authorization')\"}",
   },
   requestParameters: {},
   responses: {
     'default': integrations.Created,
-    'Bad Request.*': integrations.BadRequest,
     'Unauthorized.*': integrations.Unauthorized,
-    'Conflict.*': integrations.Conflict,
-    '^(?!Bad Request|Unauthorized|Conflict)(.|\\n)+': integrations.Internal,
+    '^(?!Unauthorized)(.|\\n)+': integrations.Internal,
   },
 };

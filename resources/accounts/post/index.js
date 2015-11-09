@@ -29,6 +29,7 @@ exports.handler = function(request, reply) {
       password: {S: hash},
       first_name: {S: request.u.first_name},
       last_name: {S: request.u.last_name},
+      registration_ts: {N: ts.valueOf().toString()},
     };
 
     _.dynamo.putItem({
@@ -71,6 +72,7 @@ exports.handler = function(request, reply) {
             first_name: request.u.first_name,
             last_name: request.u.last_name,
             email: request.u.email,
+            registration_ts: _.timestamp(ts),
           },
         });
       }, function(err) {

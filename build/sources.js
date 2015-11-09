@@ -13,14 +13,14 @@ var methods = {
 };
 
 var paths = [];
-var ms = [];
+var handlers = [];
 
 function collectPaths(dir) {
   var hasMethod = false;
 
   fs.readdirSync(dir).forEach(function(f) {
     if (methods[f]) {
-      ms.push(path.join(dir, f));
+      handlers.push(path.join(dir, f));
       hasMethod = true;
       return;
     }
@@ -36,4 +36,8 @@ collectPaths(base);
 
 exports.paths = paths.map(function(p) {
   return '/' + path.relative(base, p);
+});
+
+exports.handlers = handlers.map(function(p) {
+  return path.join(p, 'index.js');
 });

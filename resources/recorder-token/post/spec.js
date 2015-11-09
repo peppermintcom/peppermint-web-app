@@ -63,6 +63,6 @@ exports['x-amazon-apigateway-integration'] = {
   responses: {
     'default': integrations.Created,
     'Unauthorized.*': integrations.Unauthorized,
-    '^(?!Bad Request|Unauthorized|Conflict)(.|\\n)+': integrations.Internal,
+    '^(?!Unauthorized)(.|\\n)+': integrations.Internal,
   },
 };
