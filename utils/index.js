@@ -1,6 +1,5 @@
 require('es6-promise').polyfill();
 var conf = require('./conf.js');
-var mandrill = require('mandrill-api');
 var _ = require('lodash');
 var randomstring = require('randomstring');
 var bcrypt = require('bcryptjs');
@@ -19,7 +18,7 @@ if (JWT_SECRET.length < 40) {
 
 exports.apps = require('./apps');
 exports.dynamo = require('./dynamo');
-exports.mandrill = new mandrill.Mandrill(conf.PEPPERMINT_MANDRILL_KEY);
+exports.mandrill = require('./mandrill');
 exports.errors = errors;
 
 //generate random tokens
@@ -79,22 +78,29 @@ exports.bcryptCheck = function(plain, hash) {
   });
 };
 
-exports.jwt = (function() {
-  var day = 60 * 60 * 24;
+/**
+ * Sign a claims set.
+ * @param {String} subject
+ * @param {Number} term - number of seconds until expiration
+ * @return {String}
+ */
+var jwtEncode = exports.jwtEncode = function(subject, term) {
+  var now = Math.floor(Date.now() / 1000);
 
-  return function(user_id, recorder_id) {
-    var now = Math.floor(Date.now() / 1000)
+  return jwt.encode({
+    exp: now + term,
+    iat: now,
+    iss: 'peppermint.com',
+    sub: subject,
+  }, JWT_SECRET);
+};
 
-    return jwt.encode({
-      exp: now + (30 * day),
-      iat: now,
-      iss: 'peppermint.com',
-      sub: [user_id || '', recorder_id].join('.'),
-    }, JWT_SECRET);
-  };
-})();
-
-var jwtVerify = exports.jwtVerify = function(token) {
+/**
+ * Parse and validate JWT claims.
+ * @param {String} token
+ * @return {Object}
+ */
+var jwtDecode = exports.jwtDecode = function(token) {
   var r = {};
 
   try {
@@ -106,9 +112,41 @@ var jwtVerify = exports.jwtVerify = function(token) {
 
   if (r.payload.exp < Math.ceil(Date.now() / 1000)) {
     r.err = errors.EXPIRED;
+    return r;
   }
 
-  r.recorder_id = r.payload.sub.split('.')[1];
+  if (r.payload.iss !== 'peppermint.com') {
+    r.err = new Error('Unknown Issuer: ' + r.payload.iss);
+    return r;
+  }
+
+  return r;
+};
+
+/**
+ * Sign a jwt for an account and/or recorder.
+ * @param {String} account_id
+ * @param {String} recorder_id
+ * @return {String}
+ */
+exports.jwt = (function() {
+  var month = 30 * 60 * 60 * 24;
+
+  return function(user_id, recorder_id) {
+    return jwtEncode([user_id || '', recorder_id].join('.'), month);
+  };
+})();
+
+var jwtVerify = exports.jwtVerify = function(token) {
+  var r = jwtDecode(token);
+
+  if (r.err) {
+    return r;
+  }
+
+  var creds = r.payload.sub.split('.');
+  r.account_id = creds[0];
+  r.recorder_id = creds[1];
   return r;
 };
 

@@ -31,7 +31,7 @@ describe('account authentication', function() {
 
   after(deleteAccount(user.email));
 
-  describe.only('with valid credentials', function() {
+  describe('with valid credentials', function() {
     it ('should return a JWT.', function(done) {
       var Authorization = 'Basic ' + new Buffer(user.email + ':' + user.password).toString('base64');
 
@@ -59,37 +59,39 @@ describe('account authentication', function() {
     });
   });
 
-  describe('Unknown email', function() {
+  describe('with an unknown email', function() {
     it('should return an Unauthorized error.', function(done) {
-      var Authorization = 'Basic ' + new Buffer(clientID + 'x:' + recorder.recorder_key).toString('base64');
+      var Authorization = 'Basic ' + new Buffer(user.email + 'x:' + user.password).toString('base64');
 
       handler({
         Authorization: Authorization,
+        api_key: APP_API_KEY,
       }, {
         fail: function(err) {
-          expect(err).to.match(/Unauthorized.*recorder_client_id/);
+          expect(err).to.match(/Unauthorized.*email/);
           done();
         },
         succeed: function(r) {
-          done(new Error('success with bad clientID!'));
+          done(new Error('success with bad email!'));
         },
       });
     });
   });
 
-  describe('Wrong recorder_key', function() {
+  describe('with wrong password', function() {
     it('should return an Unauthorized error.', function(done) {
-      var Authorization = 'Basic ' + new Buffer(clientID + ':x' + recorder.recorder_key).toString('base64');
+      var Authorization = 'Basic ' + new Buffer(user.email + ':x' + user.password).toString('base64');
 
       handler({
         Authorization: Authorization,
+        api_key: APP_API_KEY,
       }, {
         fail: function(err) {
-          expect(err).to.match(/Unauthorized.*recorder_key/);
+          expect(err).to.match(/Unauthorized.*password/);
           done();
         },
         succeed: function(r) {
-          done(new Error('success with wrong recorder_key!'));
+          done(new Error('success with wrong password!'));
         },
       });
     });

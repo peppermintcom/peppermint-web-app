@@ -1,6 +1,6 @@
 var expect = require('chai').expect;
 var handler = require('./').handler;
-var _ = require('utils');
+var _ = require('utils/test');
 
 //has to exist in the database app table
 const APP_API_KEY = 'abc123';
@@ -16,7 +16,7 @@ var user = {
 };
 
 describe('lambda:CreateAccount', function() {
-  after(deleteAccount(user.email));
+  after(_.deleteAccount(user.email));
 
   describe('Valid', function() {
     var mandrillID;
@@ -67,7 +67,7 @@ describe('lambda:CreateAccount', function() {
       });
     });
 
-    //after(deleteAccount(email));
+    after(_.deleteAccount(email));
 
     it('should invoke reply.fail with a Conflict error', function(done) {
       handler(req, {
@@ -143,12 +143,3 @@ describe('lambda:CreateAccount', function() {
     });
   });
 });
-
-function deleteAccount(email) {
-  return function(done) {
-    _.dynamo.deleteItem({
-      Key: {email: {S: email}},
-      TableName: 'accounts',
-    }, done);
-  };
-}
