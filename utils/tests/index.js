@@ -30,22 +30,23 @@ describe('token', function() {
 });
 
 describe('jwt', function() {
-  var recorder_id = 12345;
+  var recorder_id = 'xyz12345';
+  var account_id = 'abc987';
 
   it('should generate a token', function() {
-    var token = _.jwt(null, recorder_id);
-    var decoded = _.jwtVerify(token);
+    var token = _.jwt.creds(account_id, recorder_id);
+    var decoded = _.jwt.verify(token);
 
     expect(decoded).not.to.have.property('err');
     expect(decoded).to.have.property('payload');
     expect(decoded.payload).to.have.property('exp');
-    expect(decoded.payload).to.have.property('sub', '.' + recorder_id);
+    expect(decoded.payload).to.have.property('sub', account_id + '.' + recorder_id);
   });
 });
 
 describe('authenticate', function() {
   it('should parse and verify an Authorization header with a Bearer token', function() {
-    var token = _.jwt(null, 1);
+    var token = _.jwt.creds(null, 1);
     var jwt = _.authenticate('Bearer ' + token);
 
     expect(jwt).to.have.property('payload');

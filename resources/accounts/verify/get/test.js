@@ -15,7 +15,7 @@ describe('lambda:VerifyEmail', function() {
 
   describe('with a valid jwt', function() {
     it('should record the validation time and ip.', function(done) {
-      var jwt = _.jwtEncode(user.email, 30);
+      var jwt = _.jwt.encode(user.email, 30);
 
       handler({jwt: jwt, ip: '127.0.0.1'}, {
         fail: function(err) {done(new Error(err));},
