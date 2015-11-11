@@ -22,7 +22,7 @@ exports.parameters = [
       type: 'object',
       properties: {
         api_key: api_key,
-        u: use(account, [], ['email', 'password', 'first_name', 'last_name']),
+        u: use(account, [], ['email', 'password', 'full_name']),
       },
       required: ['api_key', 'u'],
     },
@@ -41,7 +41,7 @@ exports.responses = {
       type: 'object',
       properties: {
         at: jwt,
-        u: use(account, [], ['account_id', 'email', 'first_name', 'last_name', 'registration_ts']),
+        u: use(account, [], ['account_id', 'email', 'full_name', 'registration_ts']),
       },
       required: ['at', 'u'],
     },
@@ -51,8 +51,7 @@ exports.responses = {
         u: {
           account_id: 'abcdefghijklMNOP7654',
           email: 'me@example.com',
-          first_name: 'Andrew',
-          last_name: 'Reed',
+          full_name: 'John Doe',
           registration_ts: '2015-10-19 09:19:55',
         },
       },

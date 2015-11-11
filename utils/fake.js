@@ -28,8 +28,7 @@ exports.recorder = function() {
 var user = exports.user = function() {
   return {
     email: _.token(12) + '@mailinator.com',
-    first_name: 'John',
-    last_name: 'Doe',
+    full_name: 'John Doe',
     password: 'secret',
   };
 };
@@ -47,7 +46,8 @@ exports.account = function(_user) {
       fail: function(err) {
         reject(new Error(err));
       },
-      succeed: function() {
+      succeed: function(r) {
+        u.account_id = r.u.account_id;
         resolve(u);
       },
     });

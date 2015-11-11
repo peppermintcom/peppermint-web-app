@@ -1,5 +1,7 @@
 var _ = require('utils');
 
+var NOT_FOUND = new Error('Unauthorized: unknown email');
+
 exports.handler = function(request, reply) {
   var auth = (request.Authorization || '').trim().split(' ');
 
@@ -14,43 +16,33 @@ exports.handler = function(request, reply) {
   var pass = credentials[1];
 
   //get account from dynamo
-  _.dynamo.getItem({
-    Key: {
+  _.dynamo.get('accounts', {
       email: {S: email},
-    },
-    TableName: 'accounts',
-  }, function(err, data) {
-    if (err) {
-      console.log(err);
-      reply.fail('Internal Server Error');
-      return;
-    }
-    if (!data.Item) {
-      reply.fail('Unauthorized: unknown email');
-      return;
-    }
-    //check the key
-    _.bcryptCheck(pass, data.Item.password.S)
-      .then(function(ok) {
-        if (!ok) {
-          reply.fail('Unauthorized: incorrect password');
-          return;
-        }
-        reply.succeed({
-          at: _.jwt(data.Item.account_id.S),
-          u: {
-            email: data.Item.email.S,
-            first_name: data.Item.first_name.S,
-            last_name: data.Item.last_name.S,
-            account_id: data.Item.account_id.S,
-            registration_ts: _.timestamp(new Date(parseInt(data.Item.registration_ts.N))),
-          },
+    })
+    .then(function(account) {
+      if (!account) {
+        throw NOT_FOUND;
+      }
+
+      return _.bcryptCheck(pass, account.password.S)
+        .then(function(ok) {
+          if (!ok) {
+            reply.fail('Unauthorized: incorrect password');
+            return;
+          }
+          reply.succeed({
+            at: _.jwt.creds(account.account_id.S),
+            u: {
+              account_id: account.account_id.S,
+              email: account.email.S,
+              full_name: account.full_name.S,
+              registration_ts: _.timestamp(new Date(parseInt(account.registration_ts.N, 10))),
+            },
+          });
         });
-      })
-      .catch(function(err) {
-        console.log(err);
-        reply.fail('Internal Server Error');
-        return;
-      });
+    })
+    .catch(function(err) {
+      reply.fail(err);
+      return;
     });
 };

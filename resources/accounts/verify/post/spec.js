@@ -1,4 +1,6 @@
 var headers = require('definitions/headers');
+var responses = require('definitions/responses');
+var integrations = require('definitions/integrations');
 
 exports.tags = ['accounts'];
 exports.summary = 'Resend verification email.';

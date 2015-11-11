@@ -34,7 +34,7 @@ describe('recorder-token', function() {
         expect(r.recorder).to.have.property('recorder_id', recorder.recorder_id);
         expect(r.recorder).to.have.property('recorder_client_id', recorder.recorder_client_id);
         expect(r.recorder).to.have.property('recorder_ts', recorder.recorder_ts);
-        var jwt = _.jwtVerify(r.at);
+        var jwt = _.jwt.verify(r.at);
         expect(jwt).to.have.property('recorder_id', recorder.recorder_id);
         done();
       },

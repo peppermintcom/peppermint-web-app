@@ -1,16 +1,17 @@
 var mandrill = require('./mandrill');
+var jwt = require('./jwt');
 
-exports.verifyEmail = function(account_id, email) {
+exports.verifyEmail = function(email) {
   return new Promise(function(resolve, reject) {
-    //generate jwt with account_id and recorder_id
-    var jwt = _.jwt(accountID, null);
+    //expires in 15 minutes
+    var token = jwt.encode(email, 15 * 60);
 
-    _.mandrill.messages.send({
+    mandrill.messages.send({
       message: {
         from_email: 'noreply@peppermint.com',
-        html: '<a href="http://localhost/verify/' + jwt + '">Verify</a>',
+        html: '<a href="http://localhost/verify?jwt=' + token + '">Verify</a>',
         subject: 'Verify your email',
-        to: [{email: request.u.email}],
+        to: [{email: email}],
         track_clicks: false,
         track_opens: false,
       },
@@ -21,7 +22,8 @@ exports.verifyEmail = function(account_id, email) {
       }
       resolve();
     }, function(err) {
-      reply.fail('Mandrill: ' + err.toString());
+      console.log(err);
+      reject('Mandrill: ' + err);
     });
   });
 };

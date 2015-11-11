@@ -3,10 +3,7 @@ var _ = require('utils');
 var bodySchema = _.bodySchema(require('./spec').parameters);
 
 exports.handler = function(request, reply) {
-  //tv4
-  var isValid = tv4.validate(request, bodySchema);
-
-  if (!isValid) {
+  if (!tv4.validate(request, bodySchema)) {
     reply.fail(['Bad Request:', tv4.error.message].join(' '));
     return;
   }
@@ -17,7 +14,7 @@ exports.handler = function(request, reply) {
  
   //jwt email with 15 minute expiration
   var email = request.email;
-  var jwt = _.jwtEncode(email, 15 * 60);
+  var jwt = _.jwt.encode(email, 15 * 60);
 
   _.dynamo.get('accounts', {email: {S: email}})
     .then(function(account) {
@@ -29,7 +26,7 @@ exports.handler = function(request, reply) {
       _.mandrill.messages.send({
         message: {
           from_email: 'noreply@peppermint.com',
-          html: '<a href="https://peppermint.com/reset/' + jwt + '">Reset</a>',
+          html: '<a href="https://peppermint.com/reset?jwt=' + jwt + '">Reset</a>',
           subject: 'Reset your password.',
           to: [{email: email}],
           track_clicks: false,
@@ -45,5 +42,8 @@ exports.handler = function(request, reply) {
       }, function(err) {
         reply.fail('Mandrill: ' + err.toString());
       });
+    })
+    .catch(function(err) {
+      reply.fail(err);
     });
 };

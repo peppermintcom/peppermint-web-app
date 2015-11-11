@@ -37,7 +37,7 @@ exports.handler = function(request, reply) {
         return;
       }
       reply.succeed({
-        at: _.jwt(null, data.Item.recorder_id.S),
+        at: _.jwt.creds(null, data.Item.recorder_id.S),
         recorder: {
           recorder_id: data.Item.recorder_id.S,
           recorder_client_id: user,

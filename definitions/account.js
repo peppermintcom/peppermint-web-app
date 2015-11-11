@@ -14,10 +14,7 @@ module.exports = {
     password: {
       type: 'string',
     },
-    first_name: {
-      type: 'string',
-    },
-    last_name: {
+    full_name: {
       type: 'string',
     },
     registration_ts: timestamp,

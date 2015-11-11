@@ -7,7 +7,7 @@ exports.handler = function(request, reply) {
       account_id: {S: jwt.account_id},
     })
     .then(function(account) {
-      return _.verifyEmail(account.account_id.S, account.email.S);
+      return _.verifyEmail(account.email.S);
     })
     .then(function() {
       reply.succeed();

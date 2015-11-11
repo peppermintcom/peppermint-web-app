@@ -29,7 +29,7 @@ describe('lambda:RecoverAccount', function() {
   });
 
   describe('without an api_key', function() {
-    it('should fail with an Bad Request error.', function(done) {
+    it('should fail with a Bad Request error.', function(done) {
       handler({
         email: user.email,
       }, {

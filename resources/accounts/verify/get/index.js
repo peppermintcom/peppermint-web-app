@@ -1,7 +1,7 @@
 var _ = require('utils');
 
 exports.handler = function(request, reply) {
-  var jwt = _.jwtDecode(request.jwt);
+  var jwt = _.jwt.decode(request.jwt);
 
   if (jwt.err) {
     reply.fail(jwt.err);

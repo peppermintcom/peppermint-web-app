@@ -49,7 +49,7 @@ exports.handler = function(e, context) {
         return;
       }
       //generate jwt with account_id and recorder_id
-      var jwt = _.jwt(null, recorderID);
+      var jwt = _.jwt.creds(null, recorderID);
 
       context.succeed({
         at: jwt,

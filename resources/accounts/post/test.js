@@ -2,27 +2,19 @@ var expect = require('chai').expect;
 var handler = require('./').handler;
 var _ = require('utils/test');
 
-//has to exist in the database app table
-const APP_API_KEY = 'abc123';
-const FIRST = 'John';
-const LAST = 'Doe';
-const PASSWORD = 'secret';
-
-var user = {
-  email: _.token(12) + '@mailinator.com',
-  first_name: FIRST,
-  last_name: LAST,
-  password: PASSWORD,
-};
-
 describe('lambda:CreateAccount', function() {
-  after(_.deleteAccount(user.email));
-
   describe('Valid', function() {
-    var mandrillID;
+    var user = _.fake.user();
+
+    after(function() {
+      return _.deleteAccount(user.email);
+    });
 
     it('should invoke succeed with a user account.', function(done) {
-      var reply = {
+      handler({
+        api_key: _.fake.API_KEY,
+        u: user,
+      }, {
         fail: function(err) {
           done(new Error(err));
         },
@@ -32,45 +24,31 @@ describe('lambda:CreateAccount', function() {
           expect(r).to.have.property('u');
           expect(r.u).to.have.property('account_id');
           expect(r.u).to.have.property('email', user.email);
-          expect(r.u).to.have.property('first_name', FIRST);
-          expect(r.u).to.have.property('last_name', LAST);
+          expect(r.u).to.have.property('full_name', user.full_name);
           expect(r.u).to.have.property('registration_ts');
           expect(r.u).not.to.have.property('password');
-
-          mandrillID = reply.mandrill_id;
           done();
         }
-      };
-
-      handler({
-        api_key: APP_API_KEY,
-        u: user,
-      }, reply);
+      });
     });
   });
 
   describe('Duplicate email', function() {
-    var email = _.token(12) + '@mailinator.com';
-    var req = {
-      api_key: APP_API_KEY,
-      u: _.assign({}, user, {email: email}),
-    };
+    var user = _.fake.user();
 
-    before(function(done) {
-      handler(req, {
-        fail: function(err) {
-          done(new Error(err));
-        },
-        succeed: function() {
-          done();
-        },
-      });
+    before(function() {
+      return _.fake.account(user);
     });
 
-    after(_.deleteAccount(email));
+    after(function() {
+      return _.deleteAccount(user.email);
+    });
 
     it('should invoke reply.fail with a Conflict error', function(done) {
-      handler(req, {
+      handler({
+          api_key: _.fake.API_KEY,
+          u: user,
+        }, {
         success: function() {
           done(new Error('duplicate email accepted'));
         },
@@ -84,17 +62,10 @@ describe('lambda:CreateAccount', function() {
   });
 
   describe('unknown api_key', function() {
-    var email = _.token(12) + '@mailinator.com';
-
     it('should invoke reply.fail with an Unauthorized error', function(done) {
       handler({
         api_key: 'xyz',
-        u: {
-          email: email,
-          first_name: FIRST,
-          last_name: LAST,
-          password: PASSWORD,
-        },
+        u: _.fake.user(),
       }, {
         success: function() {
           done(new Error('invalid API key accepted'));
@@ -112,9 +83,7 @@ describe('lambda:CreateAccount', function() {
     [{
       given: 'no api_key',
       req: {
-        recorder: {
-          recorder_client_id: 'abc123',
-        },
+        u: _.fake.user(),
       },
       errMatches: [/^Bad Request/, /Missing required property/, /api_key/],
     }, {

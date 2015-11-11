@@ -1,35 +1,20 @@
 var expect = require('chai').expect;
-var register = require('../../post').handler;
 var handler = require('./').handler;
-var _ = require('utils');
+var _ = require('utils/test');
 
-const APP_API_KEY = 'abc123';
-const FIRST = 'John';
-const LAST = 'Doe';
-const PASSWORD = 'secret';
+describe('lambda:AccountSignIn', function() {
+  var user = _.fake.user();
 
-var user = {
-  email: _.token(12) + '@mailinator.com',
-  first_name: FIRST,
-  last_name: LAST,
-  password: PASSWORD,
-};
-
-describe('account authentication', function() {
-  before(function(done) {
-    register({
-      api_key: APP_API_KEY,
-      u: user,
-    }, {
-      fail: done,
-      succeed: function(r) {
-        user.account_id = r.u.account_id;
-        done();
-      },
-    });
+  before(function() {
+    return _.fake.account(user)
+      .then(function(account) {
+        user.account_id = account.account_id;
+      });
   });
 
-  after(deleteAccount(user.email));
+  after(function() {
+    return _.deleteAccount(user.email);
+  });
 
   describe('with valid credentials', function() {
     it ('should return a JWT.', function(done) {
@@ -37,17 +22,16 @@ describe('account authentication', function() {
 
       handler({
         Authorization: Authorization,
-        api_key: APP_API_KEY,
+        api_key: _.fake.API_KEY,
       }, {
         succeed: function(r) {
-          var jwt = _.jwtVerify(r.at);
+          var jwt = _.jwt.verify(r.at);
 
           expect(r).to.have.property('at');
           expect(r).to.have.property('u');
           expect(r.u).to.have.property('account_id', user.account_id);
           expect(r.u).to.have.property('email', user.email);
-          expect(r.u).to.have.property('first_name', user.first_name);
-          expect(r.u).to.have.property('last_name', user.last_name);
+          expect(r.u).to.have.property('full_name', user.full_name);
           expect(r.u).to.have.property('registration_ts');
           expect(jwt.payload.sub).to.equal(user.account_id + '.');
           done();
@@ -65,7 +49,7 @@ describe('account authentication', function() {
 
       handler({
         Authorization: Authorization,
-        api_key: APP_API_KEY,
+        api_key: _.fake.API_KEY,
       }, {
         fail: function(err) {
           expect(err).to.match(/Unauthorized.*email/);
@@ -84,7 +68,7 @@ describe('account authentication', function() {
 
       handler({
         Authorization: Authorization,
-        api_key: APP_API_KEY,
+        api_key: _.fake.API_KEY,
       }, {
         fail: function(err) {
           expect(err).to.match(/Unauthorized.*password/);
@@ -97,12 +81,3 @@ describe('account authentication', function() {
     });
   });
 });
-
-function deleteAccount(email) {
-  return function(done) {
-    _.dynamo.deleteItem({
-      Key: {email: {S: email}},
-      TableName: 'accounts',
-    }, done);
-  };
-}

@@ -22,10 +22,29 @@ exports.get = function(table, key) {
       TableName: table,
     }, function(err, data) {
       if (err) {
+        console.log(err);
         reject(err);
         return;
       }
       resolve(data.Item);
+    });
+  });
+};
+
+exports.put = function(table, item, more) {
+  return new Promise(function(resolve, reject) {
+    dynamo.putItem(_.assign({
+      TableName: table,
+      Item: item,
+    }, more), function(err, data) {
+      if (err) {
+        if (err.code !== 'ConditionalCheckFailedException') {
+          console.log(err);
+        }
+        reject(err);
+        return;
+      }
+      resolve(data);
     });
   });
 };
