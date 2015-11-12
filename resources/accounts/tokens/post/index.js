@@ -14,6 +14,11 @@ exports.handler = function(request, reply) {
   var credentials = new Buffer(auth[1], 'base64').toString('utf8').split(':');
   var email = credentials[0];
   var pass = credentials[1];
+  
+  if (!email || !pass) {
+    reply.fail('Unauthorized: email and password are required');
+    return;
+  }
 
   //get account from dynamo
   _.dynamo.get('accounts', {

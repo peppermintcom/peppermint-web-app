@@ -9,6 +9,10 @@ exports.handler = function(request, reply) {
     reply.fail(jwt.err.toString());
     return;
   }
+  if (!jwt.email) {
+    reply.fail('Unauthorized: jwt must contain email');
+    return;
+  }
   if (!tv4.validate(request.body, schema)) {
     reply.fail('Bad Request: ' + tv4.error);
     return;

@@ -6,7 +6,6 @@ var _ = require('utils/test');
 //skipping because required manual intervention
 describe.skip('GET /accounts/verify', function() {
   var user = _.fake.user();
-  var link = '';
 
   before(function() {
     return _.http('POST', '/accounts', {

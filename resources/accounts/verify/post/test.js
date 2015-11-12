@@ -21,7 +21,9 @@ describe('lambda:ReverifyEmail', function() {
         Authorization: 'Bearer ' + _.jwt.creds(user.account_id),
       }, {
         fail: function(err) {done(new Error(err));},
-        succeed: done,
+        succeed: function() {
+          done();
+        },
       });
     });
   })
