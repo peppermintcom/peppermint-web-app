@@ -73,8 +73,14 @@ var verify = exports.verify = function(token) {
     return r;
   }
 
-  var creds = r.payload.sub.split('.');
-  r.account_id = creds[0];
-  r.recorder_id = creds[1];
+  //sub will be email or <account_id>.<recorder_id>
+  if (/@/.test(r.payload.sub)) {
+    r.email = r.payload.sub;
+  } else {
+    var creds = r.payload.sub.split('.');
+    r.account_id = creds[0];
+    r.recorder_id = creds[1];
+  }
+
   return r;
 };

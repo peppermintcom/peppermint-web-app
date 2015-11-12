@@ -18,4 +18,8 @@ exports.deleteAccount = function(email) {
   });
 }
 
+exports.basic = function(user, password) {
+  return 'Basic ' + new Buffer(user + ':' + password).toString('base64');
+};
+
 module.exports = _.assign(exports, _);

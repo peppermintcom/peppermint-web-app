@@ -46,7 +46,7 @@ exports['x-amazon-apigateway-integration'] = {
     'default': {
       statusCode: '302',
       responseParameters: {
-        'Location': 'https://peppermint.com/verified',
+        'method.response.header.Location': "'https://peppermint.com/verified'",
       },
     },
     'Unauthorized.*': integrations.Unauthorized,
