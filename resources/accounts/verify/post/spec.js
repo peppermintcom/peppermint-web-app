@@ -31,7 +31,7 @@ exports['x-amazon-apigateway-integration'] = {
     'application/json': "{\"Authorization\": \"$input.params().header.get('Authorization')\"}",
   },
   responses: {
-    'default': integrations.OK,
+    'default': integrations.Ok,
     'Unauthorized.*': integrations.Unauthorized,
     '^(?!Unauthorized)(.|\\n)+': integrations.Internal,
   },

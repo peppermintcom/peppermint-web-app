@@ -4,7 +4,7 @@ exports.handler = function(request, reply) {
   var jwt = _.jwt.decode(request.jwt);
 
   if (jwt.err) {
-    reply.fail(jwt.err);
+    reply.fail('Unauthorized: ' + jwt.err.toString());
     return;
   }
 

@@ -7,9 +7,9 @@ var headers = require('definitions/headers');
 var jwt = require('definitions/jwt');
 var use = require('definitions/use');
 
-exports.tags = ['links'];
+exports.tags = ['accounts'];
 exports.summary = 'Verify an email.';
-exports.description = 'Handler for email verification links.';
+exports.description = 'Handler for email verification links. Cannot be called directly by client apps.';
 exports.operationId = 'VerifyEmail';
 
 exports.parameters = [
@@ -42,6 +42,9 @@ exports['x-amazon-apigateway-integration'] = {
   uri : 'arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:819923996052:function:VerifyEmail/invocations',
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
+  requestTemplates: {
+    'application/json': '{"jwt": "$input.params().querystring.get(\'jwt\')", "ip": "$context.identity.sourceIp"}',
+  },
   responses: {
     'default': {
       statusCode: '302',

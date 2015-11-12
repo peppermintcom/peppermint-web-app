@@ -1,4 +1,5 @@
 var jwt = require('jwt-simple');
+var errors = require('./errors');
 var conf = require('./conf');
 
 const JWT_SECRET = conf.PEPPERMINT_JWT_SECRET;
