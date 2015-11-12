@@ -7,9 +7,9 @@ var integrations = require('definitions/integrations');
 var headers = require('definitions/headers');
 var use = require('definitions/use');
 
-exports.tags = ['accounts PROPOSAL'];
+exports.tags = ['accounts'];
 exports.summary = 'Register a new account by email.';
-exports.description = 'By registering an account, a user can associate multiple recorders with the account and share data between recorders.';
+exports.description = 'When a new account is successfully registered the server will send the user an email to verify their email address. The user must click the link in that email within 15 minutes to verify their email address. Use the POST /accounts/verify operation to ask the server to send another verification email.';
 exports.operationId = 'CreateAccount';
 exports.consumes = exports.produces = ['application/json'];
 
