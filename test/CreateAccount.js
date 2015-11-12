@@ -53,6 +53,45 @@ describe('POST /accounts', function() {
     });
   });
 
+  describe('without an email', function() {
+    it('should return a 400 error.', function() {
+      return post({
+          api_key: _.fake.API_KEY,
+          u: _.omit(_.fake.user(), 'email'),
+        })
+        .then(function(res) {
+          expect(res.statusCode).to.equal(400);
+          expect(res.body.errorMessage).to.match(/email/);
+        });
+    });
+  });
+
+  describe('without a full_name', function() {
+    it('should return a 400 error.', function() {
+      return post({
+          api_key: _.fake.API_KEY,
+          u: _.omit(_.fake.user(), 'full_name'),
+        })
+        .then(function(res) {
+          expect(res.statusCode).to.equal(400);
+          expect(res.body.errorMessage).to.match(/full_name/);
+        });
+    });
+  });
+
+  describe('without a password', function() {
+    it('should return a 400 error.', function() {
+      return post({
+          api_key: _.fake.API_KEY,
+          u: _.omit(_.fake.user(), 'password'),
+        })
+        .then(function(res) {
+          expect(res.statusCode).to.equal(400);
+          expect(res.body.errorMessage).to.match(/password/);
+        });
+    });
+  });
+
   describe('with a bad api_key', function() {
     var user = _.fake.user();
 

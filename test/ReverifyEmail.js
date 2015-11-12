@@ -2,9 +2,9 @@ var expect = require('chai').expect;
 var readline = require('readline');
 var http = require('request');
 var _ = require('utils/test');
+var post = _.partial(_.http, 'POST', '/accounts/verify', {});
 
-//skipping because it requires manual intervention
-describe.skip('GET /accounts/verify', function() {
+describe('POST /accounts/verify', function() {
   var user = _.fake.user();
   var jwt;
 
@@ -14,17 +14,17 @@ describe.skip('GET /accounts/verify', function() {
         u: user,
       })
       .then(function(res) {
-        console.log(res.body);
         jwt = res.body.at;
       });
   });
 
   after(_.deleteAccountAfter(user.email));
 
-  describe('with a valid jwt', function() {
+  //skipping because it requires manual intervention
+  describe.skip('with a valid jwt', function() {
 
     before(function() {
-      return _.http('POST', '/accounts/verify', {}, {
+      return post({
           'Authorization': 'Bearer ' + jwt,
         })
         .then(function(res) {
@@ -61,6 +61,26 @@ describe.skip('GET /accounts/verify', function() {
         .then(function(account) {
           expect(account).to.have.property('verification_ts');
           expect(account).to.have.property('verification_ip');
+        });
+    });
+  });
+
+  describe('without an Authorization header', function() {
+    it('should return a 401 error.', function() {
+      return _.http('POST', '/accounts/verify', {})
+        .then(function(res) {
+          expect(res.statusCode).to.equal(401);
+        });
+    });
+  });
+
+  describe('with a bad token', function() {
+    it('should return a 401 error.', function() {
+      return post({
+          'Authorization': 'Bearer ' + jwt + 'x',
+        })
+        .then(function(res) {
+          expect(res.statusCode).to.equal(401);
         });
     });
   });

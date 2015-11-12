@@ -3,6 +3,11 @@ var _ = require('utils');
 exports.handler = function(request, reply) {
   var jwt = _.authenticate(request.Authorization);
 
+  if (jwt.err) {
+    reply.fail('Unauthorized: ' + jwt.err.toString());
+    return;
+  }
+
   _.dynamo.query({
     TableName: 'accounts',
     IndexName: 'account_id-index',
