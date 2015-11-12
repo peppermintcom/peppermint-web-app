@@ -23,7 +23,7 @@ exports.handler = function(request, reply) {
 
     _.accounts.verifyEmail(data.Items[0].email.S)
       .then(function() {
-        reply.succeed();
+        reply.succeed({});
       })
       .catch(function(err) {
         reply.fail(err);

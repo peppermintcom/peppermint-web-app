@@ -3,21 +3,35 @@ var readline = require('readline');
 var http = require('request');
 var _ = require('utils/test');
 
-//skipping because required manual intervention
+//skipping because it requires manual intervention
 describe.skip('GET /accounts/verify', function() {
   var user = _.fake.user();
-  var link = '';
+  var jwt;
 
   before(function() {
     return _.http('POST', '/accounts', {
-      api_key: _.fake.API_KEY,
-      u: user,
-    });
+        api_key: _.fake.API_KEY,
+        u: user,
+      })
+      .then(function(res) {
+        console.log(res.body);
+        jwt = res.body.at;
+      });
   });
 
   after(_.deleteAccountAfter(user.email));
 
   describe('with a valid jwt', function() {
+
+    before(function() {
+      return _.http('POST', '/accounts/verify', {}, {
+          'Authorization': 'Bearer ' + jwt,
+        })
+        .then(function(res) {
+          expect(res.statusCode).to.equal(200);
+        });
+    });
+
     it('should respond with a verified message.', function(done) {
       this.timeout(90000);
 
@@ -27,7 +41,7 @@ describe.skip('GET /accounts/verify', function() {
       });
 
       rl.question([
-        'Click the verification link emailed to ',
+        'Click the newest verification link emailed to ',
         user.email,
         '. Do you see a "Verified" message? [Y/N]',
       ].join(''), function(ok) {
