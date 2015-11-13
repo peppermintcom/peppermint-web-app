@@ -31,6 +31,9 @@ exports.parameters = [
 exports.responses = {
   '200': {
     description: 'Password successfully changed.',
+    headers: {
+      'Access-Control-Allow-Origin': {type: 'string'},
+    },
   },
   '400': responses.BadRequest,
   '401': responses.Unauthorized,

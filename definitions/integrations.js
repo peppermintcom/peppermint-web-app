@@ -14,6 +14,14 @@ exports.Created = {
   responseTemplates: {},
 };
 
+exports.Expired = {
+  statusCode: '303',
+  responseParameters: {
+    'method.response.header.Access-Control-Allow-Origin': "'*'",
+    'method.response.header.Location': "'https://peppermint.com/expired'",
+  },
+};
+
 exports.BadRequest = {
   statusCode: '400',
   responseParameters: {

@@ -33,6 +33,12 @@ exports.responses = {
       'Location': {type: 'string'},
     },
   },
+  '303': {
+    description: 'Email could not be validated with provided token.',
+    headers: {
+      'Location': {type: 'string'},
+    },
+  },
   '401': responses.Unauthorized,
   '500': responses.Internal,
 };
@@ -52,7 +58,7 @@ exports['x-amazon-apigateway-integration'] = {
         'method.response.header.Location': "'https://peppermint.com/verified'",
       },
     },
-    'Unauthorized.*': integrations.Unauthorized,
+    'Unauthorized.*': integrations.Expired,
     '^(?!Unauthorized)(.|\\n)+': integrations.Internal,
   },
 };

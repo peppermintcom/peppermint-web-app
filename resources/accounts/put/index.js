@@ -6,7 +6,7 @@ exports.handler = function(request, reply) {
   var jwt = _.authenticate(request.Authorization);
 
   if (jwt.err) {
-    reply.fail(jwt.err.toString());
+    reply.fail('Unauthorized: ' + jwt.err.toString());
     return;
   }
   if (!jwt.email) {
