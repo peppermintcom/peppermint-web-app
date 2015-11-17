@@ -4,8 +4,38 @@ var path = require('path');
 var util = require('util');
 var swagger = require('swagger-tools');
 var sources = require('./sources');
+var _ = require('utils');
 
 var readme = fs.readFileSync(path.join(__dirname, '../definitions/README.md')).toString();
+const OPTIONS = {
+  tags: ['cors'],
+  responses: {
+    '200': {
+      description: 'OPTIONS',
+      headers: {
+        'Access-Control-Allow-Origin': {type: 'string'},
+        'Access-Control-Allow-Methods': {type: 'string'},
+        'Access-Control-Allow-Headers': {type: 'string'},
+      },
+    },
+  },
+  'x-amazon-apigateway-integration': {
+    type: 'mock',
+    requestTemplates: {
+      'application/json': '{"statusCode": 200}',
+    },
+    responses: {
+      'default': {
+        statusCode: '200',
+        responseParameters: {
+          'method.response.header.Access-Control-Allow-Origin': "'*'",
+          'method.response.header.Access-Control-Allow-Methods': "'GET,POST,PUT'",
+          'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization'",
+        },
+      },
+    },
+  },
+};
 
 /**
  * @param {Boolean} stage - whether to prefix basePath with 'prod'
@@ -26,42 +56,18 @@ module.exports = function(stage) {
 
     fs.readdirSync(path.join('resources', resource)).forEach(function(f) {
       if (methods[f]) {
-        p[f] = require(['..', 'resources', resource, f, 'spec'].join(path.sep));
+        var methodSpec = require(['..', 'resources', resource, f, 'spec'].join(path.sep));
+        if (methodSpec.path) {
+          paths[methodSpec.path] = paths[methodSpec.path] || {};
+          paths[methodSpec.path][f] = _.omit(methodSpec, 'path');
+          paths[methodSpec.path].options = OPTIONS;
+        } else {
+          p[f] = require(['..', 'resources', resource, f, 'spec'].join(path.sep));
+        }
       }
     });
     //add OPTIONS method for each resource
-    paths[key].options = {
-      tags: ['cors'],
-      responses: {
-        '200': {
-          description: 'OPTIONS for ' + key,
-          headers: {
-            'Access-Control-Allow-Origin': {type: 'string'},
-            'Access-Control-Allow-Methods': {type: 'string'},
-            'Access-Control-Allow-Headers': {type: 'string'},
-          },
-        },
-      },
-      'x-amazon-apigateway-aut': {type: 'none'},
-      'x-amazon-apigateway-integration': {
-        type: 'mock',
-        requestTemplates: {
-          'application/json': '{"statusCode": 200}',
-        },
-        requestParameters: {},
-        responses: {
-          'default': {
-            statusCode: '200',
-            responseParameters: {
-              'method.response.header.Access-Control-Allow-Origin': "'*'",
-              'method.response.header.Access-Control-Allow-Methods': "'POST,PUT'",
-              'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization'",
-            },
-            responseTemplates: {},
-          },
-        },
-      },
-    };
+    paths[key].options = OPTIONS;
     return paths;
   }, {});
 

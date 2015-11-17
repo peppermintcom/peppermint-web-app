@@ -18,5 +18,8 @@ module.exports = {
       type: 'string',
     },
     registration_ts: timestamp,
+    is_verified: {
+      type: 'boolean',
+    },
   },
 };

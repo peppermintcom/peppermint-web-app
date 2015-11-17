@@ -32,6 +32,20 @@ exports.basic = function(user, password) {
 
 exports.http = function(method, path, body, headers) {
   return new Promise(function(resolve, reject) {
+    if (method.toLowerCase() === 'get') {
+      request(API_URL + path, {
+        headers: headers,
+      }, function(err, res, body) {
+        if (err) {
+          reject(err);
+          return;
+        }
+        res.body = JSON.parse(body);
+        resolve(res);
+      });
+      return;
+    }
+
     request({
       url: API_URL + path,
       method: method,

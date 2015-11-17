@@ -48,6 +48,7 @@ exports.account = function(_user) {
       },
       succeed: function(r) {
         u.account_id = r.u.account_id;
+        u.registration_ts = r.u.registration_ts;
         resolve(u);
       },
     });
