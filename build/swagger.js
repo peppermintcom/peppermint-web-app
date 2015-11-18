@@ -60,7 +60,16 @@ module.exports = function(stage) {
         if (methodSpec.path) {
           paths[methodSpec.path] = paths[methodSpec.path] || {};
           paths[methodSpec.path][f] = _.omit(methodSpec, 'path');
-          paths[methodSpec.path].options = OPTIONS;
+          paths[methodSpec.path].options = _.assign({}, OPTIONS, {
+            parameters: [
+              {
+                name: 'account_id',
+                'in': 'path',
+                type: 'string',
+                required: true,
+              },
+            ],
+          });
         } else {
           p[f] = require(['..', 'resources', resource, f, 'spec'].join(path.sep));
         }
