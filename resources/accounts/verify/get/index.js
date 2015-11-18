@@ -1,10 +1,14 @@
 var _ = require('utils');
 
 exports.handler = function(request, reply) {
-  var jwt = _.jwt.decode(request.jwt);
+  var jwt = _.jwt.verify(request.jwt);
 
   if (jwt.err) {
     reply.fail('Unauthorized: ' + jwt.err.toString());
+    return;
+  }
+  if (!jwt.email) {
+    reply.fail('Unauthorized: token missing email');
     return;
   }
 
