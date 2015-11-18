@@ -10,6 +10,7 @@ exports.verifyEmail = function(email) {
     mandrill.messages.send({
       message: {
         from_email: 'noreply@peppermint.com',
+        from_name: 'Peppermint',
         html: '<a href="https://peppermint.com/verify-email?at=' + token + '">Verify</a>',
         subject: 'Verify your email',
         to: [{email: email}],

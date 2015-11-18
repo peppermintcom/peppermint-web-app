@@ -26,6 +26,7 @@ exports.handler = function(request, reply) {
       _.mandrill.messages.send({
         message: {
           from_email: 'noreply@peppermint.com',
+          from_name: 'Peppermint',
           html: '<a href="https://peppermint.com/reset?jwt=' + jwt + '">Reset</a>',
           subject: 'Reset your password.',
           to: [{email: email}],
