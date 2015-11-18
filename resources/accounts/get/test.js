@@ -38,9 +38,9 @@ describe('lambda:GetAccount', function() {
     });
 
     describe('verified accounts', function() {
-      before(function() {
+      before(function(done) {
         verify({
-          jwt: _.jwt.encode(user.email),
+          jwt: _.jwt.encode(account.email, 60),
           ip: '127.0.0.1',
         }, {
           succeed: function() {

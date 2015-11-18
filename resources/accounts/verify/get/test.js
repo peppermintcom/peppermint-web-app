@@ -31,4 +31,39 @@ describe('lambda:VerifyEmail', function() {
       });
     });
   });
+
+  describe('with an expired jwt', function() {
+    it('should fail with an Unauthorized error.', function(done) {
+      var jwt = _.jwt.encode(user.email, -10);
+
+      handler({jwt: jwt, ip: '127.0.0.1'}, {
+        fail: function(err) {
+          expect(err).to.match(/Unauthorized.*Expired/);
+          done();
+        },
+        succeed: function() {
+          done(new Error('success with expired token'));
+        },
+      });
+    });
+  });
+
+  //unverified clients have jwts that assert the account_id; these must not be
+  //capable of verifying an email address;
+  //JWTs wtih email addresses are only emailed
+  describe('with an account_id jwt', function() {
+    it('should fail with an Unauthorized error.', function(done) {
+      var jwt = _.jwt.creds(user.account_id);
+
+      handler({jwt: jwt, ip: '127.0.0.1'}, {
+        fail: function(err) {
+          expect(err).to.match(/Unauthorized/);
+          done();
+        },
+        succeed: function() {
+          done(new Error('success with jwt without email'));
+        },
+      });
+    });
+  });
 });

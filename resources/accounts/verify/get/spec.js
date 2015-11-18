@@ -21,23 +21,9 @@ exports.parameters = [
   },
 ];
 
-/*
- * Success screen.
- * Expired screen - please check again.
- * Email not found or Internal Server Error screen.
- */
 exports.responses = {
-  '302': {
+  '200': {
     description: 'Email validated.',
-    headers: {
-      'Location': {type: 'string'},
-    },
-  },
-  '303': {
-    description: 'Email could not be validated with provided token.',
-    headers: {
-      'Location': {type: 'string'},
-    },
   },
   '401': responses.Unauthorized,
   '500': responses.Internal,
@@ -52,13 +38,8 @@ exports['x-amazon-apigateway-integration'] = {
     'application/json': '{"jwt": "$input.params().querystring.get(\'jwt\')", "ip": "$context.identity.sourceIp"}',
   },
   responses: {
-    'default': {
-      statusCode: '302',
-      responseParameters: {
-        'method.response.header.Location': "'https://peppermint.com/verified'",
-      },
-    },
-    'Unauthorized.*': integrations.Expired,
+    'default': integration.Ok,
+    'Unauthorized.*': integrations.Unauthorized,
     '^(?!Unauthorized)(.|\\n)+': integrations.Internal,
   },
 };
