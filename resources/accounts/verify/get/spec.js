@@ -38,7 +38,7 @@ exports['x-amazon-apigateway-integration'] = {
     'application/json': '{"jwt": "$input.params().querystring.get(\'jwt\')", "ip": "$context.identity.sourceIp"}',
   },
   responses: {
-    'default': integration.Ok,
+    'default': integrations.Ok,
     'Unauthorized.*': integrations.Unauthorized,
     '^(?!Unauthorized)(.|\\n)+': integrations.Internal,
   },
