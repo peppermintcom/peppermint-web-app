@@ -1,5 +1,6 @@
 var readline = require('readline');
 var expect = require('chai').expect;
+var _ = require('utils/test');
 
 //uses password reset form on peppermint.com
 describe.skip('Forgot Password', function() {
