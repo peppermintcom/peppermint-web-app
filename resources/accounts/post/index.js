@@ -31,7 +31,7 @@ exports.handler = function(request, reply) {
     })
     .then(function() {
       //wait until after saving account to database in case it's a dupe
-      return _.accounts.verifyEmail(request.u.email);
+      return _.accounts.verifyEmail(request.u.email, request.u.full_name);
     })
     .then(function() {
       reply.succeed({

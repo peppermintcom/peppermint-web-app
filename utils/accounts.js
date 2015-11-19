@@ -2,20 +2,31 @@ var mandrill = require('./mandrill');
 var dynamo = require('./dynamo');
 var jwt = require('./jwt');
 
-exports.verifyEmail = function(email) {
+exports.verifyEmail = function(email, name) {
   return new Promise(function(resolve, reject) {
     //expires in 15 minutes
     var token = jwt.encode(email, 15 * 60);
 
-    mandrill.messages.send({
+    mandrill.messages.sendTemplate({
+      template_name: 'confirm-account',
+      template_content: [],
       message: {
-        from_email: 'noreply@peppermint.com',
-        from_name: 'Peppermint',
-        html: '<a href="https://peppermint.com/verify-email?at=' + token + '">Verify</a>',
-        subject: 'Verify your email',
-        to: [{email: email}],
+        to: [
+          {email: email, name: name},
+        ],
         track_clicks: false,
         track_opens: false,
+        merge_language: 'handlebars',
+        global_merge_vars: [
+          {
+            name: 'name',
+            content: name,
+          },
+          {
+            name: 'token',
+            content: token,
+          }
+        ],
       },
     }, function(result) {
       if (!result[0] || result[0].reject_reason) {

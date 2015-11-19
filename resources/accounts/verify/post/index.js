@@ -26,7 +26,7 @@ exports.handler = function(request, reply) {
       return;
     }
 
-    _.accounts.verifyEmail(data.Items[0].email.S)
+    _.accounts.verifyEmail(data.Items[0].email.S, data.Items[0].full_name.S)
       .then(function() {
         reply.succeed({});
       })
