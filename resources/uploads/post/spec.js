@@ -6,7 +6,7 @@ var headers = require('definitions/headers');
 
 exports.tags = ['uploads'];
 exports.summary = 'Initialize a new upload';
-exports.description = 'The API will generate a signed URL where a file can be uploaded. The client must include the content type of the file in the request and in the PUT operation to the returned signed_url.';
+exports.description = 'The API will generate a signed URL where a file can be uploaded. The client must include the content type of the file in the request and in the PUT operation to the returned signed_url. The response will include a canonical_url where the file will be available after upload and a short_url that resolves to the canonical_url.';
 exports.operationId = 'CreateUpload';
 exports.consumes = exports.produces = ['application/json'];
 
@@ -43,12 +43,16 @@ exports.responses = {
       type: 'object',
       properties: {
         signed_url: {type: 'string'},
+        canonical_url: {type: 'string'},
+        short_url: {type: 'string'},
       },
       required: ['signed_url'],
     },
     examples: {
       'application/json': {
         signed_url: 'https://peppermint-cdn.s3.amazonaws.com/AW3/cpLPai2DIqcETFtWsn0cWc?AWSAccessKeyId=AKIAJZTQ4SASPHAFE5AQ&Expires=1445220215&Signature=47q4xCdhIc89K0SMm2YHH%2BQIAdI%3D',
+        canonical_url: 'http://go.peppermint.com/AW3/cpLPai2DIqcETFtWsn0cWc',
+        short_url: 'https://peppermint.com/lEh-MpCYGEpY',
       },
     },
   },

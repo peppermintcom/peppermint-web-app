@@ -49,4 +49,35 @@ exports.put = function(table, item, more) {
   });
 };
 
+/**
+ * retrieve an item from a table using a secondary index
+ * @param {String} table
+ * @param {String} index
+ * @param {String} attribute
+ * @param {Object} value
+ * @return {Promise}
+ */
+exports.fetch = function(table, index, attribute, value) {
+  return new Promise(function(resolve, reject) {
+    var match = {};
+
+    //{":account_id": {S: accountID}}
+    match[':' + attribute] = value;
+
+    dynamo.query({
+      TableName: table,
+      IndexName: index,
+      //"account_id = :account_id"
+      KeyConditionExpression: attribute + ' = :' + attribute,
+      ExpressionAttributeValues: match,
+    }, function(err, data) {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(data.Items);
+    });
+  });
+};
+
 module.exports = _.assign(dynamo, exports);

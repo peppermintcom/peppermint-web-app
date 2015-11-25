@@ -5,7 +5,6 @@ var tv4 = require('tv4');
 var _ = require('utils');
 
 //# of characters in path of short urls
-const KEY_LENGTH = 12;
 const CDN_HOST = 'go.peppermint.com';
 
 var bodySchema = _.bodySchema(require('./spec').parameters);
@@ -26,8 +25,12 @@ exports.handler = function(request, reply) {
   var parts = url.parse(request.body.signed_url);
   parts.host = CDN_HOST;
   parts.protocol = 'http';
-  var canonical = url.format(_.omit(parts, ['search', 'query']));
-  var shortKey = _.token(KEY_LENGTH);
+  var canonicalKey = _.trimLeft(parts.pathname, '/');
+  var canonical = url.format({
+    protocol: 'http',
+    host: CDN_HOST,
+    pathname: canonicalKey,
+  });
 
   //confirm the user who made the request owns the url
   var signedPathParts = parts.path.split('/');
@@ -51,23 +54,19 @@ exports.handler = function(request, reply) {
       reply.fail('Not Found');
       return;
     }
-    _.dynamo.putItem({
-      Item: {
-        key: {S: shortKey},
-        pathname: {S: _.trimLeft(parts.pathname, '/')},
-        created: {N: Date.now().toString()},
-      },
-      TableName: 'short-urls',
-    }, function(err, data) {
-      if (err) {
-        console.log(err);
-        reply.fail('Internal Server Error');
-        return;
-      }
-      reply.succeed({
-        canonical_url: canonical,
-        short_url: 'https://peppermint.com/' + shortKey,
+    _.dynamo.fetch('short-urls', 'pathname-index', 'pathname', {S: canonicalKey})
+      .then(function(items) {
+        var item = items[0];
+        if (!item) {
+          throw new Error('Not Found');
+        }
+        reply.succeed({
+          canonical_url: canonical,
+          short_url: 'https://peppermint.com/' + item.key.S,
+        });
+      })
+      .catch(function(err) {
+        reply.fail(err.toString());
       });
-    });
   });
 };
