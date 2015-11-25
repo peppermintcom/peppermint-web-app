@@ -12,7 +12,7 @@ describe('lambda:CreateUpload', function() {
     });
   });
 
-  describe('Valid Requests', function() {
+  describe.only('Valid Requests', function() {
     it('should return a signed_url for the peppermint-cdn bucket.', function(done) {
       handler({
         Authorization: 'Bearer ' + jwt,
@@ -26,6 +26,8 @@ describe('lambda:CreateUpload', function() {
         },
         succeed: function(upload) {
           expect(upload).to.have.property('signed_url');
+          expect(upload).to.have.property('short_url');
+          expect(upload).to.have.property('canonical_url');
           done();
         },
       });
