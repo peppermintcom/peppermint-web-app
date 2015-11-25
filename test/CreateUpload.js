@@ -43,42 +43,84 @@ describe('POST /uploads', function() {
   });
 
   describe('Valid Requests', function() {
-    it('should generate a signed_url', function(done) {
-      post(UPLOAD_URL, {
-          content_type: 'audio/x-aac',
-        }, {
-          'Authorization': 'Bearer ' + jwt,
-        })
-        .then(function(res) {
-          expect(res.statusCode).to.equal(201);
-          expect(res.body).to.have.property('signed_url');
+    describe('with content-type "audio/mp4"', function() {
+      it('should generate a short_url, signed_url, and canonical_url with ".m4a" extension.', function(done) {
+        post(UPLOAD_URL, {
+            content_type: 'audio/mp4',
+          }, {
+            'Authorization': 'Bearer ' + jwt,
+          })
+          .then(function(res) {
+            expect(res.statusCode).to.equal(201);
+            expect(res.body).to.have.property('signed_url');
+            expect(res.body).to.have.property('short_url');
+            expect(res.body).to.have.property('canonical_url');
+            expect(res.body.canonical_url).to.match(/\.m4a$/);
 
-          fs.readFile('test/sample.aac', function(err, data) {
-            if (err) {
-              done(err);
-              return;
-            }
-            request.put({
-              url: res.body.signed_url,
-              body: data,
-              headers: {
-                'Content-Type': 'audio/x-aac',
-                'Content-Length': '484307',
-              },
-            }, function(err, s3resp) {
+            fs.readFile('test/sample.aac', function(err, data) {
               if (err) {
                 done(err);
                 return;
               }
-              expect(s3resp.statusCode).to.equal(200);
-              done();
+              request.put({
+                url: res.body.signed_url,
+                body: data,
+                headers: {
+                  'Content-Type': 'audio/mp4',
+                  'Content-Length': '484307',
+                },
+              }, function(err, s3resp) {
+                if (err) {
+                  done(err);
+                  return;
+                }
+                expect(s3resp.statusCode).to.equal(200);
+                done();
+              });
             });
+          })
+          .catch(function(err) {
+            done(err);
           });
-        })
-        .catch(function(err) {
-          done(err);
-        });
+      });
     });
+
+    describe('with content-type "audio/mpeg"', function() {
+      it('should add the ".mp3" extension to the canonical_url.', function(done) {
+        post(UPLOAD_URL, {
+            content_type: 'audio/mpeg',
+          }, {
+            Authorization: 'Bearer ' + jwt,
+          })
+          .then(function(res) {
+            expect(res.statusCode).to.equal(201);
+            expect(res.body).to.have.property('signed_url');
+            expect(res.body).to.have.property('short_url');
+            expect(res.body).to.have.property('canonical_url');
+            expect(res.body.canonical_url).to.match(/\.mp3$/);
+            done();
+          });
+      });
+    });
+
+    describe('with content-type "audio/mp3"', function() {
+      it('should add the ".mp3" extension to the canonical_url.', function(done) {
+        post(UPLOAD_URL, {
+            content_type: 'audio/mp3',
+          }, {
+            Authorization: 'Bearer ' + jwt,
+          })
+          .then(function(res) {
+            expect(res.statusCode).to.equal(201);
+            expect(res.body).to.have.property('signed_url');
+            expect(res.body).to.have.property('short_url');
+            expect(res.body).to.have.property('canonical_url');
+            expect(res.body.canonical_url).to.match(/\.mp3$/);
+            done();
+          });
+      });
+    });
+
   });
 
   describe('Invalid Requests', function() {

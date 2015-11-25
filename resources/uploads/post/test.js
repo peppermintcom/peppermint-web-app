@@ -32,7 +32,7 @@ describe('lambda:CreateUpload', function() {
           expect(upload).to.have.property('signed_url');
           expect(upload).to.have.property('short_url');
           expect(upload).to.have.property('canonical_url');
-          expect(upload.canonical_url).to.match(/\.mp4$/);
+          expect(upload.canonical_url).to.match(/\.m4a$/);
           done();
         },
       });

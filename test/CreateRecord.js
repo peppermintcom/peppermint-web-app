@@ -31,7 +31,7 @@ function post(url, body, headers) {
 describe('POST /record', function() {
   var jwt = null;
   var recorder = null;
-  var signedURL = null;
+  var signedURL, shortURL, canonicalURL;
 
   before(function() {
     return post(RECORDER_URL, {
@@ -47,11 +47,13 @@ describe('POST /record', function() {
 
   before(function() {
     return post(UPLOAD_URL, {
-      content_type: 'audio/x-aac',
+      content_type: 'audio/mp4',
     }, {
       'Authorization': 'Bearer ' + jwt,
     }).then(function(res) {
       signedURL = res.body.signed_url;
+      shortURL = res.body.short_url;
+      canonicalURL = res.body.canonical_url;
     });
   });
 
@@ -65,7 +67,7 @@ describe('POST /record', function() {
         url: signedURL,
         body: data,
         headers: {
-          'Content-Type': 'audio/x-aac',
+          'Content-Type': 'audio/mp4',
           'Content-Length': '484307',
         },
       }, done)
@@ -117,6 +119,11 @@ describe('POST /record', function() {
         expect(resp.headers).to.have.property('location', res.body.canonical_url);
         done();
       });
+    });
+
+    it('should return the same short_url and canonical_url returned by POST /uploads.', function() {
+      expect(res.body.short_url).to.equal(shortURL);
+      expect(res.body.canonical_url).to.equal(canonicalURL);
     });
   });
 

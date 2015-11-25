@@ -8,7 +8,7 @@ var bodySchema = _.bodySchema(require('./spec').parameters);
 var extensions = {
   'audio/mpeg': '.mp3',
   'audio/mp3': '.mp3',
-  'audio/mp4': '.mp4',
+  'audio/mp4': '.m4a',
 };
 
 const BUCKET = 'peppermint-cdn';
