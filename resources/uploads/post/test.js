@@ -16,12 +16,12 @@ describe('lambda:CreateUpload', function() {
     _.deleteRecorder(recorder.recorder_client_id);
   });
 
-  describe('Valid Requests', function() {
+  describe('Valid Requests with content-type "audio/mp4"', function() {
     it('should return a signed_url for the peppermint-cdn bucket.', function(done) {
       handler({
         Authorization: 'Bearer ' + jwt,
         body: {
-          content_type: 'audio/aac',
+          content_type: 'audio/mp4',
           recorder_id: recorder.recorder_id,
         },
       }, {
@@ -32,6 +32,7 @@ describe('lambda:CreateUpload', function() {
           expect(upload).to.have.property('signed_url');
           expect(upload).to.have.property('short_url');
           expect(upload).to.have.property('canonical_url');
+          expect(upload.canonical_url).to.match(/\.mp4$/);
           done();
         },
       });
