@@ -7,6 +7,7 @@ exports.tags = ['record'];
 exports.summary = 'Finalize an upload';
 exports.operationId = 'CreateRecord';
 exports.consumes = exports.produces = ['application/json'];
+exports.deprecated = true;
 
 exports.parameters = [
   headers.AuthorizationBearer,

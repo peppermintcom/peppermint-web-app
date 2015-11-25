@@ -6,7 +6,7 @@ var headers = require('definitions/headers');
 
 exports.tags = ['uploads'];
 exports.summary = 'Initialize a new upload';
-exports.description = 'The API will generate a signed URL where a file can be uploaded. The client must include the content type of the file in the request and in the PUT operation to the returned signed_url. The response will include a canonical_url where the file will be available after upload and a short_url that resolves to the canonical_url.';
+exports.description = 'The API will generate a signed URL where a file can be uploaded. The client must include the content type of the file in the request and in the PUT operation to the returned signed_url. The response will include a canonical_url where the file will be available after upload and a short_url that resolves to the canonical_url. The canonical_url will have a file extension of ".mp3" for content_types of "audio/mpeg" or "audio/mp3" and ".m4a" for content_type "audio/mp4".';
 exports.operationId = 'CreateUpload';
 exports.consumes = exports.produces = ['application/json'];
 

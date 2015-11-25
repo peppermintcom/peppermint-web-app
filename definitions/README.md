@@ -25,3 +25,8 @@ included. After the client completes the upload, it should submit a POST request
 to /record to get the canonical_url where the file can be read by the public.
 The clients can then share this url in an email or text message, or download the
 file and send it as an attachment in an email.
+
+## Changes
+### November 25, 2015
+POST /uploads returns a short_url and canonical_url. POST /record returns the
+same short_url and canonical_url. POST /record is deprecated.
