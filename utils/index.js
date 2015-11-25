@@ -3,10 +3,8 @@ var conf = require('./conf.js');
 var _ = require('lodash');
 var randomstring = require('randomstring');
 var bcrypt = require('bcryptjs');
-var Hashids = require('hashids');
 var errors = require('./errors');
 var jwt = require('./jwt');
-var hashids = new Hashids(conf.PEPPERMINT_HASHIDS_SALT);
 
 //while using js
 const BCRYPT_COST = 8;
@@ -89,14 +87,6 @@ exports.authenticate = function(Authorization) {
   }
 
   return jwt.verify(parts[1]);
-};
-
-exports.hashID = function(id) {
-  return hashids.encode(parseInt(id, 10));
-};
-
-exports.unhashID = function(hash) {
-  return hashids.decode(hash)[0];
 };
 
 /**

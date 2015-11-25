@@ -55,6 +55,9 @@ exports.handler = function(req, res) {
         short_url: shortURL,
         canonical_url: canonicalURL,
       });
+    })
+    .catch(function(err) {
+      reply.fail(err.toString());
     });
 };
 
