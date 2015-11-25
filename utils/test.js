@@ -26,6 +26,21 @@ exports.deleteAccountAfter = function(email) {
   };
 };
 
+exports.deleteRecorder = function(client_id) {
+  return new Promise(function(resolve, reject) {
+    _.dynamo.deleteItem({
+      Key: {client_id: {S: client_id}},
+      TableName: 'recorders',
+    }, function(err) {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve();
+    });
+  });
+};
+
 exports.basic = function(user, password) {
   return 'Basic ' + new Buffer(user + ':' + password).toString('base64');
 };

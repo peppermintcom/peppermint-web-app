@@ -1,18 +1,22 @@
 var expect = require('chai').expect;
-var fake = require('utils/fake');
+var _ = require('utils/test');
 var handler = require('./').handler;
 
 describe('lambda:CreateUpload', function() {
   var jwt, recorder;
 
   before(function() {
-    return fake.recorder().then(function(res) {
+    return _.fake.recorder().then(function(res) {
       jwt = res.at;
       recorder = res.recorder;
     });
   });
 
-  describe.only('Valid Requests', function() {
+  after(function() {
+    _.deleteRecorder(recorder.recorder_client_id);
+  });
+
+  describe('Valid Requests', function() {
     it('should return a signed_url for the peppermint-cdn bucket.', function(done) {
       handler({
         Authorization: 'Bearer ' + jwt,
