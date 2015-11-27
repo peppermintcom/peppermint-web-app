@@ -1,5 +1,4 @@
 var expect = require('chai').expect;
-var http = require('request');
 var _ = require('utils/test');
 var post = _.partial(_.http, 'POST', '/accounts/tokens', {api_key: _.fake.API_KEY});
 

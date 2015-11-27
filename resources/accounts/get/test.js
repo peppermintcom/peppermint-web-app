@@ -71,6 +71,24 @@ describe('lambda:GetAccount', function() {
     });
   });
 
+  describe('with non-existent account', function() {
+    it('should return a Not Found error.', function(done) {
+      var accountID = _.token(22);
+
+      handler({
+        account_id: accountID,
+      }, {
+        succeed: function() {
+          done(new Error('success without a real account'));
+        },
+        fail: function(err) {
+          expect(err).to.match(/Not Found/);
+          done();
+        },
+      });
+    });
+  });
+
   describe('without Authorization', function() {
     it('should return an Unauthorized error.', function(done) {
       handler({
@@ -116,25 +134,6 @@ describe('lambda:GetAccount', function() {
         },
         fail: function(err) {
           expect(err).to.match(/Forbidden/);
-          done();
-        },
-      });
-    });
-  });
-
-  describe('with non-existent account', function() {
-    it('should return a Not Found error.', function(done) {
-      var accountID = _.token(22);
-
-      handler({
-        Authorization: 'Bearer ' + _.jwt.creds(accountID),
-        account_id: accountID,
-      }, {
-        succeed: function() {
-          done(new Error('success without a real account'));
-        },
-        fail: function(err) {
-          expect(err).to.match(/Not Found/);
           done();
         },
       });
