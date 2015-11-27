@@ -12,7 +12,7 @@ exports.handler = function(request, reply) {
 
   //get email and password from Authorization header
   var credentials = new Buffer(auth[1], 'base64').toString('utf8').split(':');
-  var email = credentials[0];
+  var email = credentials[0].toLowerCase();
   var pass = credentials[1];
   
   if (!email || !pass) {

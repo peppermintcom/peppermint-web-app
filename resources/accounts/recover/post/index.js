@@ -13,7 +13,7 @@ exports.handler = function(request, reply) {
   }
  
   //jwt email with 15 minute expiration
-  var email = request.email;
+  var email = request.email.toLowerCase();
   var jwt = _.jwt.encode(email, 15 * 60);
 
   _.dynamo.get('accounts', {email: {S: email}})

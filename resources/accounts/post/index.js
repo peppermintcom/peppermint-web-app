@@ -13,13 +13,14 @@ exports.handler = function(request, reply) {
   }
 
   var accountID = _.token(22);
+  var email = request.u.email.toLowerCase();
   var ts = new Date();
 
   _.bcryptHash(request.u.password)
     .then(function(hash) {
       var item = {
         account_id: {S: accountID},
-        email: {S: request.u.email},
+        email: {S: email},
         password: {S: hash},
         full_name: {S: request.u.full_name},
         registration_ts: {N: ts.valueOf().toString()},
@@ -31,7 +32,7 @@ exports.handler = function(request, reply) {
     })
     .then(function() {
       //wait until after saving account to database in case it's a dupe
-      return _.accounts.verifyEmail(request.u.email, request.u.full_name);
+      return _.accounts.verifyEmail(email, request.u.full_name);
     })
     .then(function() {
       reply.succeed({
@@ -39,7 +40,7 @@ exports.handler = function(request, reply) {
         u: {
           account_id: accountID,
           full_name: request.u.full_name,
-          email: request.u.email,
+          email: email,
           registration_ts: _.timestamp(ts),
         },
       });
