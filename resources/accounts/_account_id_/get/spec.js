@@ -5,7 +5,6 @@ var integrations = require('definitions/integrations');
 var headers = require('definitions/headers');
 var use = require('definitions/use');
 
-exports.path = '/accounts/{account_id}';
 exports.tags = ['accounts'];
 exports.summary = 'Retrieve account profile.';
 exports.operationId = 'GetAccount';

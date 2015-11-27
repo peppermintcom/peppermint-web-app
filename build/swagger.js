@@ -50,33 +50,47 @@ module.exports = function(stage) {
   };
 
   //generate paths object from resources directory
+  //http://swagger.io/specification/#pathsObject
   var paths = sources.paths.reduce(function(paths, resource) {
-    var key = path.join('/', resource);
-    var p = paths[key] = paths[key] || {};
+    /**
+     * Each resource is a directory such as /accounts or /accconts/tokens that
+     * may contain method subdirectories or resource subdirectories.
+     * Each resource that contains methods should have a key in the swagger
+     * paths object. Paths that contain parameters such as
+     * /accounts/{account_id} use underscores in the filesystem rather than
+     * braces. /accounts/_account_id_ is converted to /accounts/{account_id}
+     * with the parameterize function.
+     */
+    var key = parameterize(path.join('/', resource));
 
-    fs.readdirSync(path.join('resources', resource)).forEach(function(f) {
-      if (methods[f]) {
-        var methodSpec = require(['..', 'resources', resource, f, 'spec'].join(path.sep));
-        if (methodSpec.path) {
-          paths[methodSpec.path] = paths[methodSpec.path] || {};
-          paths[methodSpec.path][f] = _.omit(methodSpec, 'path');
-          paths[methodSpec.path].options = _.assign({}, OPTIONS, {
-            parameters: [
-              {
-                name: 'account_id',
-                'in': 'path',
-                type: 'string',
-                required: true,
-              },
-            ],
-          });
-        } else {
-          p[f] = require(['..', 'resources', resource, f, 'spec'].join(path.sep));
-        }
-      }
+    //create a Path Item Object http://swagger.io/specification/#pathItemObject
+    //with an Operation Object http://swagger.io/specification/#operationObject
+    //property for each method subdirectory in the resource directory
+    var pathItem = fs.readdirSync(path.join('resources', resource))
+      //filter out subdirectories that are further resources
+      .filter(function(subdir) {
+        return methods[subdir];
+      })
+      .reduce(function(pathItem, method) {
+        //every spec.js file in a method subdirectory is a valid swagger
+        //Operation Object
+        pathItem[method] = require(['..', 'resources', resource, method, 'spec'].join(path.sep));
+        return pathItem;
+      }, {});
+
+    //every pathItem needs an OPTIONS operation object for CORS support
+    pathItem.options = _.assign({}, OPTIONS, {
+      parameters: (getPathParams(key) || []).map(function(param) {
+        return {
+          name: param.replace(/^\{/, '').replace(/\}$/, ''),
+          'in': 'path',
+          type: 'string',
+          required: true,
+        };
+      }),
     });
-    //add OPTIONS method for each resource
-    paths[key].options = OPTIONS;
+    paths[key] = pathItem;
+
     return paths;
   }, {});
 
@@ -107,3 +121,23 @@ module.exports = function(stage) {
     });
   });
 };
+
+/**
+ * Convert initial and trailing underscores in a path element to curly brackets,
+ * making that element into a path parameter in swagger and AWS API Gateway.
+ * /accounts/_account_id_ => /accounts/{account_id}
+ */
+function parameterize(path) {
+  return path.split('/')
+    .map(function(element) {
+      if (/^_.*_$/.test(element)) {
+        return element.replace(/^_/, '{').replace(/_$/, '}');
+      }
+      return element;
+    })
+    .join('/');
+}
+
+function getPathParams(path) {
+  return path.match(/\{.+\}/g);
+}
