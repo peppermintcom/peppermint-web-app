@@ -13,7 +13,7 @@ describe('lambda:AccountSignIn', function() {
   });
 
   after(function() {
-    return _.deleteAccount(user.email);
+    return _.deleteAccount(user.email.toLowerCase());
   });
 
   describe('with valid credentials', function() {
@@ -30,7 +30,7 @@ describe('lambda:AccountSignIn', function() {
           expect(r).to.have.property('at');
           expect(r).to.have.property('u');
           expect(r.u).to.have.property('account_id', user.account_id);
-          expect(r.u).to.have.property('email', user.email);
+          expect(r.u).to.have.property('email', user.email.toLowerCase());
           expect(r.u).to.have.property('full_name', user.full_name);
           expect(r.u).to.have.property('registration_ts');
           expect(jwt.payload.sub).to.equal(user.account_id + '.');

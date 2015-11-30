@@ -7,7 +7,7 @@ describe('lambda:CreateAccount', function() {
     var user = _.fake.user();
 
     after(function() {
-      return _.deleteAccount(user.email);
+      return _.deleteAccount(user.email.toLowerCase());
     });
 
     it('should invoke succeed with a user account.', function(done) {
@@ -23,7 +23,7 @@ describe('lambda:CreateAccount', function() {
           expect(r.at).to.match(/^[\w\-]+\.[\w\-]+\.[\w\-]+$/);
           expect(r).to.have.property('u');
           expect(r.u).to.have.property('account_id');
-          expect(r.u).to.have.property('email', user.email);
+          expect(r.u).to.have.property('email', user.email.toLowerCase());
           expect(r.u).to.have.property('full_name', user.full_name);
           expect(r.u).to.have.property('registration_ts');
           expect(r.u).not.to.have.property('password');
@@ -41,7 +41,7 @@ describe('lambda:CreateAccount', function() {
     });
 
     after(function() {
-      return _.deleteAccount(user.email);
+      return _.deleteAccount(user.email.toLowerCase());
     });
 
     it('should invoke reply.fail with a Conflict error', function(done) {

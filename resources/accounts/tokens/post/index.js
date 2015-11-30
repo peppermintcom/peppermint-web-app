@@ -21,9 +21,7 @@ exports.handler = function(request, reply) {
   }
 
   //get account from dynamo
-  _.dynamo.get('accounts', {
-      email: {S: email},
-    })
+  _.accounts.get(email)
     .then(function(account) {
       if (!account) {
         throw NOT_FOUND;

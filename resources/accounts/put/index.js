@@ -25,7 +25,7 @@ exports.handler = function(request, reply) {
       _.dynamo.updateItem({
         TableName: 'accounts',
         Key: {
-          email: {S: jwt.email},
+          email: {S: jwt.email.toLowerCase()},
         },
         AttributeUpdates: {
           password: {Value: {S: hash}},

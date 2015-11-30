@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var _ = require('utils/test');
 var handler = require('./').handler;
 
-describe.only('lambda:QueryAccounts', function() {
+describe('lambda:QueryAccounts', function() {
   var user = _.fake.user();
 
   before(function() {

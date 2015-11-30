@@ -22,7 +22,7 @@ describe('lambda:GetAccount', function() {
       }, {
         succeed: function(_account) {
           expect(_account).to.have.property('account_id', account.account_id);
-          expect(_account).to.have.property('email', account.email);
+          expect(_account).to.have.property('email', account.email.toLowerCase());
           expect(_account).to.have.property('full_name', account.full_name);
           expect(_account).to.have.property('is_verified', false);
           expect(_account).to.have.property('registration_ts', account.registration_ts);
@@ -40,7 +40,7 @@ describe('lambda:GetAccount', function() {
     describe('verified accounts', function() {
       before(function(done) {
         verify({
-          jwt: _.jwt.encode(account.email, 60),
+          jwt: _.jwt.encode(account.email.toLowerCase(), 60),
           ip: '127.0.0.1',
         }, {
           succeed: function() {

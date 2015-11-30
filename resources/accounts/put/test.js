@@ -12,12 +12,12 @@ describe('lambda:ChangePassword', function() {
   });
 
   after(function() {
-    return _.deleteAccount(user.email);
+    return _.deleteAccount(user.email.toLowerCase());
   });
 
   describe('with a valid jwt and password', function() {
     it('should update the user password.', function(done) {
-      var Authorization = 'Bearer ' + _.jwt.encode(user.email, 60);
+      var Authorization = 'Bearer ' + _.jwt.encode(user.email.toLowerCase(), 60);
 
       handler({
         Authorization: Authorization,
