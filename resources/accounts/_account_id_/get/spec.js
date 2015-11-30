@@ -8,7 +8,7 @@ var use = require('definitions/use');
 exports.tags = ['accounts'];
 exports.summary = 'Retrieve account profile.';
 exports.operationId = 'GetAccount';
-exports.consumes = exports.produces = ['application/json'];
+exports.produces = ['application/json'];
 
 exports.parameters = [
   headers.AuthorizationBearer,

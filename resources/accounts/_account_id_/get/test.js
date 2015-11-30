@@ -1,6 +1,6 @@
 var expect = require('chai').expect;
 var handler = require('./').handler;
-var verify = require('../verify/get').handler;
+var verify = require('../../verify/get').handler;
 var _ = require('utils/test');
 
 describe('lambda:GetAccount', function() {

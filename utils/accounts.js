@@ -41,6 +41,12 @@ exports.verifyEmail = function(email, name) {
   });
 };
 
+exports.get = function(email) {
+  return dynamo.get('accounts', {
+    email: {S: email.toLowerCase()},
+  });
+};
+
 exports.getByID = function(accountID) {
   return new Promise(function(resolve, reject) {
     dynamo.query({
