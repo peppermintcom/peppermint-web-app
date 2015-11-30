@@ -13,7 +13,7 @@ describe('POST /accounts/tokens', function() {
     });
   });
 
-  after(_.deleteAccountAfter(user.email));
+  after(_.deleteAccountAfter(user.email.toLowerCase()));
 
   describe('with valid credentials', function() {
     it('should return a 200 response.', function() {

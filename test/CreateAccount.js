@@ -6,7 +6,7 @@ describe('POST /accounts', function() {
   describe('with valid api_key, email, password, and name', function() {
     var user = _.fake.user();
 
-    after(_.deleteAccountAfter(user.email));
+    after(_.deleteAccountAfter(user.email.toLowerCase()));
 
     it('should return a 201 with a JWT and account info.', function() {
       return post({
@@ -18,7 +18,7 @@ describe('POST /accounts', function() {
           expect(res.body).to.have.property('at');
           expect(res.body).to.have.property('u');
           expect(res.body.u).to.have.property('account_id');
-          expect(res.body.u).to.have.property('email', user.email);
+          expect(res.body.u).to.have.property('email', user.email.toLowerCase());
           expect(res.body.u).to.have.property('full_name', user.full_name);
           expect(res.body.u).to.have.property('registration_ts');
         });
@@ -28,7 +28,7 @@ describe('POST /accounts', function() {
   describe('without an api_key', function() {
     var user = _.fake.user();
 
-    after(_.deleteAccountAfter(user.email));
+    after(_.deleteAccountAfter(user.email.toLowerCase()));
 
     it('should return a 400 error.', function() {
       return post({
@@ -95,7 +95,7 @@ describe('POST /accounts', function() {
   describe('with a bad api_key', function() {
     var user = _.fake.user();
 
-    after(_.deleteAccountAfter(user.email));
+    after(_.deleteAccountAfter(user.email.toLowerCase()));
 
     it('should return a 401 error.', function() {
       return post({
@@ -122,7 +122,7 @@ describe('POST /accounts', function() {
       });
     });
 
-    after(_.deleteAccountAfter(user.email));
+    after(_.deleteAccountAfter(user.email.toLowerCase()));
 
     it('should return a 409 error.', function() {
       return post(body)

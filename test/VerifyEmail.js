@@ -14,7 +14,7 @@ describe.skip('GET /accounts/verify', function() {
     });
   });
 
-  after(_.deleteAccountAfter(user.email));
+  after(_.deleteAccountAfter(user.email.toLowerCase()));
 
   describe('with a valid jwt', function() {
     it('should respond with a verified message.', function(done) {
@@ -41,7 +41,7 @@ describe.skip('GET /accounts/verify', function() {
 
     it('should save the ip and time of click in the database.', function() {
       return _.dynamo.get('accounts', {
-          email: {S: user.email},
+          email: {S: user.email.toLowerCase()},
         })
         .then(function(account) {
           expect(account).to.have.property('verification_ts');

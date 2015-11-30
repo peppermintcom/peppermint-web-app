@@ -21,7 +21,7 @@ describe('GET /accounts/{account_id}', function() {
 
   after(function() {
     if (needsDelete) {
-      return _.deleteAccount(user.email);
+      return _.deleteAccount(user.email.toLowerCase());
     }
   });
 
@@ -34,7 +34,7 @@ describe('GET /accounts/{account_id}', function() {
           expect(res.statusCode).to.equal(200);
           expect(res.body).to.have.property('account_id', accountID);
           expect(res.body.registration_ts).to.match(/201/);
-          expect(res.body).to.have.property('email', user.email);
+          expect(res.body).to.have.property('email', user.email.toLowerCase());
           expect(res.body).to.have.property('full_name', user.full_name);
           expect(res.body).to.have.property('is_verified', false);
           expect(res.body).not.to.have.property('password');
@@ -69,7 +69,7 @@ describe('GET /accounts/{account_id}', function() {
             expect(res.statusCode).to.equal(200);
             expect(res.body).to.have.property('account_id', accountID);
             expect(res.body.registration_ts).to.match(/201/);
-            expect(res.body).to.have.property('email', user.email);
+            expect(res.body).to.have.property('email', user.email.toLowerCase());
             expect(res.body).to.have.property('full_name', user.full_name);
             expect(res.body).to.have.property('is_verified', true);
             expect(res.body).not.to.have.property('password');
@@ -116,7 +116,7 @@ describe('GET /accounts/{account_id}', function() {
   describe('deleted accounts', function() {
     before(function() {
       needsDelete = false;
-      return _.deleteAccount(user.email);
+      return _.deleteAccount(user.email.toLowerCase());
     });
 
     it('should return a 404 Not Found error.', function() {

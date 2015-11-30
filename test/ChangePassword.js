@@ -19,7 +19,7 @@ describe.skip('Forgot Password', function() {
       });
   });
 
-  after(_.deleteAccountAfter(user.email));
+  after(_.deleteAccountAfter(user.email.toLowerCase()));
 
   describe('POST /accounts/recover', function() {
     it('should send an email with a password reset link.', function() {

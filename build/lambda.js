@@ -4,6 +4,7 @@
 var fs = require('fs');
 var path = require('path');
 var spawnSync = require('child_process').spawnSync;
+var gutil = require('gulp-util');
 var _ = require('lodash');
 var through2 = require('through2');
 var aws = require('aws-sdk');
@@ -74,6 +75,8 @@ module.exports = function() {
 };
 
 function create(name, code, handler, cb) {
+  gutil.log('creating ' + name);
+
   lambda.createFunction({
     Code: {
       ZipFile: code,
@@ -88,6 +91,8 @@ function create(name, code, handler, cb) {
 }
 
 function update(name, code, cb) {
+  gutil.log('updating ' + name);
+
   lambda.updateFunctionCode({
     FunctionName: name,
     Publish: true,
