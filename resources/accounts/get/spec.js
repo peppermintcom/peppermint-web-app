@@ -7,7 +7,7 @@ var use = require('definitions/use');
 
 exports.tags = ['accounts'];
 exports.summary = 'Search accounts';
-exports.description = 'This operation is used to check if an account exists with a given email. It returns a 401 error if an account exists with the email and a 404 if it does not.';
+exports.description = 'This operation is used to check if an account exists with a given email. It returns a plain 401 "Unauthorized" error if an account exists with the email and a 404 if it does not. Incorrect or missing api keys will also generate 401 responses but the error message will contain the term "api_key".';
 exports.operationId = 'QueryAccounts';
 
 exports.parameters = [
@@ -52,7 +52,7 @@ exports['x-amazon-apigateway-integration'] = {
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {
-    'application/json': '{"email": "$input.params(\'email\')"}',
+    'application/json': '{"email": "$input.params(\'email\')", "api_key": "$input.params(\'X-Api-Key\')"}',
   },
   responses: {
     'Bad Request.*': integrations.BadRequest,
