@@ -49,6 +49,21 @@ exports.put = function(table, item, more) {
   });
 };
 
+exports.del = function(table, key) {
+  return new Promise(function(resolve, reject) {
+    dynamo.deleteItem({
+      TableName: table,
+      Key: key,
+    }, function(err) {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve();
+    });
+  });
+};
+
 /**
  * retrieve an item from a table using a secondary index
  * @param {String} table

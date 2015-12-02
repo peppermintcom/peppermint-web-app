@@ -33,6 +33,7 @@
     "through2": "^2.0.0"
   },
   "dependencies": {
+    "bcp47": "^1.1.2",
     "bcryptjs": "^2.3.0",
     "es6-promise": "^3.0.2",
     "jwt-simple": "^0.3.1",

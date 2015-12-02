@@ -26,7 +26,7 @@ exports.token = function(length) {
 
 //current time in YYYY-MM-DD HH:MM:SS string format
 exports.timestamp = function(d) {
-  d = new Date(d.valueOf());
+  d = d ? new Date(d.valueOf()) : new Date();
 
   return [
     [
