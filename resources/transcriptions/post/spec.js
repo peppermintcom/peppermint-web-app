@@ -65,7 +65,7 @@ exports['x-amazon-apigateway-integration'] = {
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {
-    'application/json': '{"body": "$input.json(\'$\')", "ip": "$context.identity.source_id", "api_key": "$input.params(\'X-Api-Key\')"}',
+    'application/json': '{"body": $input.json(\'$\'), "ip": "$context.identity.sourceIp", "api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')"}',
   },
   responses: {
     'default': integrations.Created,

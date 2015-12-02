@@ -18,6 +18,10 @@ exports.handler = function(request, reply) {
     return;
   }
   if (!tv4.validate(request.body, bodySchema)) {
+    if (/go\.peppermint\.com/.test(tv4.error.message)) {
+      reply.fail('Bad Request: audio_url');
+      return;
+    }
     reply.fail(['Bad Request:', tv4.error.message].join(' '));
     return;
   }
