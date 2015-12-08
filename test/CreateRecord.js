@@ -104,7 +104,7 @@ describe('POST /record', function() {
       });
     });
 
-    it('should return a short_url that redirects to the canonical_url.', function(done) {
+    it('should return a short_url that plays the canonical_url.', function(done) {
       expect(res.body).to.have.property('short_url');
       request({
         method: 'GET',
@@ -115,8 +115,7 @@ describe('POST /record', function() {
           done(err);
           return;
         }
-        expect(resp.statusCode).to.equal(302);
-        expect(resp.headers).to.have.property('location', res.body.canonical_url);
+        expect(resp.statusCode).to.equal(200);
         done();
       });
     });

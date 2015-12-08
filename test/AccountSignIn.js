@@ -27,6 +27,7 @@ describe('POST /accounts/tokens', function() {
           expect(res.body.u).to.have.property('account_id');
           expect(res.body.u).to.have.property('full_name');
           expect(res.body.u).to.have.property('email');
+          expect(res.body.u).to.have.property('is_verified', false);
           expect(res.body.u).not.to.have.property('password');
         });
     });

@@ -42,6 +42,7 @@ exports.handler = function(request, reply) {
           full_name: request.u.full_name,
           email: email,
           registration_ts: _.timestamp(ts),
+          is_verified: false,
         },
       });
     })

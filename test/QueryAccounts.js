@@ -15,25 +15,51 @@ describe('GET /accounts', function() {
 
   describe('valid requests', function() {
     describe('when email has been registered', function() {
-      it('should return a 401 Unauthorized response.', function() {
-        return _.http('GET', '/accounts?email=' + user.email, null, {
-            'X-Api-Key': _.fake.API_KEY,
-          })
-          .then(function(res) {
-            expect(res.statusCode).to.equal(401);
-            expect(res.body).to.have.property('errorMessage', 'Unauthorized');
-          });
+      describe('but not verified', function() {
+        it('should return a 200 response with an array with 1 account marked unverified.', function() {
+          return _.http('GET', '/accounts?email=' + user.email, null, {
+              'X-Api-Key': _.fake.API_KEY,
+            })
+            .then(function(res) {
+              expect(res.statusCode).to.equal(200);
+              expect(res.body).to.have.length(1);
+              expect(res.body[0]).to.deep.equal({
+                is_verified: false,
+                email: user.email.toLowerCase(),
+              });
+            });
+        });
+      });
+
+      describe('and verified', function() {
+        before(function() {
+          return _.verifyAccount(user.email, '127.0.0.1');
+        });
+
+        it('should return a 200 response with an array with 1 account marked verified.', function() {
+          return _.http('GET', '/accounts?email=' + user.email, null, {
+              'X-Api-Key': _.fake.API_KEY,
+            })
+            .then(function(res) {
+              expect(res.statusCode).to.equal(200);
+              expect(res.body).to.have.length(1);
+              expect(res.body[0]).to.deep.equal({
+                is_verified: true,
+                email: user.email.toLowerCase(),
+              });
+            });
+        });
       });
     });
 
     describe('with new email', function() {
-      it('should return a 404 Not Found response.', function() {
+      it('should return a 200 response with an empty array.', function() {
         return _.http('GET', '/accounts?email=x' + user.email, null, {
             'x-api-key': _.fake.API_KEY,
           })
           .then(function(res) {
-            expect(res.statusCode).to.equal(404);
-            expect(res.body).to.have.property('errorMessage', 'Not Found');
+            expect(res.statusCode).to.equal(200);
+            expect(res.body).to.deep.equal([]);
           });
       });
     });

@@ -26,6 +26,7 @@ describe('lambda:CreateAccount', function() {
           expect(r.u).to.have.property('email', user.email.toLowerCase());
           expect(r.u).to.have.property('full_name', user.full_name);
           expect(r.u).to.have.property('registration_ts');
+          expect(r.u).to.have.property('is_verified', false);
           expect(r.u).not.to.have.property('password');
           done();
         }
