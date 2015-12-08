@@ -41,6 +41,27 @@ exports.deleteRecorder = function(client_id) {
   });
 };
 
+exports.verifyAccount = function(email, ip) {
+  return new Promise(function(resolve, reject) {
+    _.dynamo.updateItem({
+      TableName: 'accounts',
+      Key: {
+        email: {S: email.toLowerCase()},
+      },
+      AttributeUpdates: {
+        verification_ts: {Value: {N: Date.now().toString()}},
+        verification_ip: {Value: {S: ip}},
+      },
+    }, function(err, data) {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve();
+    });
+  });
+};
+
 exports.basic = function(user, password) {
   return 'Basic ' + new Buffer(user + ':' + password).toString('base64');
 };

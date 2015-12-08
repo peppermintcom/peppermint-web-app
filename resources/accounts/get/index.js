@@ -12,7 +12,12 @@ exports.handler = function(request, reply) {
 
   _.accounts.get(request.email)
     .then(function(account) {
-      reply.fail(account ? 'Unauthorized' : 'Not Found');
+      if (!account) {
+        reply.succeed([]);
+        return;
+      }
+
+      reply.succeed([_.pick(account, 'email', 'is_verified')]);
     })
     .catch(function(err) {
       reply.fail(err);

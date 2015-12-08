@@ -13,25 +13,66 @@ describe('lambda:QueryAccounts', function() {
 
   describe('valid requests', function() {
     describe('with an email associated with an account', function() {
-      it('should return a 401 Unauthorized response.', function(done) {
-        handler({
-          api_key: _.fake.API_KEY,
-          email: user.email,
-        }, {
-          succeed: noSucceed(done),
-          fail: failMatch(/^Unauthorized/, done),
+      describe('with an unverified account', function() {
+        it('should return a 200 response with a single item.', function(done) {
+          handler({
+            api_key: _.fake.API_KEY,
+            email: user.email,
+          }, {
+            succeed: function(r) {
+              expect(r.length).to.equal(1);
+              expect(r[0]).to.deep.equal({
+                email: user.email.toLowerCase(),
+                is_verified: false,
+              });
+              done();
+            },
+            fail: function(err) {
+              done(new Error(err));
+            },
+          });
+        });
+      });
+
+      describe('with a verified account', function() {
+        before(function() {
+          return _.verifyAccount(user.email, '127.0.0.1');
+        });
+
+        it('should return a 200 response with a single item.', function(done) {
+          handler({
+            api_key: _.fake.API_KEY,
+            email: user.email,
+          }, {
+            succeed: function(r) {
+              expect(r.length).to.equal(1);
+              expect(r[0]).to.deep.equal({
+                email: user.email.toLowerCase(),
+                is_verified: true,
+              });
+              done();
+            },
+            fail: function(err) {
+              done(new Error(err));
+            },
+          });
         });
       });
     });
 
     describe('with an email that does not belong to an account', function() {
-      it('should return a 404 Not Found response.', function(done) {
+      it('should return an empty 200 response array.', function(done) {
         handler({
           api_key: _.fake.API_KEY,
           email: _.fake.user().email,
         }, {
-          succeed: noSucceed(done),
-          fail: failMatch(/^Not Found/, done),
+          succeed: function(data) {
+            expect(data).to.deep.equal([]);
+            done();
+          },
+          fail: function(err) {
+            done(new Error(err));
+          },
         });
       });
     });

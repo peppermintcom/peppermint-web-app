@@ -17,7 +17,7 @@ describe('lambda:AccountSignIn', function() {
   });
 
   describe('with valid credentials', function() {
-    it ('should return a JWT.', function(done) {
+    it('should return a JWT.', function(done) {
       var Authorization = 'Basic ' + new Buffer(user.email + ':' + user.password).toString('base64');
 
       handler({
@@ -33,6 +33,7 @@ describe('lambda:AccountSignIn', function() {
           expect(r.u).to.have.property('email', user.email.toLowerCase());
           expect(r.u).to.have.property('full_name', user.full_name);
           expect(r.u).to.have.property('registration_ts');
+          expect(r.u).to.have.property('is_verified', false);
           expect(jwt.payload.sub).to.equal(user.account_id + '.');
           done();
         },

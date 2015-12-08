@@ -27,20 +27,15 @@ exports.handler = function(request, reply) {
         throw NOT_FOUND;
       }
 
-      return _.bcryptCheck(pass, account.password.S)
+      return _.bcryptCheck(pass, account.password)
         .then(function(ok) {
           if (!ok) {
             reply.fail('Unauthorized: incorrect password');
             return;
           }
           reply.succeed({
-            at: _.jwt.creds(account.account_id.S),
-            u: {
-              account_id: account.account_id.S,
-              email: account.email.S,
-              full_name: account.full_name.S,
-              registration_ts: _.timestamp(new Date(parseInt(account.registration_ts.N, 10))),
-            },
+            at: _.jwt.creds(account.account_id),
+            u: _.pick(account, 'account_id', 'email', 'full_name', 'registration_ts', 'is_verified'),
           });
         });
     })

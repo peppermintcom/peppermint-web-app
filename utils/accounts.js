@@ -44,7 +44,8 @@ exports.verifyEmail = function(email, name) {
 exports.get = function(email) {
   return dynamo.get('accounts', {
     email: {S: email.toLowerCase()},
-  });
+  })
+  .then(parseAccountItem);
 };
 
 exports.getByID = function(accountID) {
@@ -70,16 +71,22 @@ exports.getByID = function(accountID) {
       }
       var account = data.Items && data.Items[0];
 
-      resolve(account && {
-        account_id: account.account_id.S,
-        full_name: account.full_name.S,
-        email: account.email.S,
-        password: account.password.S,
-        registration_ts: parseInt(account.registration_ts.N, 10),
-        is_verified: !!account.verification_ts,
-        verification_ts: account.verification_ts && account.verification_ts.N,
-        verification_ip: account.verification_ip && parseInt(account.verification_ip.S, 10),
-      });
+      resolve(parseAccountItem(data.Items && data.Items[0]));
     });
   });
 };
+
+function parseAccountItem(account) {
+  if (!account) return null;
+
+  return {
+    account_id: account.account_id.S,
+    full_name: account.full_name.S,
+    email: account.email.S,
+    password: account.password.S,
+    registration_ts: parseInt(account.registration_ts.N, 10),
+    is_verified: !!account.verification_ts,
+    verification_ts: account.verification_ts && account.verification_ts.N,
+    verification_ip: account.verification_ip && parseInt(account.verification_ip.S, 10),
+  };
+}

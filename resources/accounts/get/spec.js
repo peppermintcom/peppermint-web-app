@@ -7,7 +7,7 @@ var use = require('definitions/use');
 
 exports.tags = ['accounts'];
 exports.summary = 'Search accounts';
-exports.description = 'This operation is used to check if an account exists with a given email. It returns a plain 401 "Unauthorized" error if an account exists with the email and a 404 if it does not. Incorrect or missing api keys will also generate 401 responses but the error message will contain the term "api_key".';
+exports.description = 'This operation is used to check if an account exists with a given email. It will return an empty array if no account exists with the email. Otherwise it will return an array with a partial representation of the account resource.';
 exports.operationId = 'QueryAccounts';
 
 exports.parameters = [
@@ -26,6 +26,12 @@ exports.parameters = [
 ];
 
 exports.responses = {
+  '200': {
+    description: 'Returning matching accounts.',
+    headers: {
+      'Access-Control-Allow-Origin': {type: 'string'},
+    },
+  },
   '400': {
     description: 'Missing or invalid api_key or email.',
     headers: {
@@ -33,13 +39,7 @@ exports.responses = {
     },
   },
   '401': {
-    description: 'An account with the given email exists.',
-    headers: {
-      'Access-Control-Allow-Origin': {type: 'string'},
-    },
-  },
-  '404': {
-    description: 'No account with the given email exists.',
+    description: 'api_key is unknown',
     headers: {
       'Access-Control-Allow-Origin': {type: 'string'},
     },
@@ -55,9 +55,9 @@ exports['x-amazon-apigateway-integration'] = {
     'application/json': '{"email": "$input.params(\'email\')", "api_key": "$input.params(\'X-Api-Key\')"}',
   },
   responses: {
+    'default': integrations.Ok,
     'Bad Request.*': integrations.BadRequest,
     'Unauthorized.*': integrations.Unauthorized,
-    'Not Found.*': integrations.NotFound,
-    '^(?!Bad Request|Unauthorized|Not Found)(.|\\n)+': integrations.Internal,
+    '^(?!Bad Request|Unauthorized)(.|\\n)+': integrations.Internal,
   },
 };

@@ -41,7 +41,7 @@ exports.responses = {
       type: 'object',
       properties: {
         at: jwt,
-        u: use(account, [], ['account_id', 'email', 'first_name', 'last_name', 'registration_ts']),
+        u: use(account, [], ['account_id', 'email', 'full_name', 'registration_ts', 'is_verified']),
       },
       required: ['at', 'u'],
     },
@@ -51,9 +51,9 @@ exports.responses = {
         u: {
           account_id: 'abcdefghijklMNOP7654',
           email: 'me@example.com',
-          first_name: 'Andrew',
-          last_name: 'Reed',
+          full_name: 'Andrew Reed',
           registration_ts: '2015-10-19 09:19:55',
+          is_verified: true,
         },
       },
     },
