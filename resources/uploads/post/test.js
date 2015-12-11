@@ -1,3 +1,4 @@
+var url = require('url');
 var expect = require('chai').expect;
 var _ = require('utils/test');
 var handler = require('./').handler;
@@ -22,7 +23,6 @@ describe('lambda:CreateUpload', function() {
         Authorization: 'Bearer ' + jwt,
         body: {
           content_type: 'audio/mp4',
-          recorder_id: recorder.recorder_id,
         },
       }, {
         fail: function(err) {
@@ -35,6 +35,40 @@ describe('lambda:CreateUpload', function() {
           expect(upload.canonical_url).to.match(/\.m4a$/);
           done();
         },
+      });
+    });
+
+    describe('with sender_name and sender_email included', function() {
+      var user = _.fake.user();
+
+      it('should return a signed_url, canonical_url, and short_url and save the sender data to the uploads table.', function(done) {
+        handler({
+          Authorization: 'Bearer ' + jwt,
+          body: {
+            content_type: 'audio/mp4',
+            sender_name: user.full_name,
+            sender_email: user.email,
+          },
+        }, {
+          fail: function(err) {
+            done(new Error(err));
+          },
+          succeed: function(upload) {
+            expect(upload).to.have.property('signed_url');
+            expect(upload).to.have.property('short_url');
+            expect(upload).to.have.property('canonical_url');
+            expect(upload.canonical_url).to.match(/\.m4a$/);
+
+            var audioURL = url.parse(upload.canonical_url);
+            _.dynamo.get('uploads', {pathname: {S: audioURL.pathname.substring(1)}})
+              .then(function(uploadMeta) {
+                expect(uploadMeta.sender_name.S).to.equal(user.full_name);
+                expect(uploadMeta.sender_email.S).to.equal(user.email);
+                done();
+              })
+              .catch(done);
+          },
+        });
       });
     });
   });

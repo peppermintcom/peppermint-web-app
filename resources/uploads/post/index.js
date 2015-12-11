@@ -36,10 +36,17 @@ exports.handler = function(req, res) {
 
   var extension = extensions[req.body.content_type] || '';
   var key = [jwt.recorder_id, _.token(22)].join('/') + extension;
+  var uploadMeta = _.assign({
+      pathname: {S: key},
+    },
+    req.body.sender_name ? {sender_name: {S: req.body.sender_name}} : {},
+    req.body.sender_email ? {sender_email: {S: req.body.sender_email}}: {}
+  );
 
   Promise.all([
       getSignedURL(key, req.body.content_type),
       getShortURL(key),
+      _.dynamo.put('uploads', uploadMeta)
     ])
     .then(function(results) {
       var signedURL = results[0];

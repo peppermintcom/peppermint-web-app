@@ -25,6 +25,14 @@ exports.parameters = [
           type: 'string',
           description: 'The content type of the file that will be uploaded, such as "audio/x-aac".'
         },
+        sender_name: {
+          type: 'string',
+          description: 'The full name of the speaker uploading audio.',
+        },
+        sender_email: {
+          type: 'string',
+          description: 'The reply to email of the speaker uploading audio.',
+        },
       },
       required: ['content_type'],
     },
@@ -46,7 +54,7 @@ exports.responses = {
         canonical_url: {type: 'string'},
         short_url: {type: 'string'},
       },
-      required: ['signed_url'],
+      required: ['signed_url', 'canonical_url', 'short_url'],
     },
     examples: {
       'application/json': {
