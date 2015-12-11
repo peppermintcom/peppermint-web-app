@@ -10,7 +10,7 @@ exports.handler = function(request, reply) {
   var jwt = _.authenticate(request.Authorization);
 
   if (jwt.err) {
-    reply.fail('Unauthorized ' + jwt.err);
+    reply.fail('Unauthorized: ' + jwt.err.toString());
     return;
   }
   if (!_.apps[request.api_key]) {

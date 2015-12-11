@@ -12,7 +12,7 @@ var bodySchema = _.bodySchema(require('./spec').parameters);
 exports.handler = function(request, reply) {
   var jwt = _.authenticate(request.Authorization);
   if (jwt.err) {
-   reply.fail('Unauthorized');
+   reply.fail('Unauthorized: ' + jwt.err.toString());
     return;
   }
 

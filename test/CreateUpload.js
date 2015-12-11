@@ -200,7 +200,7 @@ describe('POST /uploads', function() {
           expect(res.statusCode).to.equal(401);
           expect(res.body.errorMessage).to.match(/Unauthorized/);
         });
-      })
+      });
     });
   });
 });

@@ -5,7 +5,7 @@ exports.handler = function(request, reply) {
   var accountID = request.account_id;
 
   if (jwt.err) {
-    reply.fail('Unauthorized: ' + jwt.err);
+    reply.fail('Unauthorized: ' + jwt.err.toString());
     return;
   }
   if (!jwt.account_id) {

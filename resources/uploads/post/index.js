@@ -24,7 +24,7 @@ var s3 = new aws.S3({
 exports.handler = function(req, res) {
   var jwt = _.authenticate(req.Authorization);
   if (jwt.err) {
-    res.fail('Unauthorized');
+    res.fail('Unauthorized: ' + jwt.err.toString());
     return;
   }
 
