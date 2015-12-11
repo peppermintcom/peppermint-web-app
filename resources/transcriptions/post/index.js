@@ -46,15 +46,16 @@ exports.handler = function(request, reply) {
   var recorderID = pathItems[1];
   var transcriptionID = pathItems[2].split('.')[0];
 
-  _.dynamo.put('transcriptions', {
-      recorder_id: {S: recorderID},
-      transcription_id: {S: transcriptionID},
-      language: {S: request.body.language},
-      confidence: {N: request.body.confidence.toString()},
-      text: {S: request.body.text},
-      timestamp: {N: ts.valueOf().toString()},
-      ip_address: {S: request.ip},
-      api_key: {S: request.api_key},
+  return _.transcriptions.put({
+      id: transcriptionID,
+      recorderID: recorderID,
+      language: request.body.language,
+      confidence: request.body.confidence,
+      text: request.body.text,
+      ts: ts,
+      ip: request.ip,
+      api_key: request.api_key,
+      audio_url: request.body.audio_url,
     })
     .then(function() {
       reply.succeed({

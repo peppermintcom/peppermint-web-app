@@ -21,3 +21,10 @@ var basic = exports.AuthorizationBasic = {
 exports.AuthorizationBasicAccount = _.assign({}, basic, {
   description: 'Must contain the word "Basic" then a space, then the Base64 encoded email, ":", and password.',
 });
+
+exports.XApiKey = {
+  name: 'X-Api-Key',
+  'in': 'header',
+  type: 'string',
+  required: true,
+};

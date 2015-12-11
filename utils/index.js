@@ -13,6 +13,7 @@ exports.apps = require('./apps');
 exports.dynamo = require('./dynamo');
 exports.mandrill = require('./mandrill');
 exports.accounts = require('./accounts');
+exports.transcriptions = require('./transcriptions');
 exports.jwt = jwt;
 exports.errors = errors;
 

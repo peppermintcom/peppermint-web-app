@@ -54,3 +54,24 @@ exports.account = function(_user) {
     });
   });
 };
+
+exports.transcription = function() {
+  var id = _.token(22);
+  var recorderID = _.token(22);
+
+  var tx = {
+    id: id,
+    recorderID: recorderID,
+    language: 'en-US',
+    confidence: Math.random(),
+    ts: new Date(),
+    ip: '127.0.0.1',
+    api_key: API_KEY,
+    audio_url: ['http://go.peppermint.com', recorderID, id].join('/'),
+    text: 'fake transcription text',
+  };
+
+  return _.transcriptions.put(tx).then(function() {
+    return tx;
+  });
+};
