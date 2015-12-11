@@ -1,7 +1,8 @@
 var fs = require('fs');
+var url = require('url');
 var expect = require('chai').expect;
 var request = require('request');
-var _ = require('utils');
+var _ = require('utils/test');
 
 const RECORDER_URL = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1/recorder';
 const UPLOAD_URL = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1/uploads';
@@ -86,8 +87,8 @@ describe('POST /uploads', function() {
     });
 
     describe('with content-type "audio/mpeg"', function() {
-      it('should add the ".mp3" extension to the canonical_url.', function(done) {
-        post(UPLOAD_URL, {
+      it('should add the ".mp3" extension to the canonical_url.', function() {
+        return post(UPLOAD_URL, {
             content_type: 'audio/mpeg',
           }, {
             Authorization: 'Bearer ' + jwt,
@@ -98,14 +99,13 @@ describe('POST /uploads', function() {
             expect(res.body).to.have.property('short_url');
             expect(res.body).to.have.property('canonical_url');
             expect(res.body.canonical_url).to.match(/\.mp3$/);
-            done();
           });
       });
     });
 
     describe('with content-type "audio/mp3"', function() {
-      it('should add the ".mp3" extension to the canonical_url.', function(done) {
-        post(UPLOAD_URL, {
+      it('should add the ".mp3" extension to the canonical_url.', function() {
+        return post(UPLOAD_URL, {
             content_type: 'audio/mp3',
           }, {
             Authorization: 'Bearer ' + jwt,
@@ -116,11 +116,36 @@ describe('POST /uploads', function() {
             expect(res.body).to.have.property('short_url');
             expect(res.body).to.have.property('canonical_url');
             expect(res.body.canonical_url).to.match(/\.mp3$/);
-            done();
           });
       });
     });
 
+    describe('including sender_name and sender_email', function() {
+      var user = _.fake.user();
+
+      it('will save the sender data to the uploads table.', function() {
+        return post(UPLOAD_URL, {
+            content_type: 'audio/mp4',
+            sender_name: user.full_name,
+            sender_email: user.email,
+          }, {
+            Authorization: 'Bearer ' + jwt,
+          })
+          .then(function(res) {
+            expect(res.statusCode).to.equal(201);
+            expect(res.body).to.have.property('signed_url');
+            expect(res.body).to.have.property('short_url');
+            expect(res.body).to.have.property('canonical_url');
+
+            var audioURL = url.parse(res.body.canonical_url);
+            return _.dynamo.get('uploads', {pathname: {S: audioURL.pathname.substring(1)}})
+          })
+          .then(function(uploadItem) {
+            expect(uploadItem.sender_name.S).to.equal(user.full_name);
+            expect(uploadItem.sender_email.S).to.equal(user.email);
+          });
+      });
+    });
   });
 
   describe('Invalid Requests', function() {
