@@ -12,7 +12,7 @@ exports.handler = function(request, reply) {
         reply.fail('Not Found');
         return;
       }
-      reply.succeed(transcription);
+      reply.succeed(_.assign(transcription, {timestamp: _.timestamp(transcription.timestamp)}));
     })
     .catch(function(err) {
       reply.fail(err);

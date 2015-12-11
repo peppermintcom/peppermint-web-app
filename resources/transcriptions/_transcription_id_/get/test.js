@@ -28,7 +28,7 @@ describe('lambda:GetTranscription', function() {
           expect(res).to.have.property('confidence', transcription.confidence);
           expect(res).to.have.property('text', transcription.text);
           expect(res).to.have.property('ip', transcription.ip);
-          expect(res).to.have.property('timestamp', transcription.ts.valueOf());
+          expect(res).to.have.property('timestamp', _.timestamp(transcription.ts.valueOf()));
           expect(res).to.have.property('language', transcription.language);
           done();
         },

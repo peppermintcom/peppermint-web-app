@@ -59,12 +59,12 @@ exports['x-amazon-apigateway-integration'] = {
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {
-    'application/json': '{"api_key": "$input.params(\'X-Api-Key\')"}',
+    'application/json': '{"api_key": "$input.params(\'X-Api-Key\')", "transcription_id": "$input.params(\'transcription_id\')"}',
   },
   responses: {
     'default': integrations.Ok,
     'Unauthorized.*': integrations.Unauthorized,
-    'NotFound.*': integrations.NotFound,
-    '^(?!Unauthorized|NotFound)(.|\\n)+': integrations.Internal,
+    'Not Found.*': integrations.NotFound,
+    '^(?!Unauthorized|Not Found)(.|\\n)+': integrations.Internal,
   },
 };

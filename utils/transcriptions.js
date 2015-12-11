@@ -23,7 +23,6 @@ exports.get = function(transcriptionID) {
  * @param {String} transcription.audio_url
  */
 exports.put = function(transcription) {
-  console.log(transcription);
   return dynamo.put('transcriptions', {
     transcription_id: {S: transcription.id},
     recorder_id: {S: transcription.recorderID},
