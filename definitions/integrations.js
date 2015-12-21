@@ -14,6 +14,13 @@ exports.Created = {
   responseTemplates: {},
 };
 
+exports.Accepted = {
+  statusCode: '202',
+  responseParameters: {
+    'method.response.header.Access-Control-Allow-Origin': "'*'",
+  },
+};
+
 exports.Expired = {
   statusCode: '303',
   responseParameters: {
@@ -62,6 +69,13 @@ exports.Conflict = {
   responseTemplates: {},
 };
 
+exports.RateLimited = {
+  statusCode: '429',
+  responseParamters: {
+    'method.response.header.Access-Control-Allow-Origin': "'*'",
+  },
+};
+
 exports.Internal = {
   statusCode: '500',
   responseParameters: {
@@ -71,3 +85,5 @@ exports.Internal = {
     'application/json': "{\"errorMessage\": \"Internal Server Error\"",
   },
 };
+
+exports.requestTmpl = '{"body": $input.json(\'$\'), "ip": "$context.identity.sourceIp", "api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')"}';

@@ -75,6 +75,21 @@ exports.Conflict = {
   },
 };
 
+exports.RateLimited = {
+  description: 'Too Many Requests',
+  headers: {
+    'Access-Control-Allow-Origin': {type: 'string'},
+  },
+  schema: {
+    type: 'object',
+    properties: {
+      errorMessage: {
+        type: 'string',
+      },
+    },
+  },
+};
+
 exports.Internal = {
   description: 'Internal Server Error',
   headers: {
