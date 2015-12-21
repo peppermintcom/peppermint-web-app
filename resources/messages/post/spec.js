@@ -16,7 +16,7 @@ exports.parameters = [
   headers.XApiKey,
   {
     name: 'payload',
-    'in': 'body',
+   'in': 'body',
     schema: use(message, [], ['sender_email', 'recipient_email', 'audio_url']),
   },
 ];
@@ -43,7 +43,7 @@ exports.responses = {
   '400': responses.BadRequest,
   '401': responses.Unauthorized,
   '403': _.assign({}, responses.Forbidden, {
-    description: 'The sender has been blocked from messaging this recipient.',
+    description: 'The sender has been blocked from messaging this recipient or the Authorization header does not match the sender_email.',
   }),
   '404': _.assign({}, responses.NotFound, {
     description: 'The recipient email is not associated with an installed app. This is a common response.',
