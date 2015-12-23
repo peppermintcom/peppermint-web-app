@@ -23,25 +23,17 @@ exports.handler = function(request, reply) {
         return;
       }
 
-      _.mandrill.messages.send({
-        message: {
-          from_email: 'noreply@peppermint.com',
-          from_name: 'Peppermint',
-          html: '<a href="https://peppermint.com/reset?jwt=' + jwt + '">Reset</a>',
-          subject: 'Reset your password.',
-          to: [{email: email}],
-          track_clicks: false,
-          track_opens: false,
-        },
-      }, function(result) {
-        if (!result[0] || result[0].reject_reason) {
-          reply.fail('Bad Request: ' + (result[0] && result[0].reject_reason));
+      _.email.send({
+        text: '<a href="https://peppermint.com/reset?jwt=' + jwt + '">Reset</a>',
+        from: 'Peppermint <noreply@peppermint.com>',
+        subject: 'Reset your password.',
+        to: email,
+      }, function(err, msg) {
+        if (err) {
+          reply.fail('Email: ' + err.toString());
           return;
         }
-
         reply.succeed({});
-      }, function(err) {
-        reply.fail('Mandrill: ' + err.toString());
       });
     })
     .catch(function(err) {
