@@ -9,8 +9,11 @@ exports.handler = _.middleware.process([
 ]);
 
 function handle(request, reply) {
-  _.messages.create(request.body)
+    _.messages.create(request.body)
     .then(function(message) {
       reply.succeed(message);
+    })
+    .catch(function(err) {
+      reply.fail(err);
     });
 }

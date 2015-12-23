@@ -2,7 +2,42 @@ var expect = require('chai').expect;
 var handler = require('./').handler;
 var _ = require('utils/test');
 
+//a valid request object
+function valid() {
+  var sender = _.fake.user();
+  var recipient = _.fake.user();
+
+  return {
+    api_key: _.fake.API_KEY,
+    Authorization: 'Bearer ' + _.jwt.encode(sender.email, 300),
+    ip: '127.0.0.1',
+    body: {
+      sender_email: sender.email,
+      recipient_email: recipient.email,
+      audio_url: 'http://go.peppermint.com'
+    },
+  };
+}
+
 describe.only('lambda:CreateMessage', function() {
+  describe('Valid Requests', function() {
+    it('should succeed with a message object.', function(done) {
+      var req = valid();
+
+      handler(req, {
+        succeed: function(res) {
+          expect(res).to.have.property('message_id');
+          expect(res).to.have.property('audio_url', req.body.audio_url);
+          expect(res).to.have.property('sender_email', req.body.sender_email.toLowerCase());
+          expect(res).to.have.property('recipient_email', req.body.recipient_email.toLowerCase());
+          expect(res).to.have.property('created');
+          done();
+        },
+        fail: done,
+      });
+    });
+  });
+
   describe('Api Key errors', function() {
     describe('without an api_key field', function() {
       it('should fail with a "Bad Request" message', function(done) {

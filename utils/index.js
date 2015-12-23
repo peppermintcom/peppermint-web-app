@@ -14,6 +14,7 @@ exports.dynamo = require('./dynamo');
 exports.mandrill = require('./mandrill');
 exports.accounts = require('./accounts');
 exports.transcriptions = require('./transcriptions');
+exports.messages = require('./messages');
 exports.middleware = require('./middleware');
 exports.token = require('./randomtoken');
 exports.timestamp = require('./timestamp');
