@@ -20,8 +20,7 @@ describe('POST /accounts/verify', function() {
 
   after(_.deleteAccountAfter(user.email.toLowerCase()));
 
-  //skipping because it requires manual intervention
-  describe.skip('with a valid jwt', function() {
+  describe('with a valid jwt', function() {
 
     before(function() {
       return post({

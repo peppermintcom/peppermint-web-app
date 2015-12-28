@@ -3,7 +3,7 @@ var expect = require('chai').expect;
 var _ = require('utils/test');
 
 //uses password reset form on peppermint.com
-describe.skip('Forgot Password', function() {
+describe('Forgot Password', function() {
   var user = _.fake.user();
   var pass = 'secret2';
   var jwt;

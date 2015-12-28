@@ -41,8 +41,7 @@ describe('GET /accounts/{account_id}', function() {
         });
     });
 
-    //skipping because it requires manually clicking link
-    describe.skip('for verified accounts', function() {
+    describe('for verified accounts', function() {
       before(function(done) {
         this.timeout(90000);
 
