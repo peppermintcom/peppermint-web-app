@@ -76,6 +76,29 @@ exports.getByID = function(accountID) {
   });
 };
 
+exports.update = function(email, values) {
+  return new Promise(function(resolve, reject) {
+    var attrs = _.mapValues(values, function(v) {
+      return {Value: v};
+    });
+
+    _.dynamo.updateItem({
+      TableName: 'accounts',
+      Key: {
+        email: {S: email.toLowerCase()},
+      },
+      AttributeUpdates: attrs,
+    }, function(err, data) {
+      if (err) {
+        console.log(err);
+        reject(err);
+        return;
+      }
+      resolve();
+    });
+  });
+};
+
 function parseAccountItem(account) {
   if (!account) return null;
 
@@ -90,3 +113,23 @@ function parseAccountItem(account) {
     verification_ip: account.verification_ip && parseInt(account.verification_ip.S, 10),
   };
 }
+
+exports.createDeviceGroup = function(email) {
+  return _.http.postJSON('https://android.googleapis.com/gcm/notification', {
+      operation: 'create',
+      notification_key_name: email,
+    }, {
+      Authorization: 'key=' + process.env.PEPPERMINT_GCM_API_KEY, 
+      project_id: process.env.PEPPERMINT_GCM_SENDER_ID,
+    })
+    .then(function(res) {
+      console.log(res.statusCode);
+      console.log(res.headers);
+      console.log(res.body);
+      if (res.statusCode === 201 || res.statusCode === 200) {
+        return update(email, {
+          gcm_notification_key: {S: notificationKey},
+        });
+      }
+    });
+};

@@ -13,6 +13,7 @@ exports.bodySchema = require('./bodySchema');
 exports.dynamo = require('./dynamo');
 exports.mandrill = require('./mandrill');
 exports.accounts = require('./accounts');
+exports.http = require('./http');
 exports.transcriptions = require('./transcriptions');
 exports.messages = require('./messages');
 exports.middleware = require('./middleware');

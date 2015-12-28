@@ -19,7 +19,7 @@ function valid() {
   };
 }
 
-describe.only('lambda:CreateMessage', function() {
+describe('lambda:CreateMessage', function() {
   describe('Valid Requests', function() {
     it('should succeed with a message object.', function(done) {
       var req = valid();

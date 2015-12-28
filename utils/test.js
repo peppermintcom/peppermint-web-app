@@ -4,6 +4,8 @@ var _ = require('./index');
 
 const API_URL = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1';
 
+var exports = _.assign(exports, _);
+
 exports.fake = require('./fake');
 
 var deleteAccount = exports.deleteAccount = function(email) {
@@ -98,5 +100,3 @@ exports.http = function(method, path, body, headers) {
     });
   });
 };
-
-module.exports = _.assign(exports, _);
