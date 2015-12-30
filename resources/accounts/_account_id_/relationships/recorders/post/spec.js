@@ -6,13 +6,8 @@ var use = require('definitions/use');
 
 exports.tags = ['accounts'];
 exports.summary = 'Associate a recorder with an account';
-exports.operationID = 'LinkAccountRecorder';
-exports.consumes = exports.produces = 'application/vnd.api+json';
-
-exports.tags = ['accounts'];
-exports.summary = 'Retrieve account profile.';
-exports.operationId = 'GetAccount';
-exports.produces = ['application/json'];
+exports.operationId = 'LinkAccountRecorder';
+exports.consumes = exports.produces = ['application/vnd.api+json'];
 
 exports.parameters = [
   headers.AuthorizationBearer,
@@ -26,20 +21,10 @@ exports.parameters = [
 
 exports.responses = {
   '200': {
-    description: 'Returning account profile.',
+    description: 'Account linked to recorder',
     headers: {
       'Content-Type': {type: 'string'},
       'Access-Control-Allow-Origin': {type: 'string'},
-    },
-    schema: use(account, [], ['account_id', 'email', 'full_name', 'registration_ts', 'is_verified']),
-    examples: {
-      'application/json': {
-        account_id: 'abcdefghijklMNOP7654',
-        email: 'me@example.com',
-        full_name: 'John Doe',
-        registration_ts: '2015-10-19 09:19:55',
-        is_verified: false,
-      },
     },
   },
   '400': responses.BadRequest,
