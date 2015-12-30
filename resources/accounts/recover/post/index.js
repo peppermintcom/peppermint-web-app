@@ -19,22 +19,14 @@ exports.handler = function(request, reply) {
   _.dynamo.get('accounts', {email: {S: email}})
     .then(function(account) {
       if (!account) {
-        reply.fail('Not Found: email');
+        throw new Error('Not Found: email');
         return;
       }
 
-      _.email.send({
-        text: '<a href="https://peppermint.com/reset?jwt=' + jwt + '">Reset</a>',
-        from: 'Peppermint <noreply@peppermint.com>',
-        subject: 'Reset your password.',
-        to: email,
-      }, function(err, msg) {
-        if (err) {
-          reply.fail('Email: ' + err.toString());
-          return;
-        }
-        reply.succeed({});
-      });
+      return _.accounts.sendPasswordResetEmail(email, jwt);
+    })
+    .then(function() {
+      reply.succeed({});
     })
     .catch(function(err) {
       reply.fail(err);

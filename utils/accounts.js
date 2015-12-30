@@ -1,6 +1,11 @@
+var fs = require('fs');
+var path = require('path');
+var smtp = require('./email');
 var mandrill = require('./mandrill');
 var dynamo = require('./dynamo');
 var jwt = require('./jwt');
+var _ = require('lodash');
+var resetTmpl = _.template(fs.readFileSync(path.join(__dirname, 'templates/recover.html'), 'utf8'));
 
 exports.verifyEmail = function(email, name) {
   return new Promise(function(resolve, reject) {
@@ -37,6 +42,26 @@ exports.verifyEmail = function(email, name) {
     }, function(err) {
       console.log(err);
       reject('Mandrill: ' + err);
+    });
+  });
+};
+
+exports.sendPasswordResetEmail = function(email, jwt) {
+  return new Promise(function(resolve, reject) {
+    smtp.send({
+      text: 'https://peppermint.com/reset?jwt=' + jwt,
+      from: 'Peppermint <noreply@peppermint.com>',
+      subject: 'Reset your password.',
+      to: email,
+      attachment: [
+        {data: resetTmpl({jwt: jwt}), alternative: true},
+      ],
+    }, function(err) {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve();
     });
   });
 };
