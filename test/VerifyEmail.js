@@ -3,8 +3,7 @@ var readline = require('readline');
 var http = require('request');
 var _ = require('utils/test');
 
-//skipping because required manual intervention
-describe.skip('GET /accounts/verify', function() {
+describe('GET /accounts/verify', function() {
   var user = _.fake.user();
 
   before(function() {

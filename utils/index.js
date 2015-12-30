@@ -11,6 +11,7 @@ const BCRYPT_COST = 8;
 exports.apps = require('./apps');
 exports.bodySchema = require('./bodySchema');
 exports.dynamo = require('./dynamo');
+exports.email = require('./email');
 exports.mandrill = require('./mandrill');
 exports.accounts = require('./accounts');
 exports.http = require('./http');
