@@ -9,6 +9,7 @@ var jwt = require('./jwt');
 const BCRYPT_COST = 8;
 
 exports.apps = require('./apps');
+exports.auth = require('./auth');
 exports.bodySchema = require('./bodySchema');
 exports.dynamo = require('./dynamo');
 exports.email = require('./email');
