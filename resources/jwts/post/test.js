@@ -18,4 +18,21 @@ describe.only('lambda:Authenticate', function() {
       });
     });
   });
+
+  describe('unparseable Authorization headers', function() {
+    it('should fail.', function(done) {
+      handler({
+        Authorization: 'Peppermint recorder=',
+        api_key: _.fake.API_KEY,
+      }, {
+        succeed: function() {
+          done(new Error('success with bad Auth header'));
+        },
+        fail: function(err) {
+          expect(err).to.match(/^Bad Request/);
+          done();
+        },
+      });
+    });
+  });
 });
