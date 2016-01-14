@@ -7,13 +7,17 @@ describe('peppermint.com short url service.', function() {
    * by the API so here we only tests invalid requests.
    */
   describe('unknown short_url', function() {
-    it ('should return a 404 error.', function(done) {
-      request('https://peppermint.com/fake456', function(err, res, body) {
+    it ('should redirect to the 404 error page.', function(done) {
+      request({
+        url: 'https://peppermint.com/fake456',
+        followRedirect: false,
+      }, function(err, res, body) {
         if (err) {
           done(err);
           return;
         }
-        expect(res.statusCode).to.equal(404);
+        expect(res.statusCode).to.equal(302);
+        expect(res.headers.location).to.equal('/404');
         done();
       });
     });
