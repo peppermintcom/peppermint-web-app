@@ -64,8 +64,29 @@ exports.verifyAccount = function(email, ip) {
   });
 };
 
+var base64Creds = exports.base64Creds = function(user, pass) {
+  return Buffer(user + ':' + pass).toString('base64');
+};
+
 exports.basic = function(user, password) {
-  return 'Basic ' + new Buffer(user + ':' + password).toString('base64');
+  return 'Basic ' + base64Creds(user, password);
+};
+
+exports.peppermintScheme = function(recorderUser, recorderPass, accountUser, accountPass) {
+  var h = 'Peppermint ';
+
+  if (recorderUser) {
+    h += 'recorder=' + base64Creds(recorderUser, recorderPass);
+  }
+
+  if (accountUser) {
+    if (recorderUser) {
+      h += ', ';
+    }
+    h += 'account=' + base64Creds(accountUser, accountPass);
+  }
+
+  return h;
 };
 
 exports.http = function(method, path, body, headers) {

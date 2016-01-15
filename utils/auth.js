@@ -1,8 +1,8 @@
 var _ = require('lodash');
 var recorderOnly = /^peppermint recorder=[\w\+\/]+={0,2}$/i;
 var accountOnly = /^peppermint account=[\w\+\/]+={0,2}$/i;
-var recorderAccount = /^peppermint recorder=[\w\+\/]+={0,2}, account=[\w\+\/]+=?$/i;
-var accountRecorder = /^peppermint account=[\w\+\/]+={0,2}, recorder=[\w\+\/]+=?$/i;
+var recorderAccount = /^peppermint recorder=[\w\+\/]+={0,2}, account=[\w\+\/]+={0,2}$/i;
+var accountRecorder = /^peppermint account=[\w\+\/]+={0,2}, recorder=[\w\+\/]+={0,2}$/i;
 
 exports.isValid = function(authHeader) {
   if (typeof authHeader !== 'string') {
@@ -40,11 +40,15 @@ var credsObj = exports.credsObj = function(creds) {
     if (!v) {
       return null;
     }
-    var split = v.indexOf(':');
+    var splitIndex = v.indexOf(':');
+
+    if (splitIndex < 1) {
+      throw new Error(v);
+    }
 
     return {
-      user: v.substring(0, split),
-      password: v.substring(split + 1),
+      user: v.substring(0, splitIndex),
+      password: v.substring(splitIndex + 1),
     };
   });
 };

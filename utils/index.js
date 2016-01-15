@@ -20,6 +20,7 @@ exports.transcriptions = require('./transcriptions');
 exports.messages = require('./messages');
 exports.middleware = require('./middleware');
 exports.token = require('./randomtoken');
+exports.recorders = require('./recorders');
 exports.timestamp = require('./timestamp');
 exports.jwt = jwt;
 exports.errors = errors;

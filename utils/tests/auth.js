@@ -12,6 +12,7 @@ describe('Peppermint Authentication Scheme', function() {
           'peppermint recorder=abc, account=xyz',
           'Peppermint account=abc, recorder=xyz',
           'Peppermint account=++//==, recorder=////=',
+          'Peppermint recorder=LTV5aVNmeWw1MWVjOm16WXRVWnU0eXN6Y21hN181dl84d1RLVWN1eVFMcVZBMzQ5WVloSmE=, account=eU5tQzJuZEZBS3QyQG1haWxpbmF0b3IuY29tOnNlY3JldA==',
         ].forEach(function(v) {
           if (!auth.isValid(v)) {
             throw new Error(v);

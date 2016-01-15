@@ -7,19 +7,31 @@ exports.handler = _.middleware.process([
 ]);
 
 function validatePeppermintAuthHeader(request, reply) {
+  if (!request.Authorization) {
+    reply.fail('Bad Request: Authorization header required');
+    return;
+  }
   if (!_.auth.isValid(request.Authorization)) {
     reply.fail('Bad Request: Authorization header does not follow Peppermint scheme');
     return;
   }
-  reply.succeed();
+  reply.succeed(request);
 }
 
 function handle(request, reply) {
-  var creds = _.auth.decode(request.Authorization);
+  var creds = null;
+
+  try {
+    creds = _.auth.decode(request.Authorization);
+  } catch(e) {
+    reply.fail('Bad Request: could not parse Authorization header');
+    return;
+  }
 
   Promise.all([
-    creds.account ? _.accounts.getByID(creds.account.user) : Promise.resolve(),
-    creds.recorder ? _.dynamo.get('recorder', {S: creds.recorder.user}) : Promise.resolve(),
+    creds.account ? _.accounts.get(creds.account.user) : Promise.resolve(),
+    //recorder.user is the client_id, the key in the recorders table
+    creds.recorder ? _.recorders.get(creds.recorder.user) : Promise.resolve(),
   ])
   .then(function(results) {
     var account = results[0];
@@ -35,8 +47,8 @@ function handle(request, reply) {
     }
 
     return Promise.all([
-      account ? _.bcryptCheck(account.password) : Promise.resolve(0),
-      recorder ? _.bcryptCheck(recorder.recorder_key) : Promise.resolve(0),
+      account ? _.bcryptCheck(creds.account.password, account.password) : Promise.resolve(),
+      recorder ? _.bcryptCheck(creds.recorder.password, recorder.recorder_key) : Promise.resolve(),
     ])
     .then(function(results) {
       var accountOK = results[0];
@@ -50,7 +62,7 @@ function handle(request, reply) {
         reply.fail('Unauthorized: recorder key');
         return;
       }
-      var jwt = _.jwt.creds(creds.account.user, recorder.account.user);
+      var jwt = _.jwt.creds(account && account.account_id, recorder && recorder.recorder_id);
       reply.succeed({jwt: jwt});
     })
     .catch(function(err) {
