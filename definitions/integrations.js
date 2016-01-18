@@ -90,3 +90,14 @@ exports.Internal = {
 exports.requestTmpl = '{"body": $input.json(\'$\'), "ip": "$context.identity.sourceIp", "api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')"}';
 
 exports.requestTmplNoBody = '{"ip": "$context.identity.sourceIp", "api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')"}';
+
+exports.jsonapi = {
+  Ok: {
+    statusCode: '200',
+    responseParameters: {
+      'method.response.header.Access-Control-Allow-Origin': "'*'",
+      'method.response.header.Content-Type': 'application/vnd.api+json',
+    },
+    responseTemplates: {},
+  },
+};
