@@ -1,6 +1,8 @@
+var defs = require('definitions');
 var headers = require('definitions/headers');
 var integrations = require('definitions/integrations');
 var responses = require('definitions/responses');
+var _ = require('utils');
 
 exports.tags = ['accounts', 'recorder', 'auth'];
 exports.summary = 'Exchange credentials for an access token.';
@@ -37,58 +39,29 @@ exports.responses = {
       title: 'AuthenticateOK',
       type: 'object',
       properties: {
-        data: {
-          type: 'object',
-          properties: {
-            type: {type: 'string', pattern: 'jwts'},
-            id: {type: 'string'},
-            attributes: {
-              type: 'object',
-              properties: {
-                token: {type: 'string'},
-              },
-              required: ['token'],
-            },
-          },
-          required: ['type', 'id', 'attributes'],
-        },
+        data: defs.withRelationships(defs.jwts.schema, 'recorder', 'account'),
+        included: defs.includedSchema,
       },
-      required: ['data'],
+      required: ['data', 'included'],
     },
     examples: {
       'application/vnd.api+json': {
-        data: {
-          type: 'jwts',
-          id: '789xyz',
-          attributes: {
-            token: 'abc.123.def',
-          },
+        data: _.assign({}, defs.jwts.example, {
           relationships: {
-            recorder: {
-              data: {
-                type: 'recorders',
-                id: '567def',
-                attributes: {
-                  //TODO
-                }
-              },
-            },
-            account: {
-              data: {
-                type: 'accounts',
-                id: '345ghi',
-                attributes: {
-                  //TODO
-                },
-              },
-            },
+            recorder: _.pick(defs.recorders.example, 'type', 'id'),
+            account: _.pick(defs.accounts.example, 'type', 'id'),
           },
-        },
+        }),
+        included: [
+          defs.recorders.example,
+          defs.accounts.example,
+        ],
       },
     },
   },
   '400': responses.BadRequest,
   '401': responses.Unauthorized,
+  '404': responses.NotFound,
   '429': responses.RateLimited,
   '500': responses.Internal,
 };
@@ -103,7 +76,8 @@ exports['x-amazon-apigateway-integration'] = {
     'default': integrations.Created,
     'Bad Request.*': integrations.BadRequest,
     'Unauthorized.*': integrations.Unauthorized,
+    'Not Found.*': integrations.NotFound,
     'Too Many Requests.*': integrations.RateLimited,
-    '^(?!Bad Request|Unauthorized|Too Many Requests)(.|\\n)+': integrations.Internal,
+    '^(?!Bad Request|Unauthorized|Not Found|Too Many Requests)(.|\\n)+': integrations.Internal,
   },
 };

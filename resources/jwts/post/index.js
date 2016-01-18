@@ -38,11 +38,11 @@ function handle(request, reply) {
     var recorder = results[1];
 
     if (creds.account && !account) {
-      reply.fail('Not found: account');
+      reply.fail('Not Found: account');
       return;
     }
     if (creds.recorder && !recorder) {
-      reply.fail('Not found: recorder');
+      reply.fail('Not Found: recorder');
       return;
     }
 
@@ -62,8 +62,30 @@ function handle(request, reply) {
         reply.fail('Unauthorized: recorder key');
         return;
       }
-      var jwt = _.jwt.creds(account && account.account_id, recorder && recorder.recorder_id);
-      reply.succeed({jwt: jwt});
+      var id = _.uuid();
+      var jwt = _.jwt.creds(account && account.account_id, recorder && recorder.recorder_id, id);
+      var accountResource = _.accounts.resource(account);
+      var recorderResource = _.recorders.resource(recorder);
+      var relationships = _.assign({},
+          accountResource ? {account: _.pick(accountResource, 'id', 'type')} : null,
+          recorderResource ? {recorder: _.pick(recorderResource, 'id', 'type')} : null
+      );
+
+      if (recorderResource) {
+        delete recorderResource.attributes.recorder_key;
+      }
+
+      reply.succeed({
+        data: {
+          type: 'jwts',
+          id: id,
+          attributes: {
+            token: jwt,
+          },
+          relationships: relationships,
+        },
+        included: _.compact([accountResource, recorderResource]),
+      });
     })
     .catch(function(err) {
       console.log(err);

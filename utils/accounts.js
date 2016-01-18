@@ -3,6 +3,7 @@ var path = require('path');
 var smtp = require('./email');
 var mandrill = require('./mandrill');
 var dynamo = require('./dynamo');
+var timestamp = require('./timestamp');
 var jwt = require('./jwt');
 var _ = require('lodash');
 var resetTmpl = _.template(fs.readFileSync(path.join(__dirname, 'templates/recover.html'), 'utf8'));
@@ -124,6 +125,21 @@ exports.update = function(email, values) {
   });
 };
 
+exports.resource = function(account) {
+  if (!account) return null;
+
+  return {
+    type: 'accounts',
+    id: account.account_id,
+    attributes: {
+      email: account.email,
+      full_name: account.full_name,
+      registration_ts: timestamp(account.registration_ts),
+      is_verified: account.is_verified,
+    },
+  };
+};
+
 function parseAccountItem(account) {
   if (!account) return null;
 
@@ -139,10 +155,11 @@ function parseAccountItem(account) {
   };
 }
 
-exports.createDeviceGroup = function(email) {
+exports.createDeviceGroup = function(email, registrationIDs) {
   return _.http.postJSON('https://android.googleapis.com/gcm/notification', {
       operation: 'create',
       notification_key_name: email,
+      registration_ids: registrationIDs,
     }, {
       Authorization: 'key=' + process.env.PEPPERMINT_GCM_API_KEY, 
       project_id: process.env.PEPPERMINT_GCM_SENDER_ID,

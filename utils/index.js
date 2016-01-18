@@ -4,6 +4,7 @@ var _ = require('lodash');
 var bcrypt = require('bcryptjs');
 var errors = require('./errors');
 var jwt = require('./jwt');
+var token = require('./randomtoken');
 
 //while using js
 const BCRYPT_COST = 8;
@@ -19,7 +20,7 @@ exports.http = require('./http');
 exports.transcriptions = require('./transcriptions');
 exports.messages = require('./messages');
 exports.middleware = require('./middleware');
-exports.token = require('./randomtoken');
+exports.token = token;
 exports.recorders = require('./recorders');
 exports.timestamp = require('./timestamp');
 exports.jwt = jwt;
@@ -71,5 +72,7 @@ exports.authenticate = function(Authorization) {
 
   return jwt.verify(parts[1]);
 };
+
+exports.uuid = _.partial(token, 22);
 
 module.exports = _.assign(exports, _);

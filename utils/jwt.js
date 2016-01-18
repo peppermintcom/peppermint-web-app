@@ -14,15 +14,20 @@ if (JWT_SECRET.length < 40) {
  * @param {Number} term - number of seconds until expiration
  * @return {String}
  */
-var encode = exports.encode = function(subject, term) {
+var encode = exports.encode = function(subject, term, id) {
   var now = Math.floor(Date.now() / 1000);
-
-  return jwt.encode({
+  var payload = {
     exp: now + term,
     iat: now,
     iss: 'peppermint.com',
     sub: subject,
-  }, JWT_SECRET);
+  };
+
+  if (id) {
+    payload.id = id;
+  }
+
+  return jwt.encode(payload, JWT_SECRET);
 };
 
 /**
@@ -62,8 +67,8 @@ var decode = exports.decode = function(token) {
 exports.creds = (function() {
   var month = 30 * 60 * 60 * 24;
 
-  return function(account_id, recorder_id) {
-    return encode([account_id || '', recorder_id || ''].join('.'), month);
+  return function(account_id, recorder_id, id) {
+    return encode([account_id || '', recorder_id || ''].join('.'), month, id);
   };
 })();
 
