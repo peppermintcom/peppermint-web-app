@@ -96,7 +96,7 @@ exports.jsonapi = {
     statusCode: '200',
     responseParameters: {
       'method.response.header.Access-Control-Allow-Origin': "'*'",
-      'method.response.header.Content-Type': 'application/vnd.api+json',
+      'method.response.header.Content-Type': "'application/vnd.api+json'",
     },
     responseTemplates: {},
   },
