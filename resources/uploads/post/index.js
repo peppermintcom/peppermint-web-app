@@ -27,6 +27,10 @@ exports.handler = function(req, res) {
     res.fail('Unauthorized: ' + jwt.err.toString());
     return;
   }
+  if (!jwt.recorder_id) {
+    res.fail('Unauthorized: recorder');
+    return;
+  }
 
   var isValid = tv4.validate(req.body, bodySchema);
   if (!isValid) {
