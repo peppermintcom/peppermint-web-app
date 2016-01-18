@@ -74,6 +74,7 @@ exports.RateLimited = {
   responseParamters: {
     'method.response.header.Access-Control-Allow-Origin': "'*'",
   },
+  responseTemplates: {},
 };
 
 exports.Internal = {

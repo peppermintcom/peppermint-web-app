@@ -71,7 +71,9 @@ exports['x-amazon-apigateway-integration'] = {
   uri : 'arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:819923996052:function:Authenticate/invocations',
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
-  requestTemplates: integrations.requestTmplNoBody,
+  requestTemplates: {
+    'application/vnd.api+json': integrations.requestTmplNoBody,
+  },
   responses: {
     'default': integrations.Created,
     'Bad Request.*': integrations.BadRequest,
