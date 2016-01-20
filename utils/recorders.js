@@ -9,6 +9,29 @@ exports.get = function(clientID) {
   .then(parseRecorderItem);
 };
 
+exports.update = function(recorderID, values) {
+  return new Promise(function(resolve, reject) {
+    var attrs = _.mapValues(values, function(v) {
+      return {Value: v};
+    });
+
+    _.dynamo.updateItem({
+      TableName: 'recorders',
+      Key: {
+        recorder_id: {S: recorderID},
+      },
+      AttributeUpdates: attrs,
+    }, function(err, data) {
+      if (err) {
+        console.log(err);
+        reject(err);
+        return;
+      }
+      resolve();
+    });
+  });
+};
+
 exports.resource = function(recorder) {
   if (!recorder) return null;
 
