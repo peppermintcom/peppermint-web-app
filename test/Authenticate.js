@@ -106,6 +106,39 @@ describe('POST /jwts', function() {
       });
     });
   });
+
+  describe('dual account and recorder authentication', function() {
+    describe('registered recorder and account', function() {
+      describe('correct recorder key and account password', function() {
+        it('should return a valid JWT.', function() {
+          return post({
+            'X-Api-Key': _.fake.API_KEY,
+            Authorization: _.peppermintScheme(recorderUser, recorderPass, accountUser, accountPass),
+          })
+          .then(function(res) {
+            expect(res.statusCode).to.equal(200);
+            expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+            if (!tv4.validate(jsonapischema, res.body)) {
+              throw tv4.error;
+            }
+            expect(res.body.data.attributes).to.have.property('token');
+            expect(res.body.data.relationships).to.have.property('recorder'); 
+            expect(res.body.data.relationships).to.have.property('account');
+            expect(res.body.included).to.have.length(2);
+
+            return Promise.all([
+              jwtAuthenticatesAccount(res.body.data.attributes.token, account.account_id),
+              jwtAuthenticatesRecorder(res.body.data.attributes.token),
+            ]);
+          })
+          .then(function(results) {
+            must(results[0]);
+            must(results[1]);
+          });
+        });
+      });
+    });
+  });
 });
 
 function must(ok) {
