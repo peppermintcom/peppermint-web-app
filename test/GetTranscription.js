@@ -62,8 +62,8 @@ describe('GET /transcriptions/{transcription_id}', function() {
           'X-Api-Key': _.fake.API_KEY,
         })
         .then(function(res) {
-          console.log(res.body);
           expect(res.statusCode).to.equal(404);
+          expect(res.body).to.have.property('errorMessage', 'Not Found');
         });
     });
   });
