@@ -59,7 +59,10 @@ describe('lambda:UpdateRecorder', function() {
             done(new Error('success without formatted body'));
           },
           fail: function(err) {
-            expect(err).to.match(/^Bad Request.*data/);
+            expect(err.message).to.equal('400');
+            expect(JSON.parse(err.name)).to.deep.equal({
+              detail: 'Missing required property: data',
+            });
             done();
           },
         });
@@ -81,7 +84,10 @@ describe('lambda:UpdateRecorder', function() {
             done(new Error('success without formatted body'));
           },
           fail: function(err) {
-            expect(err).to.match(/^Bad Request.*type/);
+            expect(err.message).to.equal('400');
+            expect(JSON.parse(err.name)).to.deep.equal({
+              detail: 'Missing required property: type',
+            });
             done();
           },
         });
@@ -103,7 +109,10 @@ describe('lambda:UpdateRecorder', function() {
             done(new Error('success without formatted body'));
           },
           fail: function(err) {
-            expect(err).to.match(/^Bad Request.*recorder/);
+            expect(err.message).to.equal('400');
+            expect(JSON.parse(err.name)).to.deep.equal({
+              detail: 'String does not match pattern: ^recorders$',
+            });
             done();
           },
         });
@@ -125,7 +134,10 @@ describe('lambda:UpdateRecorder', function() {
             done(new Error('success without formatted body'));
           },
           fail: function(err) {
-            expect(err).to.match(/^Bad Request.*id/);
+            expect(err.message).to.equal('400');
+            expect(JSON.parse(err.name)).to.deep.equal({
+              detail: 'Missing required property: id',
+            });
             done();
           },
         });
@@ -147,7 +159,10 @@ describe('lambda:UpdateRecorder', function() {
             done(new Error('success without formatted body'));
           },
           fail: function(err) {
-            expect(err).to.match(/^Bad Request.*attributes/);
+            expect(err.message).to.equal('400');
+            expect(JSON.parse(err.name)).to.deep.equal({
+              detail: 'Missing required property: attributes',
+            });
             done();
           },
         });
@@ -169,7 +184,10 @@ describe('lambda:UpdateRecorder', function() {
             done(new Error('success without formatted body'));
           },
           fail: function(err) {
-            expect(err).to.match(/^Bad Request.*gcm_registration_token/);
+            expect(err).to.have.property('message', '400');
+            expect(JSON.parse(err.name)).to.deep.equal({
+              detail: 'Missing required property: gcm_registration_token',
+            });
             done();
           },
         });
@@ -191,7 +209,10 @@ describe('lambda:UpdateRecorder', function() {
             done(new Error('success without formatted body'));
           },
           fail: function(err) {
-            expect(err).to.match(/^Bad Request/);
+            expect(err).to.have.property('message', '400');
+            expect(JSON.parse(err.name)).to.deep.equal({
+              detail: 'Additional properties not allowed',
+            });
             done();
           },
         });
@@ -213,7 +234,10 @@ describe('lambda:UpdateRecorder', function() {
             done(new Error('success without formatted body'));
           },
           fail: function(err) {
-            expect(err).to.match(/^Bad Request/);
+            expect(err).to.have.property('message', '400');
+            expect(JSON.parse(err.name)).to.deep.equal({
+              detail: 'Additional properties not allowed',
+            });
             done();
           },
         });
@@ -232,7 +256,10 @@ describe('lambda:UpdateRecorder', function() {
           done(new Error('success without authorization'));
         },
         fail: function(err) {
-          expect(err).to.match(/^Unauthorized/);
+          expect(err).to.have.property('message', '401');
+          expect(JSON.parse(err.name)).to.deep.equal({
+            detail: 'Authorization header should be formatted: Bearer <JWT>'
+          });
           done();
         },
       });
@@ -251,7 +278,10 @@ describe('lambda:UpdateRecorder', function() {
           done(new Error('success with account only authorization'));
         },
         fail: function(err) {
-          expect(err).to.match(/^Unauthorized/);
+          expect(err).to.have.property('message', '401');
+          expect(JSON.parse(err.name)).to.deep.equal({
+            detail: 'Auth token is not valid for any recorder',
+          });
           done();
         },
       });
@@ -270,7 +300,10 @@ describe('lambda:UpdateRecorder', function() {
           done(new Error('success with mismatch auth and recorderID'));
         },
         fail: function(err) {
-          expect(err).to.match(/^Forbidden/);
+          expect(err).to.have.property('message', '403');
+          expect(JSON.parse(err.name)).to.deep.equal({
+            detail: 'Auth token is not valid for recorder ' + recorder.recorder_id,
+          });
           done();
         },
       });
@@ -292,7 +325,26 @@ describe('lambda:UpdateRecorder', function() {
           done(new Error('success with mismatched id'));
         },
         fail: function(err) {
-          expect(err).to.match(/^Forbidden/);
+          expect(err).to.have.property('message', '403');
+          expect(JSON.parse(err.name)).to.deep.equal({
+            detail: 'Auth token is not valid for recorder ' + otherRecorder.recorder.recorder_id,
+          });
+          done();
+        },
+      });
+    });
+  });
+
+  describe('unsupported content-type', function() {
+    it('should fail with an Unsupported error.', function(done) {
+      handler({
+        'Content-Type': 'application/json',
+      }, {
+        succeed: function() {
+          done(new Error('success without jsonapi content type'));
+        },
+        fail: function(err) {
+          expect(err).to.have.property('message', '415');
           done();
         },
       });

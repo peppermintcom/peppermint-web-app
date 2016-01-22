@@ -2,6 +2,7 @@ var _ = require('utils');
 var spec = require('./spec');
 
 exports.handler = _.middleware.process([
+  _.middleware.isjsonapi,
   _.middleware.validateApiKey,
   _.middleware.authenticate,
   _.middleware.validateBody(spec),
@@ -11,12 +12,25 @@ exports.handler = _.middleware.process([
 
 //checks the token's recorder_id matches the path param and data.id property
 function allow(request, reply) {
+  if (!request.jwt.recorder_id) {
+    reply.fail({
+      status: '401',
+      detail: 'Auth token is not valid for any recorder',
+    });
+    return;
+  }
   if (request.recorder_id !== request.jwt.recorder_id) {
-    reply.fail('Forbidden: token only authenticates ' + request.jwt.recorder_id);
+    reply.fail({
+      status: '403',
+      detail: 'Auth token is not valid for recorder ' + request.recorder_id,
+    });
     return;
   }
   if (request.recorder_id !== request.body.data.id) {
-    reply.fail('Forbidden: token only authenticates ' + request.jwt.recorder_id);
+    reply.fail({
+      status: '403',
+      detail: 'Auth token is not valid for recorder ' + request.body.data.id,
+    });
     return;
   }
   reply.succeed(request);

@@ -11,6 +11,7 @@ exports.consumes = ['application/vnd.api+json'];
 
 exports.parameters = [
   headers.AuthorizationBearer,
+  headers.ContentType,
   {
     name: 'payload',
     'in': 'body',
@@ -39,10 +40,11 @@ exports.responses = {
       'Access-Control-Allow-Origin': {type: 'string'},
     },
   },
-  '400': responses.BadRequest,
-  '401': responses.Unauthorized,
-  '403': responses.Forbidden,
-  '500': responses.Internal,
+  '400': responses.jsonAPI.BadRequest,
+  '401': responses.jsonAPI.Unauthorized,
+  '403': responses.jsonAPI.Forbidden,
+  '415': responses.jsonAPI.Unsupported,
+  '500': responses.plain.Internal,
 };
 
 exports['x-amazon-apigateway-integration'] = {
@@ -51,13 +53,15 @@ exports['x-amazon-apigateway-integration'] = {
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {
+    'application/json': '{"Content-Type": "$input.params(\'Content-Type\')"',
     'application/vnd.api+json': '{"body": $input.json(\'$\'), "api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')", "recorder_id": "$input.params(\'recorder_id\')"}',
   },
   responses: {
     'default': integrations.Ok,
-    'Bad Request.*': integrations.BadRequest,
-    'Unauthorized.*': integrations.Unauthorized,
-    'Forbidden.*': integrations.Forbidden,
-    '^(?!Bad Request|Unauthorized|Forbidden)(.|\\n)+': integrations.Internal,
+    '400': integrations.jsonAPI.BadRequest,
+    '401': integrations.jsonAPI.Unauthorized,
+    '403': integrations.jsonAPI.Forbidden,
+    '415': integrations.jsonAPI.Unsupported,
+    '^(?!Bad Request|Unauthorized|Forbidden|Unsupported)(.|\\n)+': integrations.plain.Internal,
   },
 };

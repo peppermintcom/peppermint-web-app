@@ -75,7 +75,7 @@ exports['x-amazon-apigateway-integration'] = {
     'application/json': integrations.requestTmplNoBody,
   },
   responses: {
-    'default': integrations.jsonapi.Ok,
+    'default': integrations.jsonAPI.Ok,
     'Bad Request.*': integrations.BadRequest,
     'Unauthorized.*': integrations.Unauthorized,
     'Not Found.*': integrations.NotFound,

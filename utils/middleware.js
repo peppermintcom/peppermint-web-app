@@ -1,4 +1,5 @@
 var tv4 = require('tv4');
+var _ = require('lodash');
 var jwt = require('./jwt');
 var apps = require('./apps');
 var bodySchema = require('./bodySchema');
@@ -26,7 +27,10 @@ exports.process = function(handlers) {
             next(i + 1, result);
           },
           fail: function(err) {
-            reply.fail(err);
+            var e = new Error(err.status);
+
+            e.name = JSON.stringify(_.pick(err, 'detail', 'title', 'code'));
+            reply.fail(e);
           },
         });
       } else {
@@ -45,14 +49,20 @@ exports.authenticate = function(request, reply) {
   var parts = (request.Authorization || '').trim().split(' ');
 
   if (parts.length !== 2 || parts[0] !== 'Bearer') {
-    reply.fail('Unauthorized: Authorization token should be formatted like "Beaerer <JWT>"');
+    reply.fail({
+      status: '401',
+      detail: 'Authorization header should be formatted: Bearer <JWT>',
+    });
     return;
   }
 
   request.jwt = jwt.verify(parts[1]);
 
   if (request.jwt.err) {
-    reply.fail('Unauthorized: ' + request.jwt.err.toString());
+    reply.fail({
+      status: '401',
+      detail: request.jwt.err.toString(),
+    });
     return;
   }
 
@@ -63,7 +73,21 @@ exports.authenticate = function(request, reply) {
 //modify the request.
 exports.validateApiKey = function(request, reply) {
   if (!apps[request.api_key]) {
-    reply.fail('Bad Request: invalid API Key');
+    reply.fail({
+      status: '400',
+      detail: 'invalid API Key',
+    });
+    return;
+  }
+  reply.succeed(request);
+};
+
+exports.isjsonapi = function(request, reply) {
+  if (request['Content-Type'] && request['Content-Type'] !== 'application/vnd.api+json') {
+    reply.fail({
+      status: '415',
+      detail: 'Use "application/vnd.api+json"',
+    });
     return;
   }
   reply.succeed(request);
@@ -74,7 +98,10 @@ exports.validateBody = function(spec) {
 
   return function(request, reply) {
     if (!tv4.validate(request.body, schema)) {
-      reply.fail(['Bad Request:', tv4.error.message].join(' '));
+      reply.fail({
+        status: '400',
+        detail: tv4.error.message,
+      });
       return;
     }
     reply.succeed(request);

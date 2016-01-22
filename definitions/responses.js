@@ -1,3 +1,5 @@
+var _ = require('lodash');
+
 exports.BadRequest = {
   description: 'Bad Request',
   headers: {
@@ -75,6 +77,21 @@ exports.Conflict = {
   },
 };
 
+exports.Unsupported = {
+  description: 'Unsupported Media Type',
+  headers: {
+    'Access-Control-Allow-Origin': {type: 'string'},
+  },
+  schema: {
+    type: 'object',
+    properties: {
+      errorMessage: {
+        type: 'string',
+      },
+    },
+  },
+};
+
 exports.RateLimited = {
   description: 'Too Many Requests',
   headers: {
@@ -97,5 +114,54 @@ exports.Internal = {
   },
   schema: {
     type: 'string',
-  }
+  },
+};
+
+exports.plain = {
+  Internal: {
+    description: 'Internal Server Error',
+    headers: {
+      'Access-Control-Allow-Origin': {type: 'string'},
+      'Content-Type': {type: 'string'},
+    },
+    schema: {
+      type: 'string',
+    },
+  },
+};
+
+//extend with a description
+var jsonAPIClientError = {
+  headers: {
+    'Access-Control-Allow-Origin': {type: 'string'},
+    'Content-Type': {type: 'string'},
+  },
+  schema: {
+    type: 'object',
+    properties: {
+      errors: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            title: {type: 'string'},
+            detail: {type: 'string'},
+            code: {type: 'string'},
+          },
+          additionalProperties: false,
+        },
+        minLength: 1,
+      },
+    },
+    required: ['errors'],
+    additionalProperties: false,
+  },
+};
+
+exports.jsonAPI = {
+  BadRequest: _.assign({description: 'Bad Request'}, jsonAPIClientError),
+  Unauthorized: _.assign({description: 'Unauthorized'}, jsonAPIClientError),
+  Forbidden: _.assign({description: 'Forbidden'}, jsonAPIClientError),
+  NotFound: _.assign({description: 'Not Found'}, jsonAPIClientError),
+  Unsupported: _.assign({description: 'Unsupported Media Type'}, jsonAPIClientError),
 };

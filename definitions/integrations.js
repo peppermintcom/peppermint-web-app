@@ -1,3 +1,5 @@
+var _ = require('lodash');
+
 exports.Ok = {
   statusCode: '200',
   responseParameters: {
@@ -91,7 +93,18 @@ exports.requestTmpl = '{"body": $input.json(\'$\'), "ip": "$context.identity.sou
 
 exports.requestTmplNoBody = '{"ip": "$context.identity.sourceIp", "api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')"}';
 
-exports.jsonapi = {
+
+var jsonAPIError = {
+  responseParameters: {
+    'method.response.header.Access-Control-Allow-Origin': "'*'",
+    'method.response.header.Content-Type': "'application/vnd.api+json'",
+  },
+  responseTemplates: {
+    'application/json': '{"errors": $input.path("$").errorType}',
+  },
+};
+
+exports.jsonAPI = {
   Ok: {
     statusCode: '200',
     responseParameters: {
@@ -99,5 +112,23 @@ exports.jsonapi = {
       'method.response.header.Content-Type': "'application/vnd.api+json'",
     },
     responseTemplates: {},
+  },
+  BadRequest: _.assign({statusCode: '400'}, jsonAPIError),
+  Unauthorized: _.assign({statusCode: '401'}, jsonAPIError),
+  Forbidden: _.assign({statusCode: '403'}, jsonAPIError),
+  NotFound: _.assign({statusCode: '404'}, jsonAPIError),
+  Unsupported: _.assign({statusCode: '415'}, jsonAPIError),
+};
+
+exports.plain = {
+  Internal: {
+    statusCode: '500',
+    responseParameters: {
+      'method.response.header.Access-Control-Allow-Origin': "'*'",
+      'method.response.header.Content-Type': "'text/plain'",
+    },
+    responseTemplates: {
+      'application/json': "Internal Server Error",
+    },
   },
 };
