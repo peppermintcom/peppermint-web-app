@@ -9,27 +9,57 @@ exports.get = function(clientID) {
   .then(parseRecorderItem);
 };
 
-exports.update = function(recorderID, values) {
+var getByID = exports.getByID = function(recorderID) {
   return new Promise(function(resolve, reject) {
-    var attrs = _.mapValues(values, function(v) {
-      return {Value: v};
-    });
-
-    _.dynamo.updateItem({
+    dynamo.query({
       TableName: 'recorders',
-      Key: {
-        recorder_id: {S: recorderID},
+      IndexName: 'recorder_id-index',
+      KeyConditionExpression: 'recorder_id = :recorder_id',
+      ExpressionAttributeValues: {
+        ':recorder_id': {S: recorderID},
       },
-      AttributeUpdates: attrs,
     }, function(err, data) {
       if (err) {
-        console.log(err);
         reject(err);
         return;
       }
-      resolve();
+      if (data.Count > 1) {
+        var msg = 'recorder lookup by id "' + recorderID + '" returned multiple recorders';
+ 
+        console.log(msg);
+        reject(new Error(msg));
+        return;
+      }
+
+      resolve(parseRecorderItem(data.Items && data.Items[0]));
     });
   });
+};
+
+exports.update = function(recorderID, values) {
+  return getByID(recorderID)
+    .then(function(recorder) {
+      return new Promise(function(resolve, reject) {
+        var attrs = _.mapValues(values, function(v) {
+          return {Value: v};
+        });
+
+        dynamo.updateItem({
+          TableName: 'recorders',
+          Key: {
+            client_id: {S: recorder.client_id},
+          },
+          AttributeUpdates: attrs,
+        }, function(err, data) {
+          if (err) {
+            console.log(err);
+            reject(err);
+            return;
+          }
+          resolve();
+        });
+      });
+    });
 };
 
 exports.resource = function(recorder) {

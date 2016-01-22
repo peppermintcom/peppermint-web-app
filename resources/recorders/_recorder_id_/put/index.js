@@ -4,14 +4,18 @@ var spec = require('./spec');
 exports.handler = _.middleware.process([
   _.middleware.validateApiKey,
   _.middleware.authenticate,
-  allow,
   _.middleware.validateBody(spec),
+  allow,
   handle
 ]);
 
-//checks the token's recorder_id matches the path param
+//checks the token's recorder_id matches the path param and data.id property
 function allow(request, reply) {
   if (request.recorder_id !== request.jwt.recorder_id) {
+    reply.fail('Forbidden: token only authenticates ' + request.jwt.recorder_id);
+    return;
+  }
+  if (request.recorder_id !== request.body.data.id) {
     reply.fail('Forbidden: token only authenticates ' + request.jwt.recorder_id);
     return;
   }
@@ -20,7 +24,7 @@ function allow(request, reply) {
 
 function handle(request, reply) {
   _.recorders.update(request.recorder_id, {
-      {gcm_registration_token: {S: request.body.data.attributes.gcm_registration_token}},
+      gcm_registration_token: {S: request.body.data.attributes.gcm_registration_token},
     })
     .then(function() {
       reply.succeed();

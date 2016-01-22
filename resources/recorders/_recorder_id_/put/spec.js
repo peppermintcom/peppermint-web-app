@@ -1,3 +1,8 @@
+var integrations = require('definitions/integrations');
+var responses = require('definitions/responses');
+var headers = require('definitions/headers');
+var defs = require('definitions');
+
 exports.tags = ['recorders'];
 exports.summary = 'Update gcm_registration_token';
 exports.description = 'Associate a GCM Registration Token with a device so it can receive notifications.';
@@ -13,10 +18,10 @@ exports.parameters = [
       title: 'UpdateRecorderRequestBody',
       type: 'object',
       properties: {
-        data: null,
+        data: defs.recorders.schemaGCM,
       },
       required: ['data'],
-      additionalProperites: false,
+      additionalProperties: false,
     },
   },
   {
@@ -37,7 +42,6 @@ exports.responses = {
   '400': responses.BadRequest,
   '401': responses.Unauthorized,
   '403': responses.Forbidden,
-  '404': responses.NotFound,
   '500': responses.Internal,
 };
 
@@ -47,14 +51,13 @@ exports['x-amazon-apigateway-integration'] = {
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {
-    'application/vnd.api+json': '{"body": $input.json(\'$\'), "api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')", "recorder_id": "$input.params(\'recorder_id\')"}';
+    'application/vnd.api+json': '{"body": $input.json(\'$\'), "api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')", "recorder_id": "$input.params(\'recorder_id\')"}',
   },
   responses: {
     'default': integrations.Ok,
     'Bad Request.*': integrations.BadRequest,
     'Unauthorized.*': integrations.Unauthorized,
     'Forbidden.*': integrations.Forbidden,
-    'Not Found.*': integrations.NotFound,
-    '^(?!Bad Request|Unauthorized|Forbidden|Not Found)(.|\\n)+': integrations.Internal,
+    '^(?!Bad Request|Unauthorized|Forbidden)(.|\\n)+': integrations.Internal,
   },
 };

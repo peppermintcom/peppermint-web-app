@@ -9,6 +9,7 @@ exports.example = {
     recorder_key: 'abcDEF123',
     recorder_ts: '2015-10-19 09:19:55',
     description: 'Android 4.1 Nexus 5',
+    gcm_registration_token: 'gcm123',
   },
 };
 
@@ -19,6 +20,7 @@ var attributesSchema = {
     recorder_key: {type: 'string'},
     recorder_ts: timestamp,
     description: {type: 'string'},
+    gcm_registration_token: {type: 'string'},
   },
   required: ['recorder_client_id', 'recorder_key', 'recorder_ts'],
   additionalProperties: false,
@@ -36,3 +38,4 @@ var attributesSchemaNoKey = {
 
 exports.schema = _.resourceObjectSchema('recorders', attributesSchema);
 exports.schemaNoKey = _.resourceObjectSchema('recorders', attributesSchemaNoKey);
+exports.schemaGCM = _.resourceObjectSchema('recorders', _.adapt(attributesSchema, [], ['gcm_registration_token']));
