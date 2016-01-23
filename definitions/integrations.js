@@ -100,7 +100,7 @@ var jsonAPIError = {
     'method.response.header.Content-Type': "'application/vnd.api+json'",
   },
   responseTemplates: {
-    'application/json': '{"errors": $input.path("$").errorType}',
+    'application/json': '{"errors": [$input.path("$").errorType]}',
   },
 };
 

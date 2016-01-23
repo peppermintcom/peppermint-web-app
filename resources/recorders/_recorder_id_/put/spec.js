@@ -53,8 +53,7 @@ exports['x-amazon-apigateway-integration'] = {
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {
-    'application/json': '{"Content-Type": "$input.params(\'Content-Type\')"',
-    'application/vnd.api+json': '{"body": $input.json(\'$\'), "api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')", "recorder_id": "$input.params(\'recorder_id\')"}',
+    'application/vnd.api+json': '{"Content-Type": "$input.params(\'Content-Type\')", "body": $input.json(\'$\'), "api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')", "recorder_id": "$input.params(\'recorder_id\')"}',
   },
   responses: {
     'default': integrations.Ok,
@@ -62,6 +61,6 @@ exports['x-amazon-apigateway-integration'] = {
     '401': integrations.jsonAPI.Unauthorized,
     '403': integrations.jsonAPI.Forbidden,
     '415': integrations.jsonAPI.Unsupported,
-    '^(?!Bad Request|Unauthorized|Forbidden|Unsupported)(.|\\n)+': integrations.plain.Internal,
+    '^(?!400|401|403|415)(.|\\n)+': integrations.plain.Internal,
   },
 };

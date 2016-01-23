@@ -83,7 +83,7 @@ exports.validateApiKey = function(request, reply) {
 };
 
 exports.isjsonapi = function(request, reply) {
-  if (request['Content-Type'] && request['Content-Type'] !== 'application/vnd.api+json') {
+  if (request['Content-Type'] !== 'application/vnd.api+json') {
     reply.fail({
       status: '415',
       detail: 'Use "application/vnd.api+json"',

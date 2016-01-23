@@ -31,3 +31,8 @@ gulp.task('serve', ['swaggerUI'], function() {
 gulp.task('deploy', ['swagger'], gateway);
 
 gulp.task('publishSpec', ['swaggerUI'], publishSpec);
+
+gulp.task('spike', function() {
+  return gulp.src('resources/recorders/_recorder_id_/put/index.js')
+    .pipe(lambda());
+});

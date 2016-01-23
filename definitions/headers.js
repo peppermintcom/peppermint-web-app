@@ -33,4 +33,5 @@ exports.ContentType = {
   name: 'Content-Type',
   'in': 'header',
   type: 'string',
+  required: true,
 };

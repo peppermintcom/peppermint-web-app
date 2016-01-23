@@ -35,6 +35,7 @@ describe('lambda:UpdateRecorder', function() {
       handler({
         Authorization: 'Bearer ' + token,
         api_key: _.fake.API_KEY,
+        'Content-Type': 'application/vnd.api+json',
         recorder_id: recorder.recorder_id,
         body: body,
       }, {
@@ -51,6 +52,7 @@ describe('lambda:UpdateRecorder', function() {
       it('should fail with a Bad Request error', function(done) {
         handler({
           Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/vnd.api+json',
           api_key: _.fake.API_KEY,
           recorder_id: recorder.recorder_id,
           body: {},
@@ -76,6 +78,7 @@ describe('lambda:UpdateRecorder', function() {
 
         handler({
           Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/vnd.api+json',
           api_key: _.fake.API_KEY,
           recorder_id: recorder.recorder_id,
           body: b,
@@ -101,6 +104,7 @@ describe('lambda:UpdateRecorder', function() {
 
         handler({
           Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/vnd.api+json',
           api_key: _.fake.API_KEY,
           recorder_id: recorder.recorder_id,
           body: b,
@@ -126,6 +130,7 @@ describe('lambda:UpdateRecorder', function() {
 
         handler({
           Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/vnd.api+json',
           api_key: _.fake.API_KEY,
           recorder_id: recorder.recorder_id,
           body: b,
@@ -151,6 +156,7 @@ describe('lambda:UpdateRecorder', function() {
 
         handler({
           Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/vnd.api+json',
           api_key: _.fake.API_KEY,
           recorder_id: recorder.recorder_id,
           body: b,
@@ -176,6 +182,7 @@ describe('lambda:UpdateRecorder', function() {
 
         handler({
           Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/vnd.api+json',
           api_key: _.fake.API_KEY,
           recorder_id: recorder.recorder_id,
           body: b,
@@ -201,6 +208,7 @@ describe('lambda:UpdateRecorder', function() {
 
         handler({
           Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/vnd.api+json',
           api_key: _.fake.API_KEY,
           recorder_id: recorder.recorder_id,
           body: b,
@@ -226,6 +234,7 @@ describe('lambda:UpdateRecorder', function() {
 
         handler({
           Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/vnd.api+json',
           api_key: _.fake.API_KEY,
           recorder_id: recorder.recorder_id,
           body: b,
@@ -249,6 +258,7 @@ describe('lambda:UpdateRecorder', function() {
     it('should fail with an Unauthorized error.', function(done) {
       handler({
         api_key: _.fake.API_KEY,
+        'Content-Type': 'application/vnd.api+json',
         recorder_id: recorder.recorder_id,
         body: body,
       }, {
@@ -271,6 +281,7 @@ describe('lambda:UpdateRecorder', function() {
       handler({
         api_key: _.fake.API_KEY,
         Authorization: 'Bearer ' + account.at,
+        'Content-Type': 'application/vnd.api+json',
         recorder_id: recorder.recorder_id,
         body: body,
       }, {
@@ -293,6 +304,7 @@ describe('lambda:UpdateRecorder', function() {
       handler({
         api_key: _.fake.API_KEY,
         Authorization: 'Bearer ' + otherRecorder.at,
+        'Content-Type': 'application/vnd.api+json',
         recorder_id: recorder.recorder_id,
         body: body,
       }, {
@@ -318,6 +330,7 @@ describe('lambda:UpdateRecorder', function() {
       handler({
         api_key: _.fake.API_KEY,
         Authorization: 'Bearer ' + token,
+        'Content-Type': 'application/vnd.api+json',
         recorder_id: recorder.recorder_id,
         body: b,
       }, {
