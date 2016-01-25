@@ -1,6 +1,7 @@
 var expect = require('chai').expect;
 var handler = require('./').handler;
 var _ = require('utils/test');
+//iOS
 var GCM_TOKEN = 'nUYQX9xzZ5o:APA91bEi2YWlmr6sA8WDiBjl1gN_NRVxQOr1AUr6wtij8p9rqtPwUENoVSaCxhYPzfxl7eReXli9ArzZ08MxHGn-hdNPJioRDw03ZpZiz3hMoVwSNiZBSLVLDSZJLr841x2sCmxuFi9e';
 
 describe('AddAccountReceiver', function() {
@@ -18,18 +19,57 @@ describe('AddAccountReceiver', function() {
       });
   });
 
-  describe('recorder is not registered with GCM', function() {
-    describe('account does not have a device group', function() {
+  describe('account has a device group', function() {
 
-    });
-
-    describe('account has a device group', function() {
-
-    });
   });
 
-  describe.only('recorder is registered with GCM', function() {
-    describe('account does not have a device group', function() {
+  describe.only('account does not have a device group', function() {
+    describe('recorder is not registered with GCM', function() {
+      after(function() {
+        return _.dynamo.del('receivers', {
+          recorder_id: {S: recorder.recorder_id},
+          account_id: {S: account.account_id}
+        });
+      });
+
+      it('should link the account to the recorder', function(done) {
+        handler({
+          Authorization: 'Bearer ' + jwt,
+          api_key: _.fake.API_KEY,
+          'Content-Type': 'application/vnd.api+json',
+          body: {
+            data: [{type: 'recorders', id: recorder.recorder_id}],
+          },
+          account_id: account.account_id,
+        }, {
+          fail: function(err) {
+            done(err);
+          },
+          succeed: function(result) {
+            //check the receivers item and the gcm_notification_key on the
+            //account
+            Promise.all([
+                _.accounts.get(account.email),
+                _.dynamo.get('receivers', {
+                  recorder_id: {S: recorder.recorder_id},
+                  account_id: {S: account.account_id},
+                }),
+              ])
+              .then(function(results) {
+                var account = results[0];
+                var receiverItem = results[1];
+
+                expect(receiverItem).to.be.ok;
+                expect(account.gcm_notification_key).to.equal(undefined);
+                done();
+              })
+              .catch(done);
+          },
+        });
+      });
+    });
+
+    describe('recorder is registered with GCM', function() {
       var notificationKey;
 
       before(function() {
