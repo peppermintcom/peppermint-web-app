@@ -41,6 +41,8 @@ function handle(request, reply) {
       gcm_registration_token: {S: request.body.data.attributes.gcm_registration_token},
     })
     .then(function() {
+      //TODO update GCM device groups that include the old recorder token to use
+      //the new recorder token
       reply.succeed();
     })
     .catch(function(err) {

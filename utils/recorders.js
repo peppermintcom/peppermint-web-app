@@ -92,5 +92,6 @@ function parseRecorderItem(recorder) {
     recorder_key: recorder.recorder_key.S,
     recorder_ts: parseInt(recorder.recorder_ts.N, 10),
     description: (recorder.description && recorder.description.S) || '',
+    gcm_registration_token: recorder.gcm_registration_token && recorder.gcm_registration_token.S,
   };
 }

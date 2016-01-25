@@ -23,6 +23,13 @@ exports.Accepted = {
   },
 };
 
+exports.NoContent = {
+  statusCode: '204',
+  responseParameters: {
+    'method.response.header.Access-Control-Allow-Origin': "'*'",
+  },
+};
+
 exports.Expired = {
   statusCode: '303',
   responseParameters: {
@@ -92,7 +99,6 @@ exports.Internal = {
 exports.requestTmpl = '{"body": $input.json(\'$\'), "ip": "$context.identity.sourceIp", "api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')"}';
 
 exports.requestTmplNoBody = '{"ip": "$context.identity.sourceIp", "api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')"}';
-
 
 var jsonAPIError = {
   responseParameters: {

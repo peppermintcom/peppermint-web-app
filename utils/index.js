@@ -14,6 +14,7 @@ exports.auth = require('./auth');
 exports.bodySchema = require('./bodySchema');
 exports.dynamo = require('./dynamo');
 exports.email = require('./email');
+exports.gcm = require('./gcm');
 exports.mandrill = require('./mandrill');
 exports.accounts = require('./accounts');
 exports.http = require('./http');

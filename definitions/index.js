@@ -6,7 +6,7 @@ exports.recorders = require('./recorders');
 
 
 //http://jsonapi.org/format/#document-resource-identifier-objects
-var resourceIdentifierObjectSchema = {
+var resourceIdentifierObjectSchema = exports.resourceIdentifierObjectSchema = {
   type: 'object',
   properties: {
     type: {type: 'string'},

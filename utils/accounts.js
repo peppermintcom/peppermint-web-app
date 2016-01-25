@@ -5,6 +5,7 @@ var mandrill = require('./mandrill');
 var dynamo = require('./dynamo');
 var timestamp = require('./timestamp');
 var jwt = require('./jwt');
+var http = require('./http');
 var _ = require('lodash');
 var resetTmpl = _.template(fs.readFileSync(path.join(__dirname, 'templates/recover.html'), 'utf8'));
 
@@ -108,7 +109,7 @@ exports.update = function(email, values) {
       return {Value: v};
     });
 
-    _.dynamo.updateItem({
+    dynamo.updateItem({
       TableName: 'accounts',
       Key: {
         email: {S: email.toLowerCase()},
@@ -152,11 +153,12 @@ function parseAccountItem(account) {
     is_verified: !!account.verification_ts,
     verification_ts: account.verification_ts && account.verification_ts.N,
     verification_ip: account.verification_ip && parseInt(account.verification_ip.S, 10),
+    gcm_notification_key: account.gcm_notification_key && account.gcm_notification_key.S,
   };
 }
 
 exports.createDeviceGroup = function(email, registrationIDs) {
-  return _.http.postJSON('https://android.googleapis.com/gcm/notification', {
+  return http.postJSON('https://android.googleapis.com/gcm/notification', {
       operation: 'create',
       notification_key_name: email,
       registration_ids: registrationIDs,
