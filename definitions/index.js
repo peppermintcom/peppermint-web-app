@@ -2,6 +2,7 @@ var _ = require('lodash');
 
 exports.accounts = require('./accounts');
 exports.jwts = require('./jwts');
+exports.messages = require('./messages');
 exports.recorders = require('./recorders');
 
 

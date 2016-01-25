@@ -23,7 +23,7 @@ describe('AddAccountReceiver', function() {
 
   });
 
-  describe.only('account does not have a device group', function() {
+  describe('account does not have a device group', function() {
     describe('recorder is not registered with GCM', function() {
       after(function() {
         return _.dynamo.del('receivers', {
