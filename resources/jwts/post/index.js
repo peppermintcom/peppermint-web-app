@@ -8,11 +8,17 @@ exports.handler = _.middleware.process([
 
 function validatePeppermintAuthHeader(request, reply) {
   if (!request.Authorization) {
-    reply.fail('Bad Request: Authorization header required');
+    reply.fail({
+      status: '400',
+      detail: 'Authorization header required',
+    });
     return;
   }
   if (!_.auth.isValid(request.Authorization)) {
-    reply.fail('Bad Request: Authorization header does not follow Peppermint scheme');
+    reply.fail({
+      status: '400',
+      detail: 'Authorization header does not follow Peppermint scheme',
+    });
     return;
   }
   reply.succeed(request);
@@ -24,7 +30,10 @@ function handle(request, reply) {
   try {
     creds = _.auth.decode(request.Authorization);
   } catch(e) {
-    reply.fail('Bad Request: could not parse Authorization header');
+    reply.fail({
+      status: '400',
+      detail: 'Could not parse Authorization header',
+    });
     return;
   }
 
@@ -38,11 +47,17 @@ function handle(request, reply) {
     var recorder = results[1];
 
     if (creds.account && !account) {
-      reply.fail('Not Found: account');
+      reply.fail({
+        status: '404',
+        detail: 'Account not found',
+      });
       return;
     }
     if (creds.recorder && !recorder) {
-      reply.fail('Not Found: recorder');
+      reply.fail({
+        status: '404',
+        detail: 'Recorder not found',
+      });
       return;
     }
 
@@ -55,11 +70,17 @@ function handle(request, reply) {
       var recorderOK = results[1];
 
       if (accountOK === false) {
-        reply.fail('Unauthorized: account password');
+        reply.fail({
+          status: '401',
+          detail: 'account password',
+        });
         return;
       }
       if (recorderOK === false) {
-        reply.fail('Unauthorized: recorder key');
+        reply.fail({
+          status: '401',
+          detail: 'recorder key',
+        });
         return;
       }
       var id = _.uuid();

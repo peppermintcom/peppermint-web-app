@@ -59,11 +59,10 @@ exports.responses = {
       },
     },
   },
-  '400': responses.BadRequest,
-  '401': responses.Unauthorized,
-  '404': responses.NotFound,
-  '429': responses.RateLimited,
-  '500': responses.Internal,
+  '400': responses.jsonAPI.BadRequest,
+  '401': responses.jsonAPI.Unauthorized,
+  '404': responses.jsonAPI.NotFound,
+  '500': responses.plain.Internal,
 };
 
 exports['x-amazon-apigateway-integration'] = {
@@ -76,10 +75,9 @@ exports['x-amazon-apigateway-integration'] = {
   },
   responses: {
     'default': integrations.jsonAPI.Ok,
-    'Bad Request.*': integrations.BadRequest,
-    'Unauthorized.*': integrations.Unauthorized,
-    'Not Found.*': integrations.NotFound,
-    'Too Many Requests.*': integrations.RateLimited,
-    '^(?!Bad Request|Unauthorized|Not Found|Too Many Requests)(.|\\n)+': integrations.Internal,
+    '400': integrations.jsonAPI.BadRequest,
+    '401': integrations.jsonAPI.Unauthorized,
+    '404': integrations.jsonAPI.NotFound,
+    '^(?!400|401|404)(.|\\n)+': integrations.plain.Internal,
   },
 };

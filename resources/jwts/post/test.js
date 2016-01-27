@@ -32,9 +32,7 @@ describe('lambda:Authenticate', function() {
           Authorization: _.peppermintScheme(recorderUser, recorderPass),
           api_key: _.fake.API_KEY,
         }, {
-          fail: function(err) {
-            done(new Error(err));
-          },
+          fail: done,
           succeed: function(result) {
             expect(result.data.relationships).not.to.have.property('account');
             expect(result.data.relationships).to.have.property('recorder');
@@ -55,9 +53,7 @@ describe('lambda:Authenticate', function() {
           Authorization: _.peppermintScheme(null, null, accountUser, accountPass),
           api_key: _.fake.API_KEY,
         }, {
-          fail: function(err) {
-            done(new Error(err));
-          },
+          fail: done,
           succeed: function(result) {
             expect(result.data.relationships).not.to.have.property('recorder');
             expect(result.data.relationships).to.have.property('account');
@@ -78,9 +74,7 @@ describe('lambda:Authenticate', function() {
           Authorization: _.peppermintScheme(recorderUser, recorderPass, accountUser, accountPass),
           api_key: _.fake.API_KEY,
         }, {
-          fail: function(err) {
-            done(new Error(err));
-          },
+          fail: done,
           succeed: function(result) {
             expect(result.data.relationships).to.have.property('recorder');
             expect(result.data.relationships).to.have.property('account');
@@ -103,7 +97,8 @@ describe('lambda:Authenticate', function() {
           done(new Error("success without Authorization"));
         },
         fail: function(err) {
-          expect(err).to.match(/^Bad Request/);
+          expect(err).to.have.property('message');
+          expect(JSON.parse(err.name)).to.have.property('detail', 'Authorization header required');
           done();
         },
       });
@@ -120,7 +115,8 @@ describe('lambda:Authenticate', function() {
           done(new Error('success with bad Auth header'));
         },
         fail: function(err) {
-          expect(err).to.match(/^Bad Request/);
+          expect(err).to.have.property('message', '400');
+          expect(JSON.parse(err.name)).to.have.property('detail', 'Authorization header does not follow Peppermint scheme');
           done();
         },
       });
@@ -137,7 +133,8 @@ describe('lambda:Authenticate', function() {
           done(new Error("success with unregistered account"));
         },
         fail: function(err) {
-          expect(err).to.match(/^Not Found.*account/);
+          expect(err).to.have.property('message', '404');
+          expect(JSON.parse(err.name)).to.have.property('detail', 'Account not found');
           done();
         },
       });
@@ -153,7 +150,8 @@ describe('lambda:Authenticate', function() {
             done(new Error("success with unregistered account"));
           },
           fail: function(err) {
-            expect(err).to.match(/^Not Found.*account/);
+            expect(err).to.have.property('message', '404');
+            expect(JSON.parse(err.name)).to.have.property('detail', 'Account not found');
             done();
           },
         });
@@ -171,7 +169,8 @@ describe('lambda:Authenticate', function() {
           done(new Error("success with unregistered recorder"));
         },
         fail: function(err) {
-          expect(err).to.match(/^Not Found.*recorder/);
+          expect(err).to.have.property('message', '404');
+          expect(JSON.parse(err.name)).to.have.property('detail', 'Recorder not found');
           done();
         },
       });
@@ -187,7 +186,8 @@ describe('lambda:Authenticate', function() {
             done(new Error("success with unregistered recorder"));
           },
           fail: function(err) {
-            expect(err).to.match(/^Not Found.*recorder/);
+            expect(err).to.have.property('message', '404');
+            expect(JSON.parse(err.name)).to.have.property('detail', 'Recorder not found');
             done();
           },
         });
@@ -205,7 +205,8 @@ describe('lambda:Authenticate', function() {
           done(new Error("success with incorrect account password"));
         },
         fail: function(err) {
-          expect(err).to.match(/^Unauthorized.*account/);
+          expect(err).to.have.property('message', '401');
+          expect(JSON.parse(err.name)).to.have.property('detail', 'account password');
           done();
         },
       });
@@ -221,7 +222,8 @@ describe('lambda:Authenticate', function() {
             done(new Error("success with an incorrect account password"));
           },
           fail: function(err) {
-            expect(err).to.match(/^Unauthorized.*account/);
+            expect(err).to.have.property('message', '401');
+            expect(JSON.parse(err.name)).to.have.property('detail', 'account password');
             done();
           },
         });
@@ -239,7 +241,8 @@ describe('lambda:Authenticate', function() {
           done(new Error("success with incorrect recorder key"));
         },
         fail: function(err) {
-          expect(err).to.match(/^Unauthorized.*recorder/);
+          expect(err).to.have.property('message', '401');
+          expect(JSON.parse(err.name)).to.have.property('detail', 'recorder key');
           done();
         },
       });
@@ -255,7 +258,8 @@ describe('lambda:Authenticate', function() {
             done(new Error("success with incorrect recorder key"));
           },
           fail: function(err) {
-            expect(err).to.match(/^Unauthorized.*recorder/);
+            expect(err).to.have.property('message', '401');
+            expect(JSON.parse(err.name)).to.have.property('detail', 'recorder key');
             done();
           },
         });
