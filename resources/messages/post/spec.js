@@ -17,7 +17,14 @@ exports.parameters = [
   {
     name: 'payload',
    'in': 'body',
-    schema: defs.messages.schemaRequest,
+    schema: {
+      type: 'object',
+      properties: {
+        data: defs.messages.schemaRequest,
+      },
+      required: ['data'],
+      additionalProperties: false,
+    },
   },
 ];
 
@@ -41,9 +48,6 @@ exports.responses = {
   '404': _.assign({}, responses.jsonAPI.NotFound, {
     description: 'The recipient email is not associated with an installed app. This is a common response.',
   }),
-  '409': _.assign({}, responses.jsonAPI.Conflict, {
-    description: 'The recipient has already sent this audio_url to the recipient.',
-  }),
   '500': responses.Internal,
 };
 
@@ -61,7 +65,6 @@ exports['x-amazon-apigateway-integration'] = {
     '401': integrations.jsonAPI.Unauthorized,
     '403': integrations.jsonAPI.Forbidden,
     '404': integrations.jsonAPI.NotFound,
-    '409': integrations.jsonAPI.Conflict,
-    '^(?!400|401|403|404|409)(.|\\n)+': integrations.Internal,
+    '^(?!400|401|403|404)(.|\\n)+': integrations.Internal,
   },
 };

@@ -121,3 +121,5 @@ exports.http = function(method, path, body, headers) {
     });
   });
 };
+
+exports.gcm = require('./gcmstub');

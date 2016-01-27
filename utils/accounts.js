@@ -84,6 +84,7 @@ exports.getByID = function(accountID) {
       ExpressionAttributeValues: {
         ':account_id': {S: accountID},
       },
+      ConsistentRead: true,
     }, function(err, data) {
       if (err) {
         reject(err);
@@ -167,9 +168,6 @@ exports.createDeviceGroup = function(email, registrationIDs) {
       project_id: process.env.PEPPERMINT_GCM_SENDER_ID,
     })
     .then(function(res) {
-      console.log(res.statusCode);
-      console.log(res.headers);
-      console.log(res.body);
       if (res.statusCode === 201 || res.statusCode === 200) {
         return update(email, {
           gcm_notification_key: {S: notificationKey},

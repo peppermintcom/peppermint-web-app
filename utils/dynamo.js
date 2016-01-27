@@ -20,6 +20,7 @@ exports.get = function(table, key) {
     dynamo.getItem({
       Key: key,
       TableName: table,
+      ConsistentRead: true,
     }, function(err, data) {
       if (err) {
         console.log(err);

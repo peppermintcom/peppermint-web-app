@@ -12,7 +12,7 @@ exports.create = function(message) {
   return dynamo.put('messages', m)
     .then(function() {
       return parse(m);
-    });
+    })
 };
 
 //converts from plain object to dynamo format
@@ -36,3 +36,24 @@ function parse(item) {
     created: timestamp(+item.created.N),
   };
 }
+
+exports.resource = function(message) {
+  if (!message) return null;
+
+  var attrs = {
+    audio_url: message.audio_url,
+    sender_email: message.sender_email,
+    recipient_email: message.recipient_email,
+    created: timestamp(message.created),
+  };
+
+  if (message.transcription_url) {
+    attrs.transcription_url = message.transcription_url;
+  }
+
+  return {
+    type: 'messages',
+    id: message.message_id,
+    attributes: attrs,
+  };
+};

@@ -4,7 +4,7 @@ var _ = require('utils/test');
 //iOS
 var GCM_TOKEN = 'nUYQX9xzZ5o:APA91bEi2YWlmr6sA8WDiBjl1gN_NRVxQOr1AUr6wtij8p9rqtPwUENoVSaCxhYPzfxl7eReXli9ArzZ08MxHGn-hdNPJioRDw03ZpZiz3hMoVwSNiZBSLVLDSZJLr841x2sCmxuFi9e';
 
-describe('AddAccountReceiver', function() {
+describe.only('AddAccountReceiver', function() {
   var account, recorder, jwt;
 
   before(function() {
