@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var handler = require('./').handler;
 var _ = require('utils/test');
 
-describe.only('lambda:CreateMessage', function() {
+describe('lambda:CreateMessage', function() {
   //user is an account with receiver recorder and device group on account
   var sender, user, nonuser, body;
 

@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var handler = require('.').handler;
 var _ = require('utils/test');
 
-describe('lambda:UpdateRecorder', function() {
+describe.only('lambda:UpdateRecorder', function() {
   var gcmToken = _.token(14);
   var token, recorder, otherRecorder, account, body;
 

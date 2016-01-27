@@ -21,6 +21,7 @@ exports.http = require('./http');
 exports.transcriptions = require('./transcriptions');
 exports.messages = require('./messages');
 exports.middleware = require('./middleware');
+exports.receivers = require('./receivers');
 exports.token = token;
 exports.recorders = require('./recorders');
 exports.timestamp = require('./timestamp');
