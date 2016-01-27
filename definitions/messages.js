@@ -32,5 +32,6 @@ exports.schema = _.resourceObjectSchema('messages', attributesSchema);
 var reqSchema = _.resourceObjectSchema('messages', _.adapt(attributesSchema, ['transcription_url'], ['audio_url', 'sender_email', 'recipient_email']));
 
 delete reqSchema.properties.id;
+delete reqSchema.properties.relationships;
 reqSchema.required = ['type', 'attributes'];
 exports.schemaRequest = reqSchema;

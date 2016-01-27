@@ -38,4 +38,6 @@ var attributesSchemaNoKey = {
 
 exports.schema = _.resourceObjectSchema('recorders', attributesSchema);
 exports.schemaNoKey = _.resourceObjectSchema('recorders', attributesSchemaNoKey);
-exports.schemaGCM = _.resourceObjectSchema('recorders', _.adapt(attributesSchema, [], ['gcm_registration_token']));
+var schemaGCM = _.resourceObjectSchema('recorders', _.adapt(attributesSchema, [], ['gcm_registration_token']));
+delete schemaGCM.properties.relationships;
+exports.schemaGCM = schemaGCM;

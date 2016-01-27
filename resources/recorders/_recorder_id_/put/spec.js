@@ -3,7 +3,7 @@ var responses = require('definitions/responses');
 var headers = require('definitions/headers');
 var defs = require('definitions');
 
-exports.tags = ['recorders'];
+exports.tags = ['recorders', 'inter-app'];
 exports.summary = 'Update gcm_registration_token';
 exports.description = 'Associate a GCM Registration Token with a device so it can receive notifications.';
 exports.operationId = 'UpdateRecorder';
