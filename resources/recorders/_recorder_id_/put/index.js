@@ -74,7 +74,10 @@ function handle(request, reply) {
         //If this recorder is a receiver for an account and the account does not
         //have a device group:
         //1. create a device group for the account using newToken
-        return _.gcm.createDeviceGroup(account.email, newToken);
+        return _.gcm.createDeviceGroup(account.email, newToken)
+          .then(function(result) {
+            return _.accounts.update(account.email, {gcm_notification_key: {S: result.notification_key}});
+          });
 
         //If this recorder is not a receiver for an account do nothing with gcm
       }));

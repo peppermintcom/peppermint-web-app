@@ -34,6 +34,13 @@ exports.get = function(recorderID, accountID) {
   .then(parseReceiverItem);
 };
 
+exports.link = function(recorderID, accountID) {
+  return dynamo.put('receivers', {
+    recorder_id: {S: recorderID},
+    account_id: {S: accountID},
+  });
+};
+
 function parseReceiverItem(item) {
   if (!item) return null;
 

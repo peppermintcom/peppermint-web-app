@@ -54,7 +54,13 @@ exports.accountDeviceGroup = function(_receiver, _account) {
 
       return _.gcm.createDeviceGroup(account.email, receiver.gcm_registration_token)
         .then(function(result) {
-          return _.accounts.update(account.email.toLowerCase(), {gcm_notification_key: {S: result.notification_key}})
+          return Promise.all([
+              _.accounts.update(account.email.toLowerCase(), {gcm_notification_key: {S: result.notification_key}}),
+              _.dynamo.put('receivers', {
+                recorder_id: {S: receiver.recorder_id},
+                account_id: {S: account.account_id},
+              })
+            ])
             .then(function(res) {
               return {
                 account: _.assign(account, {gcm_notification_key: result.notification_key}),
