@@ -3,9 +3,6 @@ var _ = require('./');
 _.gcm = require('./gcmstub');
 
 var API_KEY = exports.API_KEY = 'abc123';
-//iOS
-var GCM_TOKEN = exports.GCM_TOKEN = 'nUYQX9xzZ5o:APA91bEi2YWlmr6sA8WDiBjl1gN_NRVxQOr1AUr6wtij8p9rqtPwUENoVSaCxhYPzfxl7eReXli9ArzZ08MxHGn-hdNPJioRDw03ZpZiz3hMoVwSNiZBSLVLDSZJLr841x2sCmxuFi9e';
-var GCM_TOKEN2 = exports.GCM_TOKEN2 = 'lJexXiB4F9Q:APA91bEBhxanW0D48Yj-7DPvAHz8Bh7JyrDfRRDZqMxT8pB_o1Helo5syJMn6ZUdh8fUH0ZXI97zuT5jc-HjZvcAMW1aVWPZkK-DTn1bXQ_KkNrtHTD_0bB-028C9j_0QDNY-2MNQsyJ';
 
 var recorder = exports.recorder = function() {
   var handler = require('../resources/recorder/post').handler;
@@ -31,14 +28,16 @@ var recorder = exports.recorder = function() {
 };
 
 var receiver = exports.receiver = function(_recorder) {
+  var gcmToken = _.token(64);
+
   return (_recorder ? Promise.resolve(_recorder) : recorder())
     .then(function(recorder) {
       return _.recorders.update(recorder.recorder.recorder_id, {
-        gcm_registration_token: {S: GCM_TOKEN2},
+        gcm_registration_token: {S: gcmToken},
       })
       .then(function() {
         recorder.recorder.at = recorder.at;
-        recorder.recorder.gcm_registration_token = GCM_TOKEN2;
+        recorder.recorder.gcm_registration_token = gcmToken;
         return recorder.recorder;
       });
     });
@@ -55,13 +54,13 @@ exports.accountDeviceGroup = function(_receiver, _account) {
 
       return _.gcm.createDeviceGroup(account.email, receiver.gcm_registration_token)
         .then(function(result) {
-          return _.accounts.update(account.email.toLowerCase(), {gcm_notification_key: {S: result.notification_key}});
-        })
-        .then(function(res) {
-          return {
-            account: account,
-            receiver: receiver,
-          };
+          return _.accounts.update(account.email.toLowerCase(), {gcm_notification_key: {S: result.notification_key}})
+            .then(function(res) {
+              return {
+                account: _.assign(account, {gcm_notification_key: result.notification_key}),
+                receiver: receiver,
+              };
+            });
         });
     });
 };

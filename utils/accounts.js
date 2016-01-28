@@ -84,7 +84,6 @@ exports.getByID = function(accountID) {
       ExpressionAttributeValues: {
         ':account_id': {S: accountID},
       },
-      ConsistentRead: true,
     }, function(err, data) {
       if (err) {
         reject(err);

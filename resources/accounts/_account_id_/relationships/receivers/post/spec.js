@@ -55,7 +55,6 @@ exports.responses = {
   '400': responses.jsonAPI.BadRequest,
   '401': responses.jsonAPI.Unauthorized,
   '403': responses.jsonAPI.Forbidden,
-  '404': responses.jsonAPI.NotFound,
   '415': responses.jsonAPI.Unsupported,
   '500': responses.plain.Internal,
 };
@@ -73,8 +72,7 @@ exports['x-amazon-apigateway-integration'] = {
     '400': integrations.jsonAPI.BadRequest,
     '401': integrations.jsonAPI.Unauthorized,
     '403': integrations.jsonAPI.Forbidden,
-    '404': integrations.jsonAPI.NotFound,
     '415': integrations.jsonAPI.Unsupported,
-    '^(?!400|401|403|404|415)(.|\\n)+': integrations.Internal,
+    '^(?!400|401|403|415)(.|\\n)+': integrations.Internal,
   },
 };

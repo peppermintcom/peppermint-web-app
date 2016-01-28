@@ -27,7 +27,7 @@ describe('middleware.process', function() {
 });
 
 describe('middleware.authenticate', function() {
-  it('should decorate the request with a decoded JWT.', function() {
+  it('should decorate the request with a decoded JWT.', function(done) {
     var email = 'a.r@example.com';
 
     middleware.authenticate({
@@ -38,10 +38,9 @@ describe('middleware.authenticate', function() {
         expect(request).to.have.property('Authorization');
         expect(request.jwt.payload).to.have.property('sub', email);
         expect(request.jwt).to.have.property('email', email);
+        done();
       },
-      fail: function(err) {
-        throw err;
-      },
+      fail: done,
     });
   });
 });

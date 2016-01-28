@@ -1,7 +1,7 @@
 var _ = require('lodash');
 var token = require('./randomtoken');
 
-var gcmStore = {};
+var gcmStore = exports.store = {};
 
 var invalidRegistrationID = {error: 'no valid registration ids'};
 var partialSend = {

@@ -26,7 +26,17 @@ exports.accounts = function(recorderID) {
   })
 };
 
+exports.get = function(recorderID, accountID) {
+  return dynamo.get('receivers', {
+    recorder_id: {S: recorderID},
+    account_id: {S: accountID},
+  })
+  .then(parseReceiverItem);
+};
+
 function parseReceiverItem(item) {
+  if (!item) return null;
+
   return {
     recorder_id: item.recorder_id.S,
     account_id: item.account_id.S,
