@@ -33,7 +33,7 @@ describe('PUT /recorders/:recorderID', function() {
 
   describe('valid requests', function() {
     describe('to change gcm_registration_token', function() {
-      describe('given the recorder is not linked to an account', function() {
+      describe.only('given the recorder is not linked to an account', function() {
         it('should succeed.', function() {
           return put(body, {
               'X-Api-Key': _.fake.API_KEY,
@@ -41,9 +41,9 @@ describe('PUT /recorders/:recorderID', function() {
               'Content-Type': 'application/vnd.api+json',
             })
             .then(function(res) {
-              expect(res.statusCode).to.equal(200);
-              expect(res.body).to.equal(null);
-              expect(res.headers).to.have.property('content-type', 'application/json');
+              expect(res.statusCode).to.equal(204);
+              expect(res.body).to.equal(undefined);
+              expect(res.headers).not.to.have.property('content-type');
             });
         });
 

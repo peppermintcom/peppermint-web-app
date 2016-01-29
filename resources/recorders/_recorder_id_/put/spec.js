@@ -35,7 +35,7 @@ exports.parameters = [
 ];
 
 exports.responses = {
-  '200': {
+  '204': {
     description: 'Recorder updated',
     headers: {
       'Access-Control-Allow-Origin': {type: 'string'},
@@ -58,13 +58,7 @@ exports['x-amazon-apigateway-integration'] = {
     'application/vnd.api+json': '{"Content-Type": "$input.params(\'Content-Type\')", "body": $input.json(\'$\'), "api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')", "recorder_id": "$input.params(\'recorder_id\')"}',
   },
   responses: {
-    'default': {
-      statusCode: '200',
-      responseParameters: {
-        'method.response.header.Access-Control-Allow-Origin': "'*'",
-        'method.response.header.Content-Type': "''",
-      },
-    },
+    'default': integrations.NoContent,
     '400': integrations.jsonAPI.BadRequest,
     '401': integrations.jsonAPI.Unauthorized,
     '403': integrations.jsonAPI.Forbidden,

@@ -32,7 +32,7 @@ describe('lambda:UpdateRecorder', function() {
 
   describe('valid requests', function() {
     describe('given the recorder is not linked to an account', function() {
-      it('should update the recorder gcm_registration_token attribute.', function(done) {
+      it('should update the recorder gcm_registration_token attribute in the database.', function(done) {
         handler({
           Authorization: 'Bearer ' + token,
           api_key: _.fake.API_KEY,
@@ -40,7 +40,14 @@ describe('lambda:UpdateRecorder', function() {
           recorder_id: recorder.recorder_id,
           body: body,
         }, {
-          succeed: done,
+          succeed: function(res) {
+            expect(res).to.be.undefined;
+            _.recorders.get(recorder.recorder_client_id)
+              .then(function(recorder) {
+                expect(recorder).to.have.property('gcm_registration_token', gcmToken);
+                done();
+              });
+          },
           fail: function(err) {
             done(new Error(err));
           },
