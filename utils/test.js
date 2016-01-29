@@ -89,6 +89,24 @@ exports.peppermintScheme = function(recorderUser, recorderPass, accountUser, acc
   return h;
 };
 
+exports.httpPlain = function(method, path, body, headers) {
+  return new Promise(function(resolve, reject) {
+    request({
+      url: API_URL + path,
+      method: method,
+      body: body,
+      headers: headers,
+    }, function(err, res, body) {
+      if (err) {
+        reject(err);
+        return;
+      }
+      res.body = body;
+      resolve(res);
+    });
+  });
+};
+
 exports.http = function(method, path, body, headers) {
   return new Promise(function(resolve, reject) {
     if (method.toLowerCase() === 'get') {

@@ -29,6 +29,10 @@ exports.NoContent = {
     'method.response.header.Access-Control-Allow-Origin': "'*'",
     'method.response.header.Content-Type': "''",
   },
+  responseTemplates: {
+    //empty response
+    'application/json': "$util.escapeJavascript('')",
+  },
 };
 
 exports.Expired = {

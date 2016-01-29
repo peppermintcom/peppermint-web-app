@@ -1,7 +1,6 @@
 var request = require('request');
 
 exports.postJSON = function(url, body, headers) {
-  console.log(body);
   return new Promise(function(resolve, reject) {
     request({
       url: url,
