@@ -50,6 +50,7 @@ exports.responses = {
     description: 'Recorder can receive messages for account.',
     headers: {
       'Access-Control-Allow-Origin': {type: 'string'},
+      'Content-Type': {type: 'string'},
     },
   },
   '400': responses.jsonAPI.BadRequest,

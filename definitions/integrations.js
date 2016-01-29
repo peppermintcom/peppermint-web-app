@@ -27,6 +27,7 @@ exports.NoContent = {
   statusCode: '204',
   responseParameters: {
     'method.response.header.Access-Control-Allow-Origin': "'*'",
+    'method.response.header.Content-Type': "''",
   },
 };
 
