@@ -6,13 +6,8 @@ var post = _.partialRight(_.partial(http.postJSON, URL), {
     project_id: process.env.PEPPERMINT_GCM_SENDER_ID,
   });
 
-exports.sendToDeviceGroup = function(notificationKey, message) {
-  return http.postJSON('https://gcm-http.googleapis.com/gcm/send', {
-    to: notificationKey,
-    data: {
-      hello: 'This is a GCM Device Group Message!',
-    },
-  }, {
+exports.sendToDeviceGroup = function(message) {
+  return http.postJSON('https://gcm-http.googleapis.com/gcm/send', message, {
     Authorization: 'key=' + process.env.PEPPERMINT_GCM_API_KEY,
   });
 };

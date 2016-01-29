@@ -13,12 +13,16 @@ var partialSend = {
   ]
 };
 
-exports.sendToDeviceGroup = function(notificationKey, message) {
-  if (!notificationKey || !message) throw new Error('400');
-  if (!gcmStore[notificationKey]) throw new Error('404');
+var sends = exports.sends = [];
+exports.sendToDeviceGroup = function(message) {
+  if (!message || !message.to || (!message.data && !message.notification)) throw new Error('400');
+  if (!gcmStore[message.to]) throw new Error('404');
+
+
+  sends.push(message);
 
   return Promise.resolve({
-    success: gcmStore[notificationKey].length,
+    success: gcmStore[message.to].length,
     failure: 0,
   });
 };

@@ -33,7 +33,7 @@ function parse(item) {
     audio_url: item.audio_url.S,
     sender_email: item.sender_email.S,
     recipient_email: item.recipient_email.S,
-    created: timestamp(+item.created.N),
+    created: +item.created.N,
   };
 }
 

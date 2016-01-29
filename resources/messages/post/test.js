@@ -1,5 +1,7 @@
 var expect = require('chai').expect;
+var tv4 = require('tv4');
 var handler = require('./').handler;
+var spec = require('./spec');
 var _ = require('utils/test');
 
 describe('lambda:CreateMessage', function() {
@@ -31,25 +33,45 @@ describe('lambda:CreateMessage', function() {
   });
 
   describe('Recipient with device group', function() {
-    it('should succeed with a message object.', function(done) {
+    var response;
+
+    before(function(done) {
       handler({
         Authorization: 'Bearer ' + sender.at,
         api_key: _.fake.API_KEY,
         'Content-Type': 'application/vnd.api+json',
         body: body,
       }, {
-        succeed: function(res) {
-          //TODO validate against response schema
-          expect(res.id).to.be.ok;
-          expect(res.type).to.equal('messages');
-          expect(res.attributes).to.have.property('created');
-          expect(res.attributes).to.have.property('audio_url');
-          expect(res.attributes).to.have.property('sender_email');
-          expect(res.attributes).to.have.property('recipient_email');
+        succeed: function(_response) {
+          response = _response;
           done();
         },
         fail: done,
       });
+    });
+
+    it('should succeed with a message object.', function() {
+      expect(response.id).to.be.ok;
+      expect(response.type).to.equal('messages');
+      expect(response.attributes).to.have.property('created');
+      expect(response.attributes).to.have.property('audio_url', body.data.attributes.audio_url);
+      expect(response.attributes).to.have.property('sender_email', body.data.attributes.sender_email.toLowerCase());
+      expect(response.attributes).to.have.property('recipient_email', body.data.attributes.recipient_email.toLowerCase());
+      if (!tv4.validate(response, spec.responses['202'].schema)) {
+        throw tv4.error;
+      }
+    });
+
+    it('should send a message to GCM for the account\'s device group', function() {
+      var m = _.gcm.sends.pop();
+
+      expect(m).to.have.property('to', user.account.gcm_notification_key);
+      expect(m).to.have.property('data');
+      expect(m.data).to.have.property('audio_url', body.data.attributes.audio_url);
+      expect(m.data).to.have.property('sender_email', body.data.attributes.sender_email.toLowerCase());
+      expect(m.data).to.have.property('recipient_email', body.data.attributes.recipient_email.toLowerCase());
+      expect(m.data).to.have.property('message_id', response.id);
+      expect(m.data).to.have.property('created', response.attributes.created);
     });
   });
 

@@ -60,8 +60,12 @@ function handle(request, reply) {
   _.messages.create(msg)
     .then(function(message) {
       resource = _.messages.resource(message);
+      message.created = resource.attributes.created;
 
-      return _.gcm.sendToDeviceGroup(request.recipient.gcm_notification_key, message);
+      return _.gcm.sendToDeviceGroup({
+        to: request.recipient.gcm_notification_key,
+        data: message
+      });
     })
     .then(function(result) {
       if (result.success > 0) {
@@ -76,6 +80,7 @@ function handle(request, reply) {
       });
     })
     .catch(function(err) {
+      console.log(err.stack);
       reply.fail(err);
     });
 }
