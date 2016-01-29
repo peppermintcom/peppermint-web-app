@@ -3,6 +3,7 @@ var expect = require('chai').expect;
 var _ = require('utils/test');
 var post = _.partial(_.http, 'POST', '/jwts', null);
 var jsonapischema = require('./jsonapischema.json');
+var spec = require('../resources/jwts/post/spec');
 
 describe('POST /jwts', function() {
   var recorder, account;
@@ -61,6 +62,50 @@ describe('POST /jwts', function() {
           });
         });
       });
+
+      describe('incorrect recorder key', function() {
+        it('should return a 401 error.', function() {
+          return post({
+            'X-Api-Key': _.fake.API_KEY,
+            Authorization: _.peppermintScheme(recorderUser, 'x' + recorderPass),
+          })
+          .then(function(res) {
+            expect(res.statusCode).to.equal(401);
+            expect(res.body).to.deep.equal({
+              errors: [{detail: 'recorder key'}],
+            });
+            expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+            if (!tv4.validate(res.body, jsonapischema)) {
+              throw tv4.error;
+            }
+            if (!tv4.validate(res.body, spec.responses['401'].schema)) {
+              throw tv4.error;
+            }
+          });
+        });
+      });
+    });
+
+    describe('unregistered recorder', function() {
+      it('should return a 404 error.', function() {
+        return post({
+          'X-Api-Key': _.fake.API_KEY,
+          Authorization: _.peppermintScheme('x' + recorderUser, recorderPass),
+        })
+        .then(function(res) {
+          expect(res.statusCode).to.equal(404);
+          expect(res.body).to.deep.equal({
+            errors: [{detail: 'Recorder not found'}],
+          });
+          expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+          if (!tv4.validate(res.body, jsonapischema)) {
+            throw tv4.error;
+          }
+          if (!tv4.validate(res.body, spec.responses['404'].schema)) {
+            throw tv4.error;
+          }
+        });
+      });
     });
   });
 
@@ -104,6 +149,50 @@ describe('POST /jwts', function() {
           });
         });
       });
+
+      describe('incorrect password', function() {
+        it('should respond with a 401 error.', function() {
+          return post({
+            'X-Api-Key': _.fake.API_KEY,
+            Authorization: _.peppermintScheme(null, null, accountUser, 'x' + accountPass),
+          })
+          .then(function(res) {
+            expect(res.statusCode).to.equal(401);
+            expect(res.body).to.deep.equal({
+              errors: [{detail: 'account password'}],
+            });
+            expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+            if (!tv4.validate(res.body, jsonapischema)) {
+              throw tv4.error;
+            }
+            if (!tv4.validate(res.body, spec.responses['401'].schema)) {
+              throw tv4.error;
+            }
+          });
+        });
+      });
+    });
+
+    describe('unregistered account', function() {
+      it('should respond with a 404 error.', function() {
+        return post({
+          'X-Api-Key': _.fake.API_KEY,
+          Authorization: _.peppermintScheme(null, null, 'x' + accountUser, accountPass),
+        })
+        .then(function(res) {
+          expect(res.statusCode).to.equal(404);
+          expect(res.body).to.deep.equal({
+            errors: [{detail: 'Account not found'}],
+          });
+          expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+          if (!tv4.validate(res.body, jsonapischema)) {
+            throw tv4.error;
+          }
+          if (!tv4.validate(res.body, spec.responses['404'].schema)) {
+            throw tv4.error;
+          }
+        });
+      });
     });
   });
 
@@ -135,6 +224,139 @@ describe('POST /jwts', function() {
             must(results[0]);
             must(results[1]);
           });
+        });
+      });
+
+      describe('correct recorder key but incorrect account password', function() {
+        it('should 401.', function() {
+          return post({
+            'X-Api-Key': _.fake.API_KEY,
+            Authorization: _.peppermintScheme(recorderUser, recorderPass, accountUser, 'x' + accountPass),
+          })
+          .then(function(res) {
+            expect(res.statusCode).to.equal(401);
+            expect(res.body).to.deep.equal({
+              errors: [{detail: 'account password'}],
+            });
+            expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+            if (!tv4.validate(res.body, jsonapischema)) {
+              throw tv4.error;
+            }
+            if (!tv4.validate(res.body, spec.responses['401'].schema)) {
+              throw tv4.error;
+            }
+          });
+        });
+      });
+
+      describe('correct account bassword but incorrect recorder key', function() {
+        it('should 401.', function() {
+          return post({
+            'X-Api-Key': _.fake.API_KEY,
+            Authorization: _.peppermintScheme(recorderUser, 'x' + recorderPass, accountUser, accountPass),
+          })
+          .then(function(res) {
+            expect(res.statusCode).to.equal(401);
+            expect(res.body).to.deep.equal({
+              errors: [{detail: 'recorder key'}],
+            });
+            expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+            if (!tv4.validate(res.body, jsonapischema)) {
+              throw tv4.error;
+            }
+            if (!tv4.validate(res.body, spec.responses['401'].schema)) {
+              throw tv4.error;
+            }
+          });
+        });
+      });
+
+      describe('incorrect recorder key and incorrect account password', function() {
+        it('should 401.', function() {
+          return post({
+            'X-Api-Key': _.fake.API_KEY,
+            Authorization: _.peppermintScheme(recorderUser, 'x' + recorderPass, accountUser, 'x' + accountPass),
+          })
+          .then(function(res) {
+            expect(res.statusCode).to.equal(401);
+            //detail could be either about recorder key or account password
+            expect(res.body.errors[0].detail).to.match(/account password|recorder key/);
+            expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+            if (!tv4.validate(res.body, jsonapischema)) {
+              throw tv4.error;
+            }
+            if (!tv4.validate(res.body, spec.responses['401'].schema)) {
+              throw tv4.error;
+            }
+          });
+        });
+      });
+    });
+
+    describe('registered recorder but unregistered account', function() {
+      describe('correct recorder key', function() {
+        it('should 404.', function() {
+          return post({
+            'X-Api-Key': _.fake.API_KEY,
+            Authorization: _.peppermintScheme(recorderUser, recorderPass, 'x' + accountUser, accountPass),
+          })
+          .then(function(res) {
+            expect(res.statusCode).to.equal(404);
+            expect(res.body).to.deep.equal({
+              errors: [{detail: 'Account not found'}],
+            });
+            expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+            if (!tv4.validate(res.body, jsonapischema)) {
+              throw tv4.error;
+            }
+            if (!tv4.validate(res.body, spec.responses['404'].schema)) {
+              throw tv4.error;
+            }
+          });
+        });
+      });
+    });
+
+    describe('registered account but unregistered recorder', function() {
+      describe('correct account password', function() {
+        it('should 404.', function() {
+          return post({
+            'X-Api-Key': _.fake.API_KEY,
+            Authorization: _.peppermintScheme('x' + recorderUser, recorderPass, accountUser, accountPass),
+          })
+          .then(function(res) {
+            expect(res.statusCode).to.equal(404);
+            expect(res.body).to.deep.equal({
+              errors: [{detail: 'Recorder not found'}],
+            });
+            expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+            if (!tv4.validate(res.body, jsonapischema)) {
+              throw tv4.error;
+            }
+            if (!tv4.validate(res.body, spec.responses['404'].schema)) {
+              throw tv4.error;
+            }
+          });
+        });
+      });
+    });
+
+    describe('unregistered account and unregistered recorder', function() {
+      it('should 404.', function() {
+        return post({
+          'X-Api-Key': _.fake.API_KEY,
+          Authorization: _.peppermintScheme('x' + recorderUser, recorderPass, 'x' + accountUser, accountPass),
+        })
+        .then(function(res) {
+          expect(res.statusCode).to.equal(404);
+          expect(res.body.errors[0].detail).to.match(/(Recorder|Account) not found/);
+          expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+          if (!tv4.validate(res.body, jsonapischema)) {
+            throw tv4.error;
+          }
+          if (!tv4.validate(res.body, spec.responses['404'].schema)) {
+            throw tv4.error;
+          }
         });
       });
     });

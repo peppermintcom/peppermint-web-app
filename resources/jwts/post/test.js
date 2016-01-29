@@ -97,7 +97,7 @@ describe('lambda:Authenticate', function() {
           done(new Error("success without Authorization"));
         },
         fail: function(err) {
-          expect(err).to.have.property('message');
+          expect(err).to.have.property('message', '401');
           expect(JSON.parse(err.name)).to.have.property('detail', 'Authorization header required');
           done();
         },
