@@ -1,5 +1,6 @@
 var _ = require('lodash');
 var token = require('./randomtoken');
+var conf = require('utils/conf');
 
 var gcmStore = exports.store = {};
 
@@ -15,6 +16,7 @@ var partialSend = {
 
 var sends = exports.sends = [];
 exports.sendToDeviceGroup = function(message) {
+  devCheck();
   if (!message || !message.to || (!message.data && !message.notification)) throw new Error('400');
   if (!gcmStore[message.to]) throw new Error('404');
 
@@ -28,6 +30,7 @@ exports.sendToDeviceGroup = function(message) {
 };
 
 exports.createDeviceGroup = function(email, registrationID) {
+  devCheck();
   if (!email || !registrationID) throw new Error(email + registrationID);
 
   var notificationKey = token(64);
@@ -39,12 +42,14 @@ exports.createDeviceGroup = function(email, registrationID) {
 };
 
 exports.addDeviceGroupMember = function(email, notificationKey, registrationID) {
+  devCheck();
   gcmStore[notificationKey].push(registrationID);
 
   return Promise.resolve();
 };
 
 exports.removeDeviceGroupMember = function(email, notificationKey, registrationID) {
+  devCheck();
   var group = gcmStore[notificationKey];
 
   group = _.without(group, registrationID);
@@ -57,3 +62,10 @@ exports.removeDeviceGroupMember = function(email, notificationKey, registrationI
 
   return Promise.resolve();
 };
+
+//fail quickly if stubs find their way into production
+function devCheck() {
+  if (conf.NODE_ENV === 'production') {
+    throw new Error('GCM stubs in production');
+  }
+}

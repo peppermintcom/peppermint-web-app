@@ -1,4 +1,7 @@
 var expect = require('chai').expect;
+var tv4 = require('tv4');
+var jsonapischema = require('./jsonapischema.json');
+var spec = require('../resources/recorders/_recorder_id_/put/spec');
 var _ = require('utils/test');
 
 describe('PUT /recorders/:recorderID', function() {
@@ -30,25 +33,28 @@ describe('PUT /recorders/:recorderID', function() {
 
   describe('valid requests', function() {
     describe('to change gcm_registration_token', function() {
-      it('should succeed.', function() {
-        return put(body, {
-            'X-Api-Key': _.fake.API_KEY,
-            Authorization: 'Bearer ' + jwt,
-            'Content-Type': 'application/vnd.api+json',
-          })
-          .then(function(res) {
-            expect(res.statusCode).to.equal(200);
-            expect(res.body).to.equal(null);
-          });
-      });
+      describe('given the recorder is not linked to an account', function() {
+        it('should succeed.', function() {
+          return put(body, {
+              'X-Api-Key': _.fake.API_KEY,
+              Authorization: 'Bearer ' + jwt,
+              'Content-Type': 'application/vnd.api+json',
+            })
+            .then(function(res) {
+              expect(res.statusCode).to.equal(200);
+              expect(res.body).to.equal(null);
+              expect(res.headers).to.have.property('content-type', 'application/json');
+            });
+        });
 
-      it('should update the recorder record in the database.', function() {
-        return _.dynamo.get('recorders', {
-            client_id: {S: clientID},
-          })
-          .then(function(record) {
-            expect(record.gcm_registration_token).to.deep.equal({S: gcmToken});
-          });
+        it('should update the recorder record in the database.', function() {
+          return _.dynamo.get('recorders', {
+              client_id: {S: clientID},
+            })
+            .then(function(record) {
+              expect(record.gcm_registration_token).to.deep.equal({S: gcmToken});
+            });
+        });
       });
     });
   });
@@ -61,12 +67,18 @@ describe('PUT /recorders/:recorderID', function() {
         })
         .then(function(res) {
           expect(res.statusCode).to.equal(400);
-          expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
           expect(res.body).to.deep.equal({
             errors: [{
               detail: 'invalid API Key',
             }],
           });
+          expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+          if (!tv4.validate(res.body, jsonapischema)) {
+            throw tv4.error;
+          }
+          if (!tv4.validate(res.body, spec.responses['400'].schema)) {
+            throw tv4.error;
+          }
         });
     });
   });
@@ -80,12 +92,18 @@ describe('PUT /recorders/:recorderID', function() {
         })
         .then(function(res) {
           expect(res.statusCode).to.equal(400);
-          expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
           expect(res.body).to.deep.equal({
             errors: [{
               detail: 'Missing required property: data',
             }],
           });
+          expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+          if (!tv4.validate(res.body, jsonapischema)) {
+            throw tv4.error;
+          }
+          if (!tv4.validate(res.body, spec.responses['400'].schema)) {
+            throw tv4.error;
+          }
         });
     });
   });
@@ -98,12 +116,18 @@ describe('PUT /recorders/:recorderID', function() {
         })
         .then(function(res) {
           expect(res.statusCode).to.equal(401);
-          expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
           expect(res.body).to.deep.equal({
             errors: [{
               detail: 'Authorization header should be formatted: Bearer <JWT>'
             }],
           });
+          expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+          if (!tv4.validate(res.body, jsonapischema)) {
+            throw tv4.error;
+          }
+          if (!tv4.validate(res.body, spec.responses['401'].schema)) {
+            throw tv4.error;
+          }
         });
     });
   });
@@ -117,12 +141,18 @@ describe('PUT /recorders/:recorderID', function() {
       })
       .then(function(res) {
         expect(res.statusCode).to.equal(403);
-        expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
         expect(res.body).to.deep.equal({
           errors: [{
             detail: 'Auth token is not valid for recorder x',
           }],
         });
+        expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+        if (!tv4.validate(res.body, jsonapischema)) {
+          throw tv4.error;
+        }
+        if (!tv4.validate(res.body, spec.responses['403'].schema)) {
+          throw tv4.error;
+        }
       });
     });
   });
@@ -136,12 +166,18 @@ describe('PUT /recorders/:recorderID', function() {
         })
         .then(function(res) {
           expect(res.statusCode).to.equal(415);
-          expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
           expect(res.body).to.deep.equal({
             errors: [{
               detail: 'Use "application/vnd.api+json"',
             }],
           });
+          expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+          if (!tv4.validate(res.body, jsonapischema)) {
+            throw tv4.error;
+          }
+          if (!tv4.validate(res.body, spec.responses['415'].schema)) {
+            throw tv4.error;
+          }
         });
     });
   });
@@ -155,12 +191,18 @@ describe('PUT /recorders/:recorderID', function() {
         })
         .then(function(res) {
           expect(res.statusCode).to.equal(415);
-          expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
           expect(res.body).to.deep.equal({
             errors: [{
               detail: 'Use "application/vnd.api+json"',
             }],
           });
+          expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
+          if (!tv4.validate(res.body, jsonapischema)) {
+            throw tv4.error;
+          }
+          if (!tv4.validate(res.body, spec.responses['415'].schema)) {
+            throw tv4.error;
+          }
         });
     });
   });
