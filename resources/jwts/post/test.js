@@ -7,15 +7,17 @@ var _ = require('utils/test');
 
 describe('lambda:Authenticate', function() {
   var recorder, account;
-  var recorderUser, recorderPass, accountUser, accountPass;
+  var recorderUser, recorderPass, accountUser, accountPass, receiver;
 
   before(function() {
     return Promise.all([
       _.fake.recorder(),
       _.fake.account(),
+      _.fake.receiver(),
     ]).then(function(results) {
       recorder = results[0].recorder;
       account = results[1];
+      receiver = results[2];
       recorderUser = recorder.recorder_client_id;
       recorderPass = recorder.recorder_key;
       accountUser = account.email;
@@ -43,6 +45,21 @@ describe('lambda:Authenticate', function() {
             }
             done(tv4.validate(result, schema) ? null : tv4.error);
           },
+        });
+      });
+
+      describe('recorder is registered with GCM.', function() {
+        it('should succeed and include gcm_registration_token in recorder resource', function(done) {
+          handler({
+            Authorization: _.peppermintScheme(receiver.recorder_client_id, receiver.recorder_key),
+            api_key: _.fake.API_KEY,
+          }, {
+            fail: done,
+            succeed: function(result) {
+              expect(result.included[0].attributes).to.have.property('gcm_registration_token', receiver.gcm_registration_token);
+              done();
+            },
+          });
         });
       });
     });
@@ -82,6 +99,34 @@ describe('lambda:Authenticate', function() {
             expect(result.data.relationships.account.id).to.equal(account.account_id);
             expect(result.included).to.have.length(2);
             done(tv4.validate(result, schema) ? null : tv4.error);
+          },
+        });
+      });
+    });
+
+    describe('given the recorder is a receiver for the account', function() {
+      before(function() {
+        return _.receivers.link(receiver.recorder_id, account.account_id);
+      });
+
+      it('should include the relationship on the account resource.', function(done) {
+        handler({
+          Authorization: _.peppermintScheme(receiver.recorder_client_id, receiver.recorder_key, accountUser, accountPass),
+          api_key: _.fake.API_KEY,
+        }, {
+          fail: done,
+          succeed: function(result) {
+            var account = _.find(result.included, function(resource) {
+              return resource.type === 'accounts';
+            });
+            var recorder = _.find(result.included, function(resource) {
+              return resource.type === 'recorders';
+            });
+            expect(account.relationships).to.deep.equal({
+              receivers: {data: [{type: 'recorders', id: receiver.recorder_id}]},
+            });
+            expect(recorder.attributes).to.have.property('gcm_registration_token', receiver.gcm_registration_token);
+            done();
           },
         });
       });

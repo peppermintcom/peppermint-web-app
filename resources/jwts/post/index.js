@@ -4,12 +4,13 @@ exports.handler = _.middleware.process([
   _.middleware.validateApiKey,
   validatePeppermintAuthHeader,
   handle,
+  addReceiverRelationship,
 ]);
 
 function validatePeppermintAuthHeader(request, reply) {
   if (!request.Authorization) {
     reply.fail({
-      status: '400',
+      status: '401',
       detail: 'Authorization header required',
     });
     return;
@@ -113,4 +114,36 @@ function handle(request, reply) {
       reply.fail(err);
     });
   });
+}
+
+function addReceiverRelationship(request, reply) {
+  //check for a receiver relationship if jwt is valid for both an account and a
+  //recorder
+  if (request.included.length === 2) {
+    var account = _.find(request.included, function(resource) {
+      return resource.type === 'accounts';
+    });
+    var recorder = _.find(request.included, function(resource) {
+      return resource.type === 'recorders';
+    });
+
+    _.receivers.get(recorder.id, account.id)
+      .then(function(record) {
+        if (record) {
+          //will update resource object in included array by reference
+          account.relationships = {
+            receivers: {
+              data: [{type: 'recorders', id: recorder.id}],
+            }
+          };
+        }
+        reply.succeed(request);
+      })
+      .catch(function(err) {
+        reply.fail(err);
+      });
+
+    return;
+  }
+  reply.succeed(request);
 }

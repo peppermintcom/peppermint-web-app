@@ -74,6 +74,9 @@ exports.resource = function(recorder) {
   if (recorder.description) {
     attrs.description = recorder.description;
   }
+  if (recorder.gcm_registration_token) {
+    attrs.gcm_registration_token = recorder.gcm_registration_token;
+  }
 
   return {
     type: 'recorders',

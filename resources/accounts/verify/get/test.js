@@ -9,10 +9,6 @@ describe('lambda:VerifyEmail', function() {
     return _.fake.account(user);
   });
 
-  after(function() {
-    return _.deleteAccount(user.email);
-  });
-
   describe('with a valid jwt', function() {
     it('should record the validation time and ip.', function(done) {
       var jwt = _.jwt.encode(user.email, 30);
