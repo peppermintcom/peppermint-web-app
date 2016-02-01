@@ -1,14 +1,15 @@
 var http = require('./http');
 var URL = 'https://android.googleapis.com/gcm/notification';
 var _ = require('lodash');
+var conf = require('./conf');
 var post = _.partialRight(_.partial(http.postJSON, URL), {
-    Authorization: 'key=' + process.env.PEPPERMINT_GCM_API_KEY, 
-    project_id: process.env.PEPPERMINT_GCM_SENDER_ID,
+    Authorization: 'key=' + conf.PEPPERMINT_GCM_API_KEY, 
+    project_id: conf.PEPPERMINT_GCM_SENDER_ID,
   });
 
 exports.sendToDeviceGroup = function(message) {
   return http.postJSON('https://gcm-http.googleapis.com/gcm/send', message, {
-    Authorization: 'key=' + process.env.PEPPERMINT_GCM_API_KEY,
+    Authorization: 'key=' + conf.PEPPERMINT_GCM_API_KEY,
   });
 };
 
