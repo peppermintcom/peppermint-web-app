@@ -42,12 +42,13 @@ exports.responses = {
   },
   '400': responses.jsonAPI.BadRequest,
   '401': responses.jsonAPI.Unauthorized,
-  '403': _.assign({}, responses.Forbidden, {
+  '403': _.assign({}, responses.jsonAPI.Forbidden, {
     description: 'The sender has been blocked from messaging this recipient or the Authorization header does not match the sender_email.',
   }),
   '404': _.assign({}, responses.jsonAPI.NotFound, {
     description: 'The recipient email is not associated with an installed app. This is a common response.',
   }),
+  '415': responses.jsonAPI.Unsupported,
   '500': responses.Internal,
 };
 
@@ -65,6 +66,7 @@ exports['x-amazon-apigateway-integration'] = {
     '401': integrations.jsonAPI.Unauthorized,
     '403': integrations.jsonAPI.Forbidden,
     '404': integrations.jsonAPI.NotFound,
-    '^(?!400|401|403|404)(.|\\n)+': integrations.Internal,
+    '415': integrations.jsonAPI.Unsupported,
+    '^(?!400|401|403|404|415)(.|\\n)+': integrations.Internal,
   },
 };

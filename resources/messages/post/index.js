@@ -6,10 +6,24 @@ exports.handler = _.middleware.process([
   _.middleware.validateApiKey,
   _.middleware.authenticate,
   _.middleware.validateBody(spec),
+  checkAccountAuth,
   lookupAccounts,
   allow,
+  recipientOK,
   handle
 ]);
+
+//ensure the auth token authenticates an account, not just a recorder
+function checkAccountAuth(request, reply) {
+  if (!request.jwt.account_id) {
+    reply.fail({
+      status: '401',
+      detail: 'Auth token does not authenticate an account',
+    });
+    return;
+  }
+  reply.succeed(request);
+}
 
 //fails if sender or recipient does not exist, or if recipient does not have a
 //device group
@@ -30,7 +44,7 @@ function lookupAccounts(request, reply) {
         });
         return;
       }
-      if (!request.recipient || !request.recipient.gcm_notification_key) {
+      if (!request.recipient) {
         reply.fail({
           status: '404',
           detail: 'Recipient cannot receive messages via Peppermint',
@@ -49,6 +63,17 @@ function allow(request, reply) {
       detail: 'Auth token is not valid for sender',
     });
     return;
+  }
+  reply.succeed(request);
+}
+
+function recipientOK(request, reply) {
+  if (!request.recipient.gcm_notification_key) {
+    reply.fail({
+      status: '404',
+      detail: 'Recipient cannot receive messages via Peppermint',
+    });
+    return
   }
   reply.succeed(request);
 }
