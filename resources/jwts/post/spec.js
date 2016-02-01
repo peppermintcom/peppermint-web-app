@@ -54,7 +54,7 @@ exports.responses = {
         }),
         included: [
           defs.recorders.example,
-          defs.accounts.example,
+          _.assign({}, defs.accounts.example, {relationships: {receivers: {data: [{type: 'recorders', id: 'recorder123'}]}}}),
         ],
       },
     },

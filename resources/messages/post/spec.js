@@ -8,7 +8,7 @@ exports.tags = ['messages', 'inter-app'];
 exports.summary = 'Send a message to an app.';
 exports.description = 'Checks if there is an installed app associated with an email, then sends the message to that app if found.';
 exports.operationId = 'CreateMessage';
-exports.consumes = ['application/vnd.api+json'];
+exports.consumes = exports.produces = ['application/vnd.api+json'];
 
 exports.parameters = [
   headers.AuthorizationBearer,

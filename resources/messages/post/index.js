@@ -37,7 +37,6 @@ function lookupAccounts(request, reply) {
       request.recipient = accounts[1];
 
       if (!request.sender) {
-        //TODO local test
         reply.fail({
           status: '404',
           detail: 'No account exists with sender_email',
@@ -84,6 +83,7 @@ function handle(request, reply) {
 
   _.messages.create(msg)
     .then(function(message) {
+      console.log(message);
       resource = _.messages.resource(message);
       message.created = resource.attributes.created;
 
@@ -93,6 +93,7 @@ function handle(request, reply) {
       });
     })
     .then(function(result) {
+      console.log(result);
       if (result.success > 0) {
         reply.succeed(resource);
         return;

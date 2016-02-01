@@ -10,7 +10,7 @@ var post = _.partialRight(_.partial(http.postJSON, URL), {
 exports.sendToDeviceGroup = function(message) {
   return http.postJSON('https://gcm-http.googleapis.com/gcm/send', message, {
     Authorization: 'key=' + conf.PEPPERMINT_GCM_API_KEY,
-  });
+  }).then(handle);
 };
 
 exports.addDeviceGroupMember = function(email, notificationKey, registrationID) {
