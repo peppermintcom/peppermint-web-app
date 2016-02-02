@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var auth = require('../auth');
 var _ = require('lodash');
 
-describe('Google auth', function() {
+describe.skip('Google auth', function() {
   it('should return an email and full_name.', function() {
     //https://developers.google.com/oauthplayground
     var accessToken = 'ya29.fALMe4d8W2NdNQhhKCXmBRvcDjYqCt2WGMM3TtLCheN91A7oZ1_lNw7A_a0UveLFwc-y';
@@ -28,6 +28,12 @@ describe('Peppermint Authentication Scheme', function() {
           'Peppermint account=abc, recorder=xyz',
           'Peppermint account=++//==, recorder=////=',
           'Peppermint recorder=LTV5aVNmeWw1MWVjOm16WXRVWnU0eXN6Y21hN181dl84d1RLVWN1eVFMcVZBMzQ5WVloSmE=, account=eU5tQzJuZEZBS3QyQG1haWxpbmF0b3IuY29tOnNlY3JldA==',
+          'Peppermint google=abc==',
+          'Peppermint google=abc=, recorder=xyz',
+          'Peppermint recorder=z==, google=/',
+          'Peppermint facebook=xyz',
+          'Peppermint facebook=xyz=, recorder=abc=',
+          'Peppermint recorder=abc, facebook=xyz==',
         ].forEach(function(v) {
           if (!auth.isValid(v)) {
             throw new Error(v);
@@ -55,6 +61,13 @@ describe('Peppermint Authentication Scheme', function() {
         'Peppermint recorder= xyz',
         'Peppermint recorder =xyz',
         'Peppermint recorder=$xyz',
+        'Peppermint account=xyz, google=abc',
+        'Peppermint google=abc, account=xyz',
+        'Peppermint google=abc, facebook=xyz',
+        'Peppermint google=abc, google=abc',
+        'Peppermint facebook=abc, google=xyz',
+        'Peppermint facebook=abc, account=xyz',
+        'Peppermint facebook=abc, google=xyz, recorder=789=',
       ].forEach(function(v) {
         describe('"' + v + '"', function() {
           it('should return false.', function() {
@@ -67,10 +80,14 @@ describe('Peppermint Authentication Scheme', function() {
 
   describe('encodedCreds', function() {
     [
-      ['Peppermint recorder=xyz=, account=abc==', {recorder: 'xyz=', account: 'abc=='}],
-      ['Peppermint recorder=xyz', {recorder: 'xyz', account: null}],
-      ['Peppermint account=abc', {recorder: null, account: 'abc'}],
-      ['Peppermint account=abc, recorder=xyz', {recorder: 'xyz', account: 'abc'}],
+      ['Peppermint recorder=xyz=, account=abc==', {recorder: 'xyz=', account: 'abc==', google: null, facebook: null}],
+      ['Peppermint recorder=xyz', {recorder: 'xyz', account: null, google: null, facebook: null}],
+      ['Peppermint account=abc', {recorder: null, account: 'abc', google: null, facebook: null}],
+      ['Peppermint account=abc, recorder=xyz', {recorder: 'xyz', account: 'abc', google: null, facebook: null}],
+      ['peppermint google=abc', {recorder: null, account: null, google: 'abc', facebook: null}],
+      ['Peppermint google=abc, recorder=xyz', {recorder: 'xyz', google: 'abc', account: null, facebook: null}],
+      ['Peppermint facebook=abc', {recorder: null, account: null, google: null, facebook: 'abc'}],
+      ['peppermint recorder=abc, facebook=xyz', {recorder: 'abc', facebook: 'xyz', google: null, account: null}],
     ].forEach(function(v) {
       var header = v[0];
       var answer = v[1];
@@ -85,9 +102,13 @@ describe('Peppermint Authentication Scheme', function() {
 
   describe('creds', function() {
     [
-      {recorder: 'xyz:789', account: 'abc:123'},
-      {recorder: null, account: 'abc:1234'},
-      {recorder: 'xyz:09877', account: null},
+      {recorder: 'xyz:789', account: 'abc:123', google: null, facebook: null},
+      {recorder: null, account: 'abc:1234', google: null, facebook: null},
+      {recorder: 'xyz:09877', account: null, google: null, facebook: null},
+      {recorder: null, account: null, google: 'abc:123', facebook: null},
+      {recorder: 'xyz:890', account: null, google: 'abc:123', facebook: null},
+      {recorder: null, account: null, google: null, facebook: 'def:456'},
+      {recorder: 'xyz:789', account: null, google: null, facebook: 'def:456'},
     ].forEach(function(v) {
       var encoded = _.mapValues(v, function(v) {
         return v && Buffer(v).toString('base64');
@@ -102,13 +123,29 @@ describe('Peppermint Authentication Scheme', function() {
 
   describe('credsObj', function() {
     [
-      [{recorder: 'xyz:789', account: 'abc:123'}, {
+      [{recorder: 'xyz:789', account: 'abc:123', google: null, facebook: null}, {
         recorder: {user: 'xyz', password: '789'},
         account: {user: 'abc', password: '123'},
+        google: null,
+        facebook: null,
       }],
-      [{recorder: 'xyz:789', account: null}, {
+      [{recorder: 'xyz:789', account: null, google: null, facebook: null}, {
         recorder: {user: 'xyz', password: '789'},
         account: null,
+        google: null,
+        facebook: null,
+      }],
+      [{recorder: null, account: null, google: 'abc:123', facebook: null}, {
+        recorder: null,
+        account: null,
+        google: {user: 'abc', password: '123'},
+        facebook: null,
+      }],
+      [{recorder: 'xyz:879', account: null, google: null, facebook: 'def:456'}, {
+        recorder: {user: 'xyz', password: '879'},
+        account: null,
+        google: null,
+        facebook: {user: 'def', password: '456'},
       }],
     ].forEach(function(r) {
       var input = r[0];

@@ -5,6 +5,12 @@ var recorderOnly = /^peppermint recorder=[\w\+\/]+={0,2}$/i;
 var accountOnly = /^peppermint account=[\w\+\/]+={0,2}$/i;
 var recorderAccount = /^peppermint recorder=[\w\+\/]+={0,2}, account=[\w\+\/]+={0,2}$/i;
 var accountRecorder = /^peppermint account=[\w\+\/]+={0,2}, recorder=[\w\+\/]+={0,2}$/i;
+var googleOnly = /^peppermint google=[\w\+\/]+={0,2}$/i;
+var googleRecorder = /^peppermint google=[\w\+\/]+={0,2}, recorder=[\w\+\/]+={0,2}$/i;
+var recorderGoogle = /^peppermint recorder=[\w\+\/]+={0,2}, google=[\w\+\/]+={0,2}$/i;
+var facebookOnly = /^peppermint facebook=[\w\+\/]+={0,2}$/i;
+var facebookRecorder = /^peppermint facebook=[\w\+\/]+={0,2}, recorder=[\w\+\/]+={0,2}$/i;
+var recorderFacebook = /^peppermint recorder=[\w\+\/]+={0,2}, facebook=[\w\+\/]+={0,2}$/i;
 
 exports.isValid = function(authHeader) {
   if (typeof authHeader !== 'string') {
@@ -14,19 +20,31 @@ exports.isValid = function(authHeader) {
   return recorderOnly.test(authHeader) ||
     accountOnly.test(authHeader) ||
     recorderAccount.test(authHeader) ||
-    accountRecorder.test(authHeader);
+    accountRecorder.test(authHeader) ||
+    googleOnly.test(authHeader) ||
+    googleRecorder.test(authHeader) ||
+    recorderGoogle.test(authHeader) ||
+    facebookOnly.test(authHeader) ||
+    facebookRecorder.test(authHeader) ||
+    recorderFacebook.test(authHeader);
 };
 
 var recorderCreds = /recorder=[\w\+\/]+={0,2}/;
 var accountCreds = /account=[\w\+\/]+={0,2}/;
+var googleCreds = /google=[\w\+\/]+={0,2}/;
+var facebookCreds = /facebook=[\w\+\/]+={0,2}/;
 
 var encodedCreds = exports.encodedCreds = function(authHeader) {
   var recorder = authHeader.match(recorderCreds);
   var account = authHeader.match(accountCreds);
+  var google = authHeader.match(googleCreds);
+  var facebook = authHeader.match(facebookCreds);
 
   return {
     recorder: recorder && recorder[0].substring(recorder[0].indexOf('=') + 1),
     account: account && account[0].substring(account[0].indexOf('=') + 1),
+    google: google && google[0].substring(google[0].indexOf('=') + 1),
+    facebook: facebook && facebook[0].substring(facebook[0].indexOf('=') + 1),
   };
 };
 
@@ -34,6 +52,8 @@ var creds = exports.creds = function(encodedCreds) {
   return {
     recorder: encodedCreds.recorder && Buffer(encodedCreds.recorder, 'base64').toString('utf8'),
     account: encodedCreds.account && Buffer(encodedCreds.account, 'base64').toString('utf8'),
+    google: encodedCreds.google && Buffer(encodedCreds.google, 'base64').toString('utf8'),
+    facebook: encodedCreds.facebook && Buffer(encodedCreds.facebook, 'base64').toString('utf8'),
   };
 };
 
