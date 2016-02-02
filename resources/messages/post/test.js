@@ -66,12 +66,16 @@ describe('lambda:CreateMessage', function() {
       var m = _.gcm.sends.pop();
 
       expect(m).to.have.property('to', user.account.gcm_notification_key);
-      expect(m).to.have.property('data');
-      expect(m.data).to.have.property('audio_url', body.data.attributes.audio_url);
-      expect(m.data).to.have.property('sender_email', body.data.attributes.sender_email.toLowerCase());
-      expect(m.data).to.have.property('recipient_email', body.data.attributes.recipient_email.toLowerCase());
-      expect(m.data).to.have.property('message_id', response.id);
-      expect(m.data).to.have.property('created', response.attributes.created);
+      expect(m).not.to.have.property('data');
+      expect(m.notification).to.deep.equal({
+        message_id: response.id,
+        audio_url: body.data.attributes.audio_url,
+        sender_name: 'John Doe',
+        sender_email: response.attributes.sender_email,
+        recipient_email: response.attributes.recipient_email,
+        created: response.attributes.created,
+        transcription: null
+      });
     });
   });
 

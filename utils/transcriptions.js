@@ -1,13 +1,23 @@
+var url = require('url');
+var path = require('path');
 var dynamo = require('./dynamo');
 
 var BASE = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1/transcriptions';
 var AUDIO_ORIGIN = 'http://go.peppermint.com';
 
-exports.get = function(transcriptionID) {
+var get = exports.get = function(transcriptionID) {
+  if (!transcriptionID) return Promise.resolve(null);
+
   return dynamo.get('transcriptions', {
     transcription_id: {S: transcriptionID},
   })
   .then(parse);
+};
+
+exports.getByAudioURL = function(audioURL) {
+  var transcriptionID = audioURLTranscriptionID(audioURL);
+
+  return get(transcriptionID);
 };
 
 /**
@@ -56,4 +66,11 @@ function transcriptionURL(transcriptionID) {
 
 function audioURL(recorderID, transcriptionID) {
   return [AUDIO_ORIGIN, recorderID, transcriptionID].join('/');
+}
+
+function audioURLTranscriptionID(audioURL) {
+  var urlParts = url.parse(audioURL);
+  var pathParts = path.parse(urlParts.pathname);
+
+  return pathParts.name;
 }

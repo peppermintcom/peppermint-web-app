@@ -83,14 +83,24 @@ function handle(request, reply) {
 
   _.messages.create(msg)
     .then(function(message) {
-      console.log(message);
       resource = _.messages.resource(message);
       message.created = resource.attributes.created;
 
-      return _.gcm.sendToDeviceGroup({
-        to: request.recipient.gcm_notification_key,
-        data: message
-      });
+      return _.transcriptions.getByAudioURL(message.audio_url)
+        .then(function(transcription) {
+          return _.gcm.sendToDeviceGroup({
+            to: request.recipient.gcm_notification_key,
+            notification: {
+              audio_url: message.audio_url,
+              message_id: message.message_id,
+              sender_name: request.sender.full_name,
+              sender_email: message.sender_email,
+              recipient_email: message.recipient_email,
+              created: message.created,
+              transcription: transcription && transcription.text,
+            },
+          });
+        });
     })
     .then(function(result) {
       console.log(result);
