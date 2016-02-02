@@ -2,6 +2,21 @@ var expect = require('chai').expect;
 var auth = require('../auth');
 var _ = require('lodash');
 
+describe('Google auth', function() {
+  it('should return an email and full_name.', function() {
+    //https://developers.google.com/oauthplayground
+    var accessToken = 'ya29.fALMe4d8W2NdNQhhKCXmBRvcDjYqCt2WGMM3TtLCheN91A7oZ1_lNw7A_a0UveLFwc-y';
+    var email = 'andrew@areed.io';
+    var name = 'Andrew Reed';
+
+    return auth.google(email, accessToken)
+      .then(function(user) {
+        expect(user).to.have.property('email', email);
+        expect(user).to.have.property('full_name', name);
+      });
+  });
+});
+
 describe('Peppermint Authentication Scheme', function() {
   describe('isValid', function() {
     describe('valid values', function() {

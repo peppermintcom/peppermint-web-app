@@ -6,7 +6,7 @@ var _ = require('utils');
 
 exports.tags = ['messages', 'inter-app'];
 exports.summary = 'Send a message to an app.';
-exports.description = 'Checks if there is an installed app associated with an email, then sends the message to that app if found.';
+exports.description = 'Checks if there is an installed app associated with an email, then sends the message to that app if found. The message sent via GCM will have fields (all strings): message_id, audio_url, sender_name, sender_email, recipient_email, created, transcription.';
 exports.operationId = 'CreateMessage';
 exports.consumes = exports.produces = ['application/vnd.api+json'];
 

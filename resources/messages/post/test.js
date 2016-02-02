@@ -25,7 +25,7 @@ describe('lambda:CreateMessage', function() {
             attributes: {
               sender_email: sender.email,
               recipient_email: user.account.email,
-              audio_url: 'http://go.peppermint.com',
+              audio_url: _.fake.AUDIO_URL,
             },
           },
         };

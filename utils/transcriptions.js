@@ -16,6 +16,7 @@ var get = exports.get = function(transcriptionID) {
 
 exports.getByAudioURL = function(audioURL) {
   var transcriptionID = audioURLTranscriptionID(audioURL);
+  console.log(transcriptionID);
 
   return get(transcriptionID);
 };
@@ -70,7 +71,8 @@ function audioURL(recorderID, transcriptionID) {
 
 function audioURLTranscriptionID(audioURL) {
   var urlParts = url.parse(audioURL);
-  var pathParts = path.parse(urlParts.pathname);
+  var pathParts = urlParts.pathname.split('/');
+  var fileParts = pathParts && pathParts[1] && pathParts[1].split('.')[0];
 
-  return pathParts.name;
+  return fileParts && fileParts[0];
 }

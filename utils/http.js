@@ -18,3 +18,18 @@ exports.postJSON = function(url, body, headers) {
     });
   });
 };
+
+exports.get = function(url, headers) {
+  return new Promise(function(resolve, reject) {
+    request(url, {
+      headers: headers,
+    }, function(err, res, body) {
+      if (err) {
+        reject(err);
+        return;
+      }
+      res.body = JSON.parse(body);
+      resolve(res);
+    });
+  });
+};
