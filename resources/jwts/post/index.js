@@ -44,7 +44,7 @@ function handle(request, reply) {
     //Auth header validation ensures at most one of account, google, or facebook
     creds.account ? _.accounts.get(creds.account.user) : Promise.resolve(),
     creds.google ? _.auth.google(creds.google).then(_.accounts.upsert) : Promise.resolve(),
-    creds.facebook ? _.auth.facebook(creds.facebook).then(_.accounts.upser) : Promise.resolve(),
+    creds.facebook ? _.auth.facebook(creds.facebook).then(_.accounts.upsert) : Promise.resolve(),
   ])
   .then(function(results) {
     var recorder = results[0];

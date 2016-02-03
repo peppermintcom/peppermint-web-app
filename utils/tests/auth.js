@@ -9,7 +9,7 @@ describe('Facebook auth', function() {
   var accessToken = process.env.FACEBOOK_AT;
 
   it('should return an email and full_name.', function() {
-    return auth.facebook(email, accessToken)
+    return auth.facebook({user: email, password: accessToken})
       .then(function(user) {
         expect(user).to.have.property('email', email);
         expect(user).to.have.property('full_name', 'Andrew Reed');
@@ -21,7 +21,7 @@ describe('Facebook auth', function() {
     var badErr = new Error('success with bad access token');
 
     it('should throw an error.', function() {
-      return auth.facebook(email, 'x' + accessToken)
+      return auth.facebook({user: email, password: 'x' + accessToken})
         .then(function() {
           throw badErr;
         })
@@ -35,14 +35,14 @@ describe('Facebook auth', function() {
   });
 });
 
-describe.skip('Google auth', function() {
+describe('Google auth', function() {
   it('should return an email and full_name.', function() {
     var email = 'andrew@areed.io';
     var name = 'Andrew Reed';
     //https://developers.google.com/oauthplayground
     var accessToken = process.env.GOOGLE_AT;
 
-    return auth.google(email, accessToken)
+    return auth.google({user: email, password: accessToken})
       .then(function(user) {
         expect(user).to.have.property('email', email);
         expect(user).to.have.property('full_name', name);

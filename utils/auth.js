@@ -114,7 +114,9 @@ exports.google = function(creds) {
  * Facebook returns a single email so we don't technically need to pass in the
  * email but we do for consistency with the Google routine.
  */
-exports.facebook = function(email, accessToken) {
+exports.facebook = function(creds) {
+  var email = creds.user;
+  var accessToken = creds.password;
   if (!email) {
     return Promise.reject(new Error('email is required'));
   }

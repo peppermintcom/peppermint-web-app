@@ -146,7 +146,7 @@ exports.upsert = function(profile) {
         registration_ts: {N: now.toString()},
       };
 
-      if (profile.email_is_verified) {
+      if (profile.source === 'facebook' || profile.source === 'google') {
         item.verification_ip = {S: profile.source};
         item.verification_ts = {N: now.toString()};
       }
@@ -158,10 +158,10 @@ exports.upsert = function(profile) {
             email: profile.email,
             full_name: profile.full_name,
             registration_ts: now,
-            is_verified: profile.email_is_verified,
+            is_verified: profile.source === 'facebook' || profile.source === 'google',
           };
 
-          if (profile.email_is_verified) {
+          if (profile.source === 'facebook' || profile.source === 'google') {
             item.verification_ip = profile.source;
             item.verification_ts = now;
           }

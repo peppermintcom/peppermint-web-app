@@ -6,6 +6,7 @@ var spec = require('./spec');
 var _ = require('utils/test');
 
 const GOOGLE = 1;
+const FACEBOOK = 2;
 
 describe('lambda:Authenticate', function() {
   var recorder, account;
@@ -24,6 +25,111 @@ describe('lambda:Authenticate', function() {
       recorderPass = recorder.recorder_key;
       accountUser = account.email;
       accountPass = account.password;
+    });
+  });
+
+  describe('facebook', function() {
+    var email = 'andrew@areed.io';
+    var name = 'Andrew Reed';
+    //https://developers.facebook.com/tools/explorer/
+    var accessToken = process.env.FACEBOOK_AT;
+
+    describe('account does not exist', function() {
+      var result, accountID;
+
+      before(function() {
+        return _.accounts.del(email);
+      });
+
+      before(function(done) {
+        handler({
+          Authorization: _.peppermintScheme(null, null, email, accessToken, FACEBOOK),
+          api_key: _.fake.API_KEY,
+        }, {
+          succeed: function(_result) {
+            result = _result;
+            done();
+          },
+          fail: done,
+        });
+      });
+
+      it('should succeed with a jwt.', function() {
+        if (!tv4.validate(result, spec.responses['200'])) {
+          throw tv4.error;
+        }
+        var jwt = _.jwt.verify(result.data.attributes.token);
+        expect(jwt).to.have.property('account_id');
+        accountID = jwt.account_id;
+      });
+
+      it('should include a new account.', function() {
+        if (!tv4.validate(result.included[0], defs.accounts.schema)) {
+          throw tv4.error;
+        }
+        expect(result.included[0].id).to.equal(accountID);
+      });
+    });
+
+    describe('account exists', function() {
+      var result, account;
+
+      before(function() {
+        return _.accounts.upsert({
+          email: email,
+          full_name: name,
+          source: 'Mocha',
+        })
+        .then(function(_account) {
+          account = _account;
+        });
+      });
+
+      before(function(done) {
+        handler({
+          Authorization: _.peppermintScheme(null, null, email, accessToken, FACEBOOK),
+          api_key: _.fake.API_KEY,
+        }, {
+          succeed: function(_result) {
+            result = _result;
+            done();
+          },
+          fail: done,
+        });
+      });
+
+      it('should succeed with a JWT.', function() {
+        expect(result.data.attributes.token).to.be.ok;
+      });
+
+      it('should include the account.', function() {
+        var includedAccount = result.included[0];
+
+        if (!tv4.validate(includedAccount, defs.accounts.schema)) {
+          throw tv4.error;
+        }
+        expect(includedAccount.id).to.equal(account.account_id);
+        expect(includedAccount.attributes).to.have.property('email', account.email);
+      });
+    });
+
+    describe('invalid access token', function() {
+      it('should fail with a 400 error.', function() {
+        handler({
+          Authorization: _.peppermintScheme(null, null, email, 'x' + accessToken, FACEBOOK),
+          api_key: _.fake.API_KEY,
+        }, {
+          succeed: function() {
+            done(new Error('success with bad access token'));
+          },
+          fail: function() {
+            expect(err).to.have.property('message', '401');
+            expect(JSON.parse(err.name)).to.deep.equal({
+              errors: [{detail: 'Facebook rejected access token'}],
+            });
+          },
+        });
+      });
     });
   });
 
@@ -118,8 +224,10 @@ describe('lambda:Authenticate', function() {
 
     describe('recorder credentials only', function() {
       it('should succeed.', function(done) {
+        var header = _.peppermintScheme(recorderUser, recorderPass);
+
         handler({
-          Authorization: _.peppermintScheme(recorderUser, recorderPass),
+          Authorization: header,
           api_key: _.fake.API_KEY,
         }, {
           fail: done,
