@@ -28,6 +28,162 @@ describe('POST /jwts', function() {
     });
   });
 
+  describe('facebook-only authentication', function() {
+    var email = 'andrew@areed.io';
+    var name = 'Andrew Reed';
+    //https://developers.facebook.com/tools/explorer/
+    var accessToken = process.env.FACEBOOK_AT;
+    if (!accessToken) {
+      throw new Error('FACEBOOK_AT=access_token from graph explorer');
+    }
+
+    describe('with invalid access token', function() {
+      before(function() {
+        var header = _.peppermintScheme(null, null, email, 'X' + accessToken, FACEBOOK);
+        return post({
+          'X-Api-Key': _.fake.API_KEY,
+          Authorization: header,
+        }).then(function(_response) {
+          response = _response;
+        });
+      });
+ 
+      it('should respond with 401 status code.', function() {
+        expect(response.statusCode).to.equal(401);
+      });
+
+      it('should respond with valid jsonapi content.', function() {
+        expect(response.headers).to.have.property('content-type', 'application/vnd.api+json');
+        if (!tv4.validate(response.body, jsonapischema)) {
+          throw tv4.error;
+        }
+      });
+
+      it('should respond with body matching spec documentation.', function() {
+        expect(response.body).to.deep.equal({
+          errors: [{detail: 'Facebook rejected access token'}],
+        });
+        if (!tv4.validate(response.body, spec.responses['401'].schema)) {
+          throw tv4.error;
+        }
+      });
+    });
+
+    describe('with Peppermint account', function() {
+      var account, response;
+
+      before(function() {
+        return _.accounts.upsert({
+          email: email,
+          name: name,
+          source: 'Mocha',
+        })
+        .then(function(_account) {
+          account = _account;
+        });
+      });
+
+      before(function() {
+        var header = _.peppermintScheme(null, null, email, accessToken, FACEBOOK);
+        return post({
+          'X-Api-Key': _.fake.API_KEY,
+          Authorization: header,
+        }).then(function(_response) {
+          response = _response;
+        });
+      });
+
+      it('should respond with status code 200.', function() {
+        expect(response.statusCode).to.equal(200);
+      });
+
+      it('should respond with jsonapi content.', function() {
+        expect(response.headers).to.have.property('content-type', 'application/vnd.api+json');
+        if (!tv4.validate(response.body, jsonapischema)) {
+          console.log(util.inspect(tv4.error, {depth: null}));
+          console.log(util.inspect(response.body));
+          throw tv4.error;
+        }
+      });
+
+      it('should respond with a body matching the spec documentation.', function() {
+        if (!tv4.validate(response.body, spec.responses['200'].schema)) {
+          throw tv4.error;
+        }
+      });
+
+      it('should include the account in the response.', function() {
+        if (!tv4.validate(response.body.included[0], defs.accounts.schema)) {
+          throw tv4.error;
+        }
+        expect(response.body.included[0].id).to.equal(account.account_id);
+      });
+
+      it('should send a jwt valid for the account.', function() {
+        return Promise.all([
+          jwtAuthenticatesAccount(response.body.data.attributes.token, response.body.included[0].id),
+          jwtAuthenticatesRecorder(response.body.data.attributes.token),
+        ])
+        .then(function(results) {
+          must(results[0]);
+          mustnt(results[1]);
+        });
+      });
+    });
+
+    describe('without Peppermint account', function() {
+      before(function() {
+        return _.accounts.del(email);
+      });
+
+      before(function() {
+        var header = _.peppermintScheme(null, null, email, accessToken, FACEBOOK);
+        return post({
+          'X-Api-Key': _.fake.API_KEY,
+          Authorization: header,
+        }).then(function(_response) {
+          response = _response;
+        });
+      });
+
+      it('should respond with status code 200.', function() {
+        expect(response.statusCode).to.equal(200);
+      });
+
+      it('should respond with jsonapi content.', function() {
+        expect(response.headers).to.have.property('content-type', 'application/vnd.api+json');
+        if (!tv4.validate(response.body, jsonapischema)) {
+          console.log(util.inspect(tv4.error, {depth: null}));
+          console.log(util.inspect(response.body));
+          throw tv4.error;
+        }
+      });
+
+      it('should respond with a body matching the spec documentation.', function() {
+        if (!tv4.validate(response.body, spec.responses['200'].schema)) {
+          throw tv4.error;
+        }
+      });
+
+      it('should include the new account in the response.', function() {
+        if (!tv4.validate(response.body.included[0], defs.accounts.schema)) {
+          throw tv4.error;
+        }
+      });
+
+      it('should send a jwt valid for the account.', function() {
+        return Promise.all([
+          jwtAuthenticatesAccount(response.body.data.attributes.token, response.body.included[0].id),
+          jwtAuthenticatesRecorder(response.body.data.attributes.token),
+        ])
+        .then(function(results) {
+          must(results[0]);
+          mustnt(results[1]);
+        });
+      });
+    });
+  });
+
   describe('google-only authentication', function() {
     var response;
 

@@ -103,8 +103,6 @@ exports.google = function(creds) {
       return {
         email: email.toLowerCase(),
         full_name: profile.displayName || email,
-        //all emails returned from google are verified
-        email_is_verified: true,
         source: 'google',
       };
     });
