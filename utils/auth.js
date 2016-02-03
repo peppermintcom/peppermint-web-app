@@ -77,7 +77,10 @@ var credsObj = exports.credsObj = function(creds) {
 
 exports.decode = _.flow(encodedCreds, creds, credsObj);
 
-exports.google = function(email, accessToken) {
+exports.google = function(creds) {
+  var email = creds.user;
+  var accessToken = creds.password;
+
   return http.get('https://www.googleapis.com/plus/v1/people/me?access_token=' + accessToken)
     .then(function(response) {
       if (response.statusCode !== 200) {
@@ -93,7 +96,10 @@ exports.google = function(email, accessToken) {
       }
       return {
         email: email.toLowerCase(),
-        full_name: profile.displayName,
+        full_name: profile.displayName || email,
+        //all emails returned from google are verified
+        email_is_verified: true,
+        source: 'google',
       };
     });
 };
@@ -103,8 +109,6 @@ exports.google = function(email, accessToken) {
  * email but we do for consistency with the Google routine.
  */
 exports.facebook = function(email, accessToken) {
-  console.log('email', email);
-  console.log('accessToken', accessToken);
   if (!email) {
     return Promise.reject(new Error('email is required'));
   }
@@ -124,6 +128,9 @@ exports.facebook = function(email, accessToken) {
       return {
         email: profile.email,
         full_name: profile.name,
+        source: 'facebook',
+        //TODO
+        email_is_verified: false,
       };
     });
 };

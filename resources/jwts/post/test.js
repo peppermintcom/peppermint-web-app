@@ -5,6 +5,8 @@ var handler = require('./').handler;
 var spec = require('./spec');
 var _ = require('utils/test');
 
+const GOOGLE = 1;
+
 describe('lambda:Authenticate', function() {
   var recorder, account;
   var recorderUser, recorderPass, accountUser, accountPass, receiver;
@@ -22,6 +24,92 @@ describe('lambda:Authenticate', function() {
       recorderPass = recorder.recorder_key;
       accountUser = account.email;
       accountPass = account.password;
+    });
+  });
+
+  describe('google', function() {
+    //need to use an email you own
+    var email = 'andrew@areed.io';
+    var name = 'Andrew Reed';
+    //https://developers.google.com/oauthplayground
+    var accessToken = 'ya29.fQK-Sy8ZpOl10IW1iiqVoZ-9Y7yC0pWsaCRG8RhISg-xKaaTACd0A2m9DtMRjMI1XrQq';
+
+    describe('account does not exist', function() {
+      var result, accountID;
+
+      before(function() {
+        return _.accounts.del(email);
+      });
+
+      before(function(done) {
+        handler({
+          Authorization: _.peppermintScheme(null, null, email, accessToken, GOOGLE),
+          api_key: _.fake.API_KEY,
+        }, {
+          succeed: function(_result) {
+            result = _result;
+            done();
+          },
+          fail: done,
+        });
+      });
+
+      it('should succeed with a jwt.', function() {
+        if (!tv4.validate(result, spec.responses['200'])) {
+          throw tv4.error;
+        }
+        var jwt = _.jwt.verify(result.data.attributes.token);
+        expect(jwt).to.have.property('account_id');
+        accountID = jwt.account_id;
+      });
+
+      it('should include a new account.', function() {
+        if (!tv4.validate(result.included[0], defs.accounts.schema)) {
+          throw tv4.error;
+        }
+        expect(result.included[0].id).to.equal(accountID);
+      });
+    });
+
+    describe('account exists', function() {
+      var result, account;
+
+      before(function() {
+        return _.accounts.upsert({
+          email: email,
+          full_name: name,
+          source: 'Mocha',
+          email_is_verified: true,
+        })
+        .then(function(_account) {
+          account = _account;
+        });
+      });
+
+      //is a dependency for following "it" blocks
+      it('should succeed with a JWT.', function(done) {
+        handler({
+          Authorization: _.peppermintScheme(null, null, email, accessToken, GOOGLE),
+          api_key: _.fake.API_KEY,
+        }, {
+          succeed: function(_result) {
+            result = _result;
+            expect(result.data.attributes.token).to.be.ok;
+            done();
+          },
+          fail: done,
+        });
+      });
+
+      it('should include the account.', function() {
+        var includedAccount = result.included[0];
+
+        if (!tv4.validate(includedAccount, defs.accounts.schema)) {
+          throw tv4.error;
+        }
+        expect(includedAccount.id).to.equal(account.account_id);
+        expect(includedAccount.attributes).to.have.property('email', account.email);
+      });
     });
   });
 

@@ -4,6 +4,7 @@ var smtp = require('./email');
 var mandrill = require('./mandrill');
 var dynamo = require('./dynamo');
 var timestamp = require('./timestamp');
+var token = require('./randomtoken');
 var jwt = require('./jwt');
 var http = require('./http');
 var _ = require('lodash');
@@ -68,7 +69,7 @@ exports.sendPasswordResetEmail = function(email, jwt) {
   });
 };
 
-exports.get = function(email) {
+var get = exports.get = function(email) {
   return dynamo.get('accounts', {
     email: {S: email.toLowerCase()},
   })
@@ -126,6 +127,50 @@ exports.update = function(email, values) {
   });
 };
 
+exports.del = function(email) {
+  return dynamo.del('accounts', {email: {S: email}});
+};
+
+exports.upsert = function(profile) {
+  return get(profile.email)
+    .then(function(account) {
+      if (account) {
+        return account;
+      }
+      var accountID = token(22);
+      var now = Date.now();
+      var item = {
+        account_id: {S: accountID},
+        email: {S: profile.email},
+        full_name: {S: profile.full_name},
+        registration_ts: {N: now.toString()},
+      };
+
+      if (profile.email_is_verified) {
+        item.verification_ip = {S: profile.source};
+        item.verification_ts = {N: now.toString()};
+      }
+
+      return dynamo.put('accounts', item)
+        .then(function() {
+          var account = {
+            account_id: accountID,
+            email: profile.email,
+            full_name: profile.full_name,
+            registration_ts: now,
+            is_verified: profile.email_is_verified,
+          };
+
+          if (profile.email_is_verified) {
+            item.verification_ip = profile.source;
+            item.verification_ts = now;
+          }
+
+          return account;
+        });
+    });
+};
+    
 exports.resource = function(account) {
   if (!account) return null;
 
@@ -148,7 +193,7 @@ function parseAccountItem(account) {
     account_id: account.account_id.S,
     full_name: account.full_name.S,
     email: account.email.S,
-    password: account.password.S,
+    password: account.password && account.password.S,
     registration_ts: parseInt(account.registration_ts.N, 10),
     is_verified: !!account.verification_ts,
     verification_ts: account.verification_ts && account.verification_ts.N,

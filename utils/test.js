@@ -72,7 +72,9 @@ exports.basic = function(user, password) {
   return 'Basic ' + base64Creds(user, password);
 };
 
-exports.peppermintScheme = function(recorderUser, recorderPass, accountUser, accountPass) {
+var GOOGLE = 1;
+var FACEBOOK = 2;
+exports.peppermintScheme = function(recorderUser, recorderPass, accountUser, accountPass, provider) {
   var h = 'Peppermint ';
 
   if (recorderUser) {
@@ -83,7 +85,14 @@ exports.peppermintScheme = function(recorderUser, recorderPass, accountUser, acc
     if (recorderUser) {
       h += ', ';
     }
-    h += 'account=' + base64Creds(accountUser, accountPass);
+    if (provider === GOOGLE) {
+      h += 'google=';
+    } else if (provider === FACEBOOK) {
+      h += 'facebook=';
+    } else {
+      h += 'account=';
+    }
+    h += base64Creds(accountUser, accountPass);
   }
 
   return h;

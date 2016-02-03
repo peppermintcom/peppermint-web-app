@@ -90,3 +90,10 @@ var verify = exports.verify = function(token) {
 
   return r;
 };
+
+//parse and decode
+exports.claims = function(token) {
+  var segments = token.split('.');
+  
+  return JSON.parse(Buffer(segments[1], 'base64').toString('utf8'));
+};

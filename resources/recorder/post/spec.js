@@ -39,7 +39,7 @@ exports.responses = {
       type: 'object',
       properties: {
         at: require('definitions/jwt'),
-        recorder: use(recorder, ['description'], ['recorder_client_id', 'recorder_key', 'recorder_ts']),
+        recorder: use(recorder, ['description'], ['recorder_id', 'recorder_client_id', 'recorder_key', 'recorder_ts']),
       },
       required: ['at', 'recorder'],
     },
@@ -47,6 +47,7 @@ exports.responses = {
       'application/json': {
         at: 'abc.def.ghi',
         recorder: {
+          recorder_id: 'recorder123',
           recorder_client_id: 'some 123 client',
           recorder_key: 'abcDEF123',
           recorder_ts: '2015-10-19 09:19:55',

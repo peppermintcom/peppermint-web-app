@@ -39,13 +39,16 @@ function handle(request, reply) {
   }
 
   Promise.all([
-    creds.account ? _.accounts.get(creds.account.user) : Promise.resolve(),
     //recorder.user is the client_id, the key in the recorders table
     creds.recorder ? _.recorders.get(creds.recorder.user) : Promise.resolve(),
+    //Auth header validation ensures at most one of account, google, or facebook
+    creds.account ? _.accounts.get(creds.account.user) : Promise.resolve(),
+    creds.google ? _.auth.google(creds.google).then(_.accounts.upsert) : Promise.resolve(),
+    creds.facebook ? _.auth.facebook(creds.facebook).then(_.accounts.upser) : Promise.resolve(),
   ])
   .then(function(results) {
-    var account = results[0];
-    var recorder = results[1];
+    var recorder = results[0];
+    var account = results[1] || results[2] || results[3];
 
     if (creds.account && !account) {
       reply.fail({
@@ -63,8 +66,8 @@ function handle(request, reply) {
     }
 
     return Promise.all([
-      account ? _.bcryptCheck(creds.account.password, account.password) : Promise.resolve(),
-      recorder ? _.bcryptCheck(creds.recorder.password, recorder.recorder_key) : Promise.resolve(),
+      creds.account ? _.bcryptCheck(creds.account.password, account.password) : Promise.resolve(),
+      creds.recorder ? _.bcryptCheck(creds.recorder.password, recorder.recorder_key) : Promise.resolve(),
     ])
     .then(function(results) {
       var accountOK = results[0];
@@ -109,10 +112,10 @@ function handle(request, reply) {
         included: _.compact([accountResource, recorderResource]),
       });
     })
-    .catch(function(err) {
-      console.log(err);
-      reply.fail(err);
-    });
+  })
+  .catch(function(err) {
+    console.log(err);
+    reply.fail(err);
   });
 }
 
