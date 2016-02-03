@@ -2,12 +2,45 @@ var expect = require('chai').expect;
 var auth = require('../auth');
 var _ = require('lodash');
 
+describe('Facebook auth', function() {
+  var email = 'andrew@areed.io';
+  var name = 'Andrew Reed';
+  //https://developers.facebook.com/tools/explorer/
+  var accessToken = process.env.FACEBOOK_AT;
+
+  it('should return an email and full_name.', function() {
+    return auth.facebook(email, accessToken)
+      .then(function(user) {
+        expect(user).to.have.property('email', email);
+        expect(user).to.have.property('full_name', 'Andrew Reed');
+        expect(user).to.have.property('source', 'facebook');
+      });
+  });
+
+  describe('invalid access token', function() {
+    var badErr = new Error('success with bad access token');
+
+    it('should throw an error.', function() {
+      return auth.facebook(email, 'x' + accessToken)
+        .then(function() {
+          throw badErr;
+        })
+        .catch(function(err) {
+          if (err === badErr) {
+            throw err;
+          }
+          expect(err.message).to.equal('401');
+        });
+    });
+  });
+});
+
 describe.skip('Google auth', function() {
   it('should return an email and full_name.', function() {
-    //https://developers.google.com/oauthplayground
-    var accessToken = 'ya29.fALMe4d8W2NdNQhhKCXmBRvcDjYqCt2WGMM3TtLCheN91A7oZ1_lNw7A_a0UveLFwc-y';
     var email = 'andrew@areed.io';
     var name = 'Andrew Reed';
+    //https://developers.google.com/oauthplayground
+    var accessToken = process.env.GOOGLE_AT;
 
     return auth.google(email, accessToken)
       .then(function(user) {

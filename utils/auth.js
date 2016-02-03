@@ -119,8 +119,13 @@ exports.facebook = function(email, accessToken) {
     return Promise.reject(new Error('email is required'));
   }
 
-  return http('GET', 'https://graph.facebook.com/me?access_token=' + accessToken)
-    .then(function(profile) {
+  return http.get('https://graph.facebook.com/me?access_token=' + accessToken)
+    .then(function(response) {
+      if (response.statusCode === 400) {
+        var err = new Error('401');
+        err.name = JSON.stringify({detail: 'Facebook rejected access token'});
+        throw err;
+      }
       if (response.statusCode !== 200) {
         console.log(util.inspect(response.body, {depth: null}));
         throw new Error(response.statusCode);
@@ -135,8 +140,6 @@ exports.facebook = function(email, accessToken) {
         email: profile.email,
         full_name: profile.name,
         source: 'facebook',
-        //TODO
-        email_is_verified: false,
       };
     });
 };
