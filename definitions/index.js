@@ -36,7 +36,12 @@ exports.withRelationships = function(resourceObject) {
   var relationshipsSchema = {
       type: 'object',
       properties: relationships.reduce(function(o, r) {
-        o[r] = resourceIdentifierObjectSchema;
+        o[r] = {
+          type: 'object',
+          properties: {
+            data: resourceIdentifierObjectSchema,
+          },
+        };
         return o;
       }, {}),
       additionalProperties: false,

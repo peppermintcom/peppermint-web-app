@@ -48,8 +48,8 @@ exports.responses = {
       'application/vnd.api+json': {
         data: _.assign({}, defs.jwts.example, {
           relationships: {
-            recorder: _.pick(defs.recorders.example, 'type', 'id'),
-            account: _.pick(defs.accounts.example, 'type', 'id'),
+            recorder: {data: _.pick(defs.recorders.example, 'type', 'id')},
+            account: {data: _.pick(defs.accounts.example, 'type', 'id')},
           },
         }),
         included: [

@@ -27,6 +27,6 @@ The clients can then share this url in an email or text message, or download the
 file and send it as an attachment in an email.
 
 ## Changes
-### November 25, 2015
-POST /uploads returns a short_url and canonical_url. POST /record returns the
-same short_url and canonical_url. POST /record is deprecated.
+### Feb 3, 2016
+POST /jwts accepts google base64 email:accessToken in Authorization header.
+Response data.relationships.account.id -> data.relationships.account.data.id.

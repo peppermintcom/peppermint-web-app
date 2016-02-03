@@ -1,11 +1,16 @@
+var util = require('util');
 var tv4 = require('tv4');
 var expect = require('chai').expect;
 var _ = require('utils/test');
 var post = _.partial(_.http, 'POST', '/jwts', null);
 var jsonapischema = require('./jsonapischema.json');
 var spec = require('../resources/jwts/post/spec');
+var defs = require('definitions');
 
-describe('POST /jwts', function() {
+const GOOGLE = 1;
+const FACEBOOK = 2;
+
+describe.only('POST /jwts', function() {
   var recorder, account;
   var recorderUser, recorderPass, accountUser, accountPass;
 
@@ -23,6 +28,68 @@ describe('POST /jwts', function() {
     });
   });
 
+  describe('google-only authentication', function() {
+    var response;
+
+    var email = 'andrew@areed.io';
+    //https://developers.google.com/oauthplayground
+    var accessToken = process.env.GOOGLE_AT;
+    if (!accessToken) {
+      throw new Error('GOOGLE_AT=access_token from oauth playground');
+    }
+
+    describe('without Peppermint account', function() {
+      before(function() {
+        return _.accounts.del(email);
+      });
+
+      before(function() {
+        var header = _.peppermintScheme(null, null, email, accessToken, GOOGLE);
+        return post({
+          'X-Api-Key': _.fake.API_KEY,
+          Authorization: header,
+        }).then(function(_response) {
+          response = _response;
+        });
+      });
+
+      it('should respond with status code 200.', function() {
+        expect(response.statusCode).to.equal(200);
+      });
+
+      it('should respond with jsonapi content.', function() {
+        expect(response.headers).to.have.property('content-type', 'application/vnd.api+json');
+        if (!tv4.validate(response.body, jsonapischema)) {
+          console.log(util.inspect(tv4.error, {depth: null}));
+          throw tv4.error;
+        }
+      });
+
+      it('should respond with a body matching the spec documentation.', function() {
+        if (!tv4.validate(response.body, spec.responses['200'].schema)) {
+          throw tv4.error;
+        }
+      });
+
+      it('should include the new account in the response.', function() {
+        if (!tv4.validate(response.body.included[0], defs.accounts.schema)) {
+          throw tv4.error;
+        }
+      });
+
+      it('should send a jwt valid for the account.', function() {
+        return Promise.all([
+          jwtAuthenticatesAccount(response.body.data.attributes.token, response.body.included[0].id),
+          jwtAuthenticatesRecorder(response.body.data.attributes.token),
+        ])
+        .then(function(results) {
+          must(results[0]);
+          mustnt(results[1]);
+        });
+      });
+    });
+  });
+
   describe('recorder-only authentication', function() {
     describe('registered recorder', function() {
       describe('correct recorder key', function() {
@@ -34,7 +101,7 @@ describe('POST /jwts', function() {
           .then(function(res) {
             expect(res.statusCode).to.equal(200);
             expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
-            if (!tv4.validate(jsonapischema, res.body)) {
+            if (!tv4.validate(res.body, jsonapischema)) {
               throw tv4.error;
             }
             expect(res.body.data.attributes).to.have.property('token');
@@ -120,7 +187,7 @@ describe('POST /jwts', function() {
           .then(function(res) {
             expect(res.statusCode).to.equal(200);
             expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
-            if (!tv4.validate(jsonapischema, res.body)) {
+            if (!tv4.validate(res.body, jsonapischema)) {
               throw tv4.error;
             }
             expect(res.body.data.attributes).to.have.property('token');
@@ -207,7 +274,7 @@ describe('POST /jwts', function() {
           .then(function(res) {
             expect(res.statusCode).to.equal(200);
             expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
-            if (!tv4.validate(jsonapischema, res.body)) {
+            if (!tv4.validate(res.body, jsonapischema)) {
               throw tv4.error;
             }
             expect(res.body.data.attributes).to.have.property('token');

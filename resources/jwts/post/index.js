@@ -92,8 +92,8 @@ function handle(request, reply) {
       var accountResource = _.accounts.resource(account);
       var recorderResource = _.recorders.resource(recorder);
       var relationships = _.assign({},
-          accountResource ? {account: _.pick(accountResource, 'id', 'type')} : null,
-          recorderResource ? {recorder: _.pick(recorderResource, 'id', 'type')} : null
+          accountResource ? {account: {data: _.pick(accountResource, 'id', 'type')}} : null,
+          recorderResource ? {recorder: {data: _.pick(recorderResource, 'id', 'type')}} : null
       );
 
       if (recorderResource) {

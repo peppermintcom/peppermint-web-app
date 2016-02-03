@@ -126,12 +126,17 @@ describe('lambda:Authenticate', function() {
           succeed: function(result) {
             expect(result.data.relationships).not.to.have.property('account');
             expect(result.data.relationships).to.have.property('recorder');
-            expect(result.data.relationships.recorder.id).to.equal(recorder.recorder_id);
+            expect(result.data.relationships.recorder.data.id).to.equal(recorder.recorder_id);
             expect(result.included).to.have.length(1);
             if (!tv4.validate(result.included[0], defs.recorders.schemaNoKey)) {
               return done(tv4.error);
             }
-            done(tv4.validate(result, schema) ? null : tv4.error);
+            if (!tv4.validate(result, schema)) {
+              console.log(tv4.error);
+              done(tv4.error);
+              return;
+            }
+            done();
           },
         });
       });
@@ -162,7 +167,7 @@ describe('lambda:Authenticate', function() {
           succeed: function(result) {
             expect(result.data.relationships).not.to.have.property('recorder');
             expect(result.data.relationships).to.have.property('account');
-            expect(result.data.relationships.account.id).to.equal(account.account_id);
+            expect(result.data.relationships.account.data.id).to.equal(account.account_id);
             expect(result.included).to.have.length(1);
             if (!tv4.validate(result.included[0], defs.accounts.schema)) {
               return done(tv4.error);
@@ -183,8 +188,8 @@ describe('lambda:Authenticate', function() {
           succeed: function(result) {
             expect(result.data.relationships).to.have.property('recorder');
             expect(result.data.relationships).to.have.property('account');
-            expect(result.data.relationships.recorder.id).to.equal(recorder.recorder_id);
-            expect(result.data.relationships.account.id).to.equal(account.account_id);
+            expect(result.data.relationships.recorder.data.id).to.equal(recorder.recorder_id);
+            expect(result.data.relationships.account.data.id).to.equal(account.account_id);
             expect(result.included).to.have.length(2);
             done(tv4.validate(result, schema) ? null : tv4.error);
           },
