@@ -66,8 +66,12 @@ describe('lambda:CreateMessage', function() {
       var m = _.gcm.sends.pop();
 
       expect(m).to.have.property('to', user.account.gcm_notification_key);
-      expect(m).not.to.have.property('data');
       expect(m.notification).to.deep.equal({
+        title: 'New Message',
+        body: 'John Doe sent you a message',
+        icon: 'myicon',
+      });
+      expect(m.data).to.deep.equal({
         message_id: response.id,
         audio_url: body.data.attributes.audio_url,
         sender_name: 'John Doe',

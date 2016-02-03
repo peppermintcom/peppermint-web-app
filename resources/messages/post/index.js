@@ -91,6 +91,11 @@ function handle(request, reply) {
           return _.gcm.sendToDeviceGroup({
             to: request.recipient.gcm_notification_key,
             notification: {
+              title: 'New Message',
+              body: request.sender.full_name + ' sent you a message',
+              icon: 'myicon',
+            },
+            data: {
               audio_url: message.audio_url,
               message_id: message.message_id,
               sender_name: request.sender.full_name,
