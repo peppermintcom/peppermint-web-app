@@ -1,3 +1,4 @@
+var util = require('util');
 var tv4 = require('tv4');
 var _ = require('lodash');
 var jwt = require('./jwt');
@@ -27,10 +28,25 @@ exports.process = function(handlers) {
             next(i + 1, result);
           },
           fail: function(err) {
-            var e = new Error(err.status);
+            //known Peppermint errors
+            if (err.status) {
+              var e = new Error(err.status);
 
-            e.name = JSON.stringify(_.pick(err, 'detail', 'title', 'code'));
-            reply.fail(e);
+              e.name = JSON.stringify(_.pick(err, 'detail', 'title', 'code'));
+              reply.fail(e);
+              return;
+            }
+            //other errors can be passed on if they have a message property
+            if (err.message) {
+              reply.fail(err);
+              return;
+            }
+            //errors without a message property will be mapped to the default
+            //(OK) acction by Gateway, so add something that will be picked up
+            //by an error integration in Lambda error regex.
+            console.log('unknown error:');
+            console.log(util.inspect(err, {depth: null}));
+            reply.fail(new Error('Internal Server Error'));
           },
         });
       } else {

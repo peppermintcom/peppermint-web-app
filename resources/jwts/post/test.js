@@ -32,7 +32,7 @@ describe('lambda:Authenticate', function() {
     var email = 'andrew@areed.io';
     var name = 'Andrew Reed';
     //https://developers.google.com/oauthplayground
-    var accessToken = 'ya29.fQK-Sy8ZpOl10IW1iiqVoZ-9Y7yC0pWsaCRG8RhISg-xKaaTACd0A2m9DtMRjMI1XrQq';
+    var accessToken = process.env.GOOGLE_AT;
 
     describe('account does not exist', function() {
       var result, accountID;

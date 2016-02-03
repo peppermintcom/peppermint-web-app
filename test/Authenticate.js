@@ -10,7 +10,7 @@ var defs = require('definitions');
 const GOOGLE = 1;
 const FACEBOOK = 2;
 
-describe.only('POST /jwts', function() {
+describe('POST /jwts', function() {
   var recorder, account;
   var recorderUser, recorderPass, accountUser, accountPass;
 
@@ -32,11 +32,107 @@ describe.only('POST /jwts', function() {
     var response;
 
     var email = 'andrew@areed.io';
+    var name = 'Andrew Reed';
     //https://developers.google.com/oauthplayground
     var accessToken = process.env.GOOGLE_AT;
     if (!accessToken) {
       throw new Error('GOOGLE_AT=access_token from oauth playground');
     }
+
+    describe('with invalid access token', function() {
+      before(function() {
+        var header = _.peppermintScheme(null, null, email, 'X' + accessToken, GOOGLE);
+        return post({
+          'X-Api-Key': _.fake.API_KEY,
+          Authorization: header,
+        }).then(function(_response) {
+          response = _response;
+        });
+      });
+ 
+      it('should respond with 401 status code.', function() {
+        expect(response.statusCode).to.equal(401);
+      });
+
+      it('should respond with valid jsonapi content.', function() {
+        expect(response.headers).to.have.property('content-type', 'application/vnd.api+json');
+        if (!tv4.validate(response.body, jsonapischema)) {
+          throw tv4.error;
+        }
+      });
+
+      it('should respond with body matching spec documentation.', function() {
+        expect(response.body).to.deep.equal({
+          errors: [{detail: 'Google rejected access token'}],
+        });
+        if (!tv4.validate(response.body, spec.responses['401'].schema)) {
+          throw tv4.error;
+        }
+      });
+    });
+
+    describe('with Peppermint account', function() {
+      var account, response;
+
+      before(function() {
+        return _.accounts.upsert({
+          email: email,
+          name: name,
+          source: 'Mocha',
+          email_is_verified: true,
+        })
+        .then(function(_account) {
+          account = _account;
+        });
+      });
+
+      before(function() {
+        var header = _.peppermintScheme(null, null, email, accessToken, GOOGLE);
+        return post({
+          'X-Api-Key': _.fake.API_KEY,
+          Authorization: header,
+        }).then(function(_response) {
+          response = _response;
+        });
+      });
+
+      it('should respond with status code 200.', function() {
+        expect(response.statusCode).to.equal(200);
+      });
+
+      it('should respond with jsonapi content.', function() {
+        expect(response.headers).to.have.property('content-type', 'application/vnd.api+json');
+        if (!tv4.validate(response.body, jsonapischema)) {
+          console.log(util.inspect(tv4.error, {depth: null}));
+          console.log(util.inspect(response.body));
+          throw tv4.error;
+        }
+      });
+
+      it('should respond with a body matching the spec documentation.', function() {
+        if (!tv4.validate(response.body, spec.responses['200'].schema)) {
+          throw tv4.error;
+        }
+      });
+
+      it('should include the account in the response.', function() {
+        if (!tv4.validate(response.body.included[0], defs.accounts.schema)) {
+          throw tv4.error;
+        }
+        expect(response.body.included[0].id).to.equal(account.account_id);
+      });
+
+      it('should send a jwt valid for the account.', function() {
+        return Promise.all([
+          jwtAuthenticatesAccount(response.body.data.attributes.token, response.body.included[0].id),
+          jwtAuthenticatesRecorder(response.body.data.attributes.token),
+        ])
+        .then(function(results) {
+          must(results[0]);
+          mustnt(results[1]);
+        });
+      });
+    });
 
     describe('without Peppermint account', function() {
       before(function() {
@@ -61,6 +157,7 @@ describe.only('POST /jwts', function() {
         expect(response.headers).to.have.property('content-type', 'application/vnd.api+json');
         if (!tv4.validate(response.body, jsonapischema)) {
           console.log(util.inspect(tv4.error, {depth: null}));
+          console.log(util.inspect(response.body));
           throw tv4.error;
         }
       });
@@ -106,7 +203,7 @@ describe.only('POST /jwts', function() {
             }
             expect(res.body.data.attributes).to.have.property('token');
             expect(res.body.data.relationships).to.deep.equal({
-              recorder: {type: 'recorders', id: recorder.recorder_id},
+              recorder: {data: {type: 'recorders', id: recorder.recorder_id}},
             });
             expect(res.body.included).to.deep.equal([{
               type: 'recorders',
@@ -192,7 +289,7 @@ describe.only('POST /jwts', function() {
             }
             expect(res.body.data.attributes).to.have.property('token');
             expect(res.body.data.relationships).to.deep.equal({
-              account: {type: 'accounts', id: account.account_id},
+              account: {data: {type: 'accounts', id: account.account_id}},
             });
             expect(res.body.included).to.deep.equal([{
               type: 'accounts',

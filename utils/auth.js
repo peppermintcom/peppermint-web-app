@@ -83,7 +83,13 @@ exports.google = function(creds) {
 
   return http.get('https://www.googleapis.com/plus/v1/people/me?access_token=' + accessToken)
     .then(function(response) {
+      if (response.statusCode === 403 || response.statusCode === 401) {
+        var err = new Error('401');
+        err.name = JSON.stringify({detail: 'Google rejected access token'});
+        throw err;
+      }
       if (response.statusCode !== 200) {
+        console.log(util.inspect(response.body, {depth: null}));
         throw new Error(response.statusCode);
       }
       //https://developers.google.com/+/web/api/rest/latest/people#resource
