@@ -94,6 +94,7 @@ exports.google = function(creds) {
       }
       //https://developers.google.com/+/web/api/rest/latest/people#resource
       var profile = response.body;
+      console.log(profile);
       var match = _.find(profile.emails, function(obj) {
         return obj.value.toLowerCase() === email.toLowerCase();
       });

@@ -1,6 +1,10 @@
 var request = require('request');
 
 exports.postJSON = function(url, body, headers) {
+  console.log('postJSON arguments');
+  console.log(url);
+  console.log(body);
+  console.log(headers);
   return new Promise(function(resolve, reject) {
     request({
       url: url,

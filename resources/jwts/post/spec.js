@@ -6,7 +6,7 @@ var _ = require('utils');
 
 exports.tags = ['inter-app'];
 exports.summary = 'Exchange credentials for an access token.';
-exports.description = 'The Peppermint API authenticates both recorders and accounts. While most opeartions only require the client be authenticated as one or the other, some API operations require the client to be authenticated as both recorder and account. This endpoint uses a custom scheme in the Authorization header to accept credentials for both recorders and accounts and respond with a token asserting the bearer is both an account and recorder. It also accepts a single set of credentials to support clients that do not need to authenticate as both account and recorder.';
+exports.description = 'The Peppermint API authenticates both recorders and accounts. While most opeartions only require the client be authenticated as one or the other, some API operations require the client to be authenticated as both recorder and account. This endpoint uses a custom scheme in the Authorization header to accept credentials for both recorders and accounts and respond with a token asserting the bearer is both an account and recorder. It also accepts a single set of credentials to support clients that do not need to authenticate as both account and recorder. A client can authenticate by account using the google or facebook parameter with an accessToken that verifies the user email. Only one of account, google, or facebook parameter can appear in a header.';
 exports.operationId = 'Authenticate';
 exports.produces = ['application/vnd.api+json'];
 
@@ -23,6 +23,7 @@ exports.parameters = [
       'To authenticate as a recorder only under the Peppermint scheme, the Authorization field would be "Peppermint recorder=cmVjb3JkZXIxMjM6aFVJNUVId2VEUXdx"',
       'Now assume an account has been registered with email "user@example.com" and password "secret". The Authorization header under the Basic scheme would be the base64 encoding of "user@example.com:secret" == "Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=". To authenticate by account under the Peppermint scheme the Authorization header would be "Peppermint account=dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ="',
       'If authenticating as both account and recorder, the Authorization header would be "Peppermint recorder=cmVjb3JkZXIxMjM6aFVJNUVId2VEUXdx, account=dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=", or equivalently "Peppermint account=dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=, recorder=cmVjb3JkZXIxMjM6aFVJNUVId2VEUXdx"',
+      'To authenticate with Google or Facebook, use google=base64(email:access_token) or facebook=base64(email:access_token)',
     ].join('\n'),
   },
   headers.XApiKey,

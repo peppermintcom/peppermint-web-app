@@ -97,7 +97,7 @@ exports.Internal = {
     'method.response.header.Access-Control-Allow-Origin': "'*'",
   },
   responseTemplates: {
-    'application/json': "{\"errorMessage\": \"Internal Server Error\"",
+    'application/json': '{"errorMessage": "Internal Server Error"}',
   },
 };
 

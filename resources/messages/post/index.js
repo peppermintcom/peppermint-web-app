@@ -90,19 +90,21 @@ function handle(request, reply) {
         .then(function(transcription) {
           return _.gcm.sendToDeviceGroup({
             to: request.recipient.gcm_notification_key,
+            /*
             notification: {
               title: 'New Message',
               body: request.sender.full_name + ' sent you a message',
               icon: 'myicon',
             },
+            */
             data: {
               audio_url: message.audio_url,
-              message_id: message.message_id,
+              //message_id: message.message_id,
               sender_name: request.sender.full_name,
               sender_email: message.sender_email,
               recipient_email: message.recipient_email,
               created: message.created,
-              transcription: transcription && transcription.text,
+              //transcription: transcription && transcription.text,
             },
           });
         });

@@ -1,6 +1,8 @@
 #lambda env vars
 utils/conf.json
 
+utils/ops
+
 *.swp
 *.DS_Store
 #generated files

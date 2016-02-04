@@ -34,7 +34,6 @@ exports.removeDeviceGroupMember = function(email, notificationKey, registrationI
 };
 
 exports.createDeviceGroup = function(email, registrationID) {
-  console.log(registrationID);
   return post({
       operation: 'create',
       notification_key_name: email.toLowerCase(),
@@ -44,8 +43,11 @@ exports.createDeviceGroup = function(email, registrationID) {
 };
 
 function handle(res) {
+  console.log('GCM Response:');
+  console.log(res.statusCode);
+  console.log(res.headers);
+  console.log(res.body);
   if (res.statusCode != 200) {
-    console.log(res.body);
     throw new Error(res.statusCode);
   }
   return res.body;
