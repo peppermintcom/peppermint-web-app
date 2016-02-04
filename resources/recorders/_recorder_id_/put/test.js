@@ -3,21 +3,13 @@ var handler = require('.').handler;
 var _ = require('utils/test');
 
 describe('lambda:UpdateRecorder', function() {
-  var gcmToken = _.token(14);
-  var token, recorder, otherRecorder, account, body;
+  var gcmToken = _.token(64);
+  var token, recorder, body, other;
 
   before(function() {
-    return Promise.all([
-      _.fake.recorder(),
-      _.fake.recorder(),
-      _.fake.account(),
-    ])
-    .then(function(results) {
-      token = results[0].at;
-      recorder = results[0].recorder;
-      otherRecorder = results[1];
-      account = results[2];
-
+    return _.fake.recorder().then(function(_recorder) {
+      recorder = _recorder.recorder;
+      token = _recorder.at;
       body = {
         data: {
           type: 'recorders',
@@ -30,181 +22,32 @@ describe('lambda:UpdateRecorder', function() {
     });
   });
 
+  before(function() {
+    return _.fake.recorder().then(function(_recorder) {
+      other = _recorder;
+    });
+  });
+
   describe('valid requests', function() {
-    describe('given the recorder is not linked to an account', function() {
-      it('should update the recorder gcm_registration_token attribute in the database.', function(done) {
-        handler({
-          Authorization: 'Bearer ' + token,
-          api_key: _.fake.API_KEY,
-          'Content-Type': 'application/vnd.api+json',
-          recorder_id: recorder.recorder_id,
-          body: body,
-        }, {
-          succeed: function(res) {
-            expect(res).to.be.undefined;
-            _.recorders.get(recorder.recorder_client_id)
-              .then(function(recorder) {
-                expect(recorder).to.have.property('gcm_registration_token', gcmToken);
-                done();
-              });
-          },
-          fail: function(err) {
-            done(new Error(err));
-          },
-        });
-      });
-    });
-
-    describe('given the recorder is linked to an account with a device group', function() {
-      var account, receiver;
-
-      before(function() {
-        return _.fake.accountDeviceGroup().then(function(adg) {
-          account = adg.account;
-          receiver = adg.receiver;
-        });
-      });
-
-      describe('and the recorder already had a gcm_registration_token', function() {
-        it('should replace the recorder\'s old toke with the recorder\'s new token in the existing device group', function(done) {
-          var oldToken = receiver.gcm_registration_token;
-          var newToken = _.token(64);
-          var recorderID = receiver.recorder_id;
-
-          handler({
-            Authorization: 'Bearer ' + receiver.at,
-            api_key: _.fake.API_KEY,
-            'Content-Type': 'application/vnd.api+json',
-            recorder_id: recorderID,
-            body: {
-              data: {
-                type: 'recorders',
-                id: recorderID,
-                attributes:  {
-                  gcm_registration_token: newToken,
-                },
-              },
-            },
-          }, {
-            succeed: function() {
-              //check GCM has been updated
-              var group = _.gcm.store[account.gcm_notification_key];
-              expect(group).to.deep.equal([newToken]);
-
-              //check the token has been updated in the db
-              _.recorders.get(receiver.recorder_client_id)
-                .then(function(recorder) {
-                  expect(recorder).to.have.property('gcm_registration_token', newToken);
-                  done();
-                })
-                .catch(done);
-            },
-            fail: done,
-          });
-        });
-      });
-
-      describe('and the recorder did not previously have a gcm_registration_token', function() {
-        var recorder, recorderID;
-
-        before(function() {
-          return _.fake.recorder().then(function(_recorder) {
-            recorder = _recorder.recorder;
-            recorderID = recorder.recorder_id;
-
-            return _.receivers.link(recorderID, account.account_id);
-          });
-        });
-
-        it('should add the recorder\'s token to the existing device group', function(done) {
-          var newToken = _.token(64);
-
-          handler({
-            Authorization: 'Bearer ' + _.jwt.creds(null, recorderID),
-            api_key: _.fake.API_KEY,
-            'Content-Type': 'application/vnd.api+json',
-            recorder_id: recorderID,
-            body: {
-              data: {
-                type: 'recorders',
-                id: recorderID,
-                attributes:  {
-                  gcm_registration_token: newToken,
-                },
-              },
-            },
-          }, {
-            succeed: function() {
-              var group = _.gcm.store[account.gcm_notification_key];
-              expect(group[1]).to.equal(newToken);
-
-              _.recorders.get(recorder.recorder_client_id)
-                .then(function(_recorder) {
-                  expect(_recorder).to.have.property('gcm_registration_token', newToken);
-                  done();
-                });
-            },
-            fail: done,
-          });
-        });
-      });
-    });
-
-    describe('given the recorder is linked to an account without a device group', function() {
-      var account, recorder, recorderID;
-
-      before(function() {
-        return Promise.all([
-            _.fake.account(),
-            _.fake.recorder(),
-          ])
-          .then(function(results) {
-            account = results[0];
-            recorder = results[1].recorder;
-            recorderID = recorder.recorder_id;
-
-            return _.receivers.link(recorderID, account.account_id);
-          });
-      });
-
-      it('should create a device group with the new token.', function(done) {
-        var newToken = _.token(64);
-
-        handler({
-          Authorization: 'Bearer ' + _.jwt.creds(null, recorderID),
-          api_key: _.fake.API_KEY,
-          'Content-Type': 'application/vnd.api+json',
-          recorder_id: recorderID,
-          body: {
-            data: {
-              type: 'recorders',
-              id: recorderID,
-              attributes:  {
-                gcm_registration_token: newToken,
-              },
-            },
-          },
-        }, {
-          succeed: function() {
-            return _.accounts.get(account.email)
-              .then(function(_account) {
-                var notificationKey = _account.gcm_notification_key;
-                var group = _.gcm.store[notificationKey];
-
-                expect(notificationKey).to.be.ok;
-                expect(group[0]).to.equal(newToken);
-
-                //check the token was saved to the recorder
-                return _.recorders.get(recorder.recorder_client_id)
-                  .then(function(recorder) {
-                    expect(recorder).to.have.property('gcm_registration_token', newToken);
-                    done();
-                  });
-              })
-              .catch(done);
-          },
-          fail: done,
-        });
+    it('should update the recorder gcm_registration_token attribute in the database.', function(done) {
+      handler({
+        Authorization: 'Bearer ' + token,
+        api_key: _.fake.API_KEY,
+        'Content-Type': 'application/vnd.api+json',
+        recorder_id: recorder.recorder_id,
+        body: body,
+      }, {
+        succeed: function(res) {
+          expect(res).to.be.undefined;
+          _.recorders.get(recorder.recorder_client_id)
+            .then(function(recorder) {
+              expect(recorder).to.have.property('gcm_registration_token', gcmToken);
+              done();
+            });
+        },
+        fail: function(err) {
+          done(new Error(err));
+        },
       });
     });
   });
@@ -439,6 +282,14 @@ describe('lambda:UpdateRecorder', function() {
   });
 
   describe('authenticated as account only', function() {
+    var account;
+
+    before(function() {
+      return _.fake.account().then(function(_account) {
+        account = _account;
+      });
+    });
+
     it('should fail with an Unauthorized error.', function(done) {
       handler({
         api_key: _.fake.API_KEY,
@@ -465,7 +316,7 @@ describe('lambda:UpdateRecorder', function() {
     it('should fail with a Forbidden error.', function(done) {
       handler({
         api_key: _.fake.API_KEY,
-        Authorization: 'Bearer ' + otherRecorder.at,
+        Authorization: 'Bearer ' + other.at,
         'Content-Type': 'application/vnd.api+json',
         recorder_id: recorder.recorder_id,
         body: body,
@@ -487,7 +338,7 @@ describe('lambda:UpdateRecorder', function() {
   describe('data.id does not match authentication', function() {
     it('should fail with a Forbidden error.', function(done) {
       var b = _.cloneDeep(body);
-      b.data.id = otherRecorder.recorder.recorder_id;
+      b.data.id = other.recorder.recorder_id;
 
       handler({
         api_key: _.fake.API_KEY,
@@ -502,7 +353,7 @@ describe('lambda:UpdateRecorder', function() {
         fail: function(err) {
           expect(err).to.have.property('message', '403');
           expect(JSON.parse(err.name)).to.deep.equal({
-            detail: 'Auth token is not valid for recorder ' + otherRecorder.recorder.recorder_id,
+            detail: 'Auth token is not valid for recorder ' + other.recorder.recorder_id,
           });
           done();
         },

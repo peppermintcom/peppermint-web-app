@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var handler = require('./').handler;
 var _ = require('utils/test');
 
-describe.only('lambda:AddAccountReceiver', function() {
+describe('lambda:AddAccountReceiver', function() {
   describe('Authorization header authenticates a recorder and account', function() {
     var account, recorder, jwt;
     var accountID, recorderID;
