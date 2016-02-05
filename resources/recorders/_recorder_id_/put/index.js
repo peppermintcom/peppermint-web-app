@@ -37,7 +37,7 @@ function allow(request, reply) {
 }
 
 function handle(request, reply) {
-  _.recorders.update(request.recorder_id, {
+  _.recorders.updateByID(request.recorder_id, {
     gcm_registration_token: {S: request.body.data.attributes.gcm_registration_token},
   })
   .then(function() {

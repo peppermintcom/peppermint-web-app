@@ -33,7 +33,7 @@ var receiver = exports.receiver = function(_recorder) {
 
   return (_recorder ? Promise.resolve(_recorder) : recorder())
     .then(function(recorder) {
-      return _.recorders.update(recorder.recorder.recorder_id, {
+      return _.recorders.updateByID(recorder.recorder.recorder_id, {
         gcm_registration_token: {S: gcmToken},
       })
       .then(function() {

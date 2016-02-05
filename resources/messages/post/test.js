@@ -5,51 +5,337 @@ var spec = require('./spec');
 var _ = require('utils/test');
 
 describe('lambda:CreateMessage', function() {
-  //user is an account with receiver recorder and device group on account
-  var sender, user, nonuser, body;
+  var sender, recipient, body;
 
   before(function() {
     return Promise.all([
-        _.fake.account(),
-        _.fake.account(),
-        _.fake.accountDeviceGroup(),
-      ])
-      .then(function(results) {
-        sender = results[0];
-        nonuser = results[1];
-        user = results[2];
+      _.fake.account(),
+      _.fake.account(),
+    ])
+    .then(function(results) {
+      sender = results[0];
+      recipient = results[1];
 
-        body = {
-          data: {
-            type: 'messages',
-            attributes: {
-              sender_email: sender.email,
-              recipient_email: user.account.email,
-              audio_url: _.fake.AUDIO_URL,
-            },
+      body = {
+        data: {
+          type: 'messages',
+          attributes: {
+            sender_email: sender.email,
+            recipient_email: recipient.email,
+            audio_url: _.fake.AUDIO_URL,
           },
-        };
-      });
+        },
+      };
+    });
   });
 
-  describe('Recipient with device group', function() {
-    var response;
-
-    before(function(done) {
+  describe('recipient has no recorders linked to account', function() {
+    it('should fail with a 404 error.', function(done) {
       handler({
-        Authorization: 'Bearer ' + sender.at,
         api_key: _.fake.API_KEY,
+        Authorization: 'Bearer ' + sender.at,
         'Content-Type': 'application/vnd.api+json',
         body: body,
       }, {
-        succeed: function(_response) {
-          response = _response;
+        succeed: function() {
+          done(new Error('success without recipient receiver'));
+        },
+        fail: function(err) {
+          expect(err.message).to.equal('404');
+          expect(JSON.parse(err.name)).to.deep.equal({
+            detail: 'Recipient cannot receive messages via Peppermint',
+          });
           done();
         },
-        fail: done,
+      });
+    });
+  });
+
+  describe('recipient has 1 recorder linked to account', function() {
+    var recorder;
+
+    before(function() {
+      return _.fake.recorder().then(function(_recorder) {
+        recorder = _recorder.recorder;
+
+        return _.receivers.link(recorder.recorder_id, recipient.account_id);
       });
     });
 
+    after(function() {
+      return _.receivers.unlink(recorder.recorder_id, recipient.account_id);
+    });
+
+    describe('recorder does not have a gcm_registration_token', function() {
+      it('should fail with a 404 error.', function(done) {
+        handler({
+          api_key: _.fake.API_KEY,
+          Authorization: 'Bearer ' + sender.at,
+          'Content-Type': 'application/vnd.api+json',
+          body: body,
+        }, {
+          succeed: function() {
+            done(new Error('success without recipient receiver'));
+          },
+          fail: function(err) {
+            expect(err.message).to.equal('404');
+            expect(JSON.parse(err.name)).to.deep.equal({
+              detail: 'Recipient cannot receive messages via Peppermint',
+            });
+            done();
+          },
+        });
+      });
+    });
+
+    describe('recorder has valid gcm_registration_token', function() {
+      var gcmToken = _.token(64);
+
+      before(function() {
+        return _.recorders.updateByID(recorder.recorder_id, {
+          gcm_registration_token: {S: gcmToken},
+        });
+      });
+
+      before(function() {
+        _.gcm.good(gcmToken);
+      });
+
+      it('should succeed with a message resource.', function(done) {
+        handler({
+          api_key: _.fake.API_KEY,
+          Authorization: 'Bearer ' + sender.at,
+          'Content-Type': 'application/vnd.api+json',
+          body: body,
+        }, {
+          succeed: function(result) {
+            expect(result).to.be.ok;
+            done();
+          },
+          fail: done,
+        });
+      });
+
+      it('should have sent to GCM.', function() {
+        var last = _.gcm.sends.pop();
+
+        expect(last).to.have.property('to', gcmToken);
+        expect(last).to.have.property('data');
+        expect(last).to.have.property('notification');
+      });
+    });
+
+    describe('recorder has an old gcm_registration_token', function() {
+      var gcmToken = _.token(64);
+      var gcmResponse;
+
+      before(function() {
+        return _.recorders.updateByID(recorder.recorder_id, {
+          gcm_registration_token: {S: gcmToken},
+        });
+      });
+
+      before(function() {
+        gcmResponse = _.gcm.old(gcmToken);
+      });
+
+      it('should succeed with a message resource.', function(done) {
+        handler({
+          api_key: _.fake.API_KEY,
+          Authorization: 'Bearer ' + sender.at,
+          'Content-Type': 'application/vnd.api+json',
+          body: body,
+        }, {
+          succeed: function(result) {
+            expect(result).to.be.ok;
+            done();
+          },
+          fail: done,
+        });
+      });
+
+      it('should send a message to GCM.', function() {
+        var last = _.gcm.sends.pop();
+
+        expect(last).to.have.property('to', gcmToken);
+        expect(last).to.have.property('data');
+        expect(last).to.have.property('notification');
+      });
+
+      it('should update the recorder registration token in the database to the one returned by GCM.', function() {
+        return _.recorders.get(recorder.recorder_client_id)
+          .then(function(recorder) {
+            expect(recorder).to.have.property('gcm_registration_token', gcmResponse.results[0].registration_id);
+          });
+      });
+    });
+
+    describe('recorder has an invalid registration token', function() {
+      var gcmToken = _.token(64);
+      var gcmResponse;
+
+      before(function() {
+        return _.recorders.updateByID(recorder.recorder_id, {
+          gcm_registration_token: {S: gcmToken},
+        });
+      });
+
+      before(function() {
+        gcmResponse = _.gcm.bad(gcmToken);
+      });
+
+      it('should fail with a 404 error.', function(done) {
+        handler({
+          api_key: _.fake.API_KEY,
+          Authorization: 'Bearer ' + sender.at,
+          'Content-Type': 'application/vnd.api+json',
+          body: body,
+        }, {
+          succeed: function() {
+            done(new Error('success with single bad registration token'));
+          },
+          fail: function(err) {
+            expect(err.message).to.equal('404');
+            expect(JSON.parse(err.name)).to.have.property('detail', 'Recipient cannot receive messages via Peppermint');
+            done();
+          },
+        });
+      });
+    });
+  });
+
+  describe('recipient has 2 recorders linked to account', function() {
+    var r1, r2;
+
+    before(function() {
+      return Promise.all([
+          _.fake.recorder(),
+          _.fake.recorder(),
+        ])
+        .then(function(results) {
+          r1 = results[0].recorder;
+          r2 = results[1].recorder;
+        });
+    });
+
+    before(function() {
+      return Promise.all([
+          _.receivers.link(r1.recorder_id, recipient.account_id),
+          _.receivers.link(r2.recorder_id, recipient.account_id),
+        ]);
+    });
+
+    describe('neither has a gcm_registration_token', function() {
+      it('should fail with a 404 error.', function() {
+        handler({
+          api_key: _.fake.API_KEY,
+          Authorization: 'Bearer ' + sender.at,
+          'Content-Type': 'application/vnd.api+json',
+          body: body,
+        }, {
+          succeed: function() {
+            done(new Error('success without recipient receiver'));
+          },
+          fail: function(err) {
+            expect(err.message).to.equal('404');
+            expect(JSON.parse(err.name)).to.deep.equal({
+              detail: 'Recipient cannot receive messages via Peppermint',
+            });
+            done();
+          },
+        });
+      });
+    });
+
+    describe('1 has a valid gcm_registration_token, 1 has no token', function() {
+      var r1Token = _.token(64);
+
+      before(function() {
+        _.gcm.good(r1Token);
+        while (_.gcm.sends.pop()) {}
+        return _.recorders.updateGCMToken(r1.recorder_client_id, r1Token);
+      });
+
+      it('should succeed with a message resource.', function(done) {
+        handler({
+          api_key: _.fake.API_KEY,
+          Authorization: 'Bearer ' + sender.at,
+          'Content-Type': 'application/vnd.api+json',
+          body: body,
+        }, {
+          succeed: function(result) {
+            expect(result).to.be.ok;
+            done();
+          },
+          fail: done,
+        });
+      });
+
+      it('should send 1 message to GCM.', function() {
+        var msg = _.gcm.sends.pop();
+        expect(_.gcm.sends).to.have.length(0);
+        expect(msg).to.have.property('to', r1Token);
+        expect(msg).to.have.property('data');
+        expect(msg).to.have.property('notification');
+      });
+    });
+
+    describe('both have valid gcm_registration_tokens', function() {
+      var r1Token = _.token(64);
+      var r2Token = _.token(64);
+
+      before(function() {
+        _.gcm.good(r1Token);
+        _.gcm.good(r2Token);
+
+        while (_.gcm.sends.pop()) {}
+
+        return Promise.all([
+            _.recorders.updateGCMToken(r1.recorder_client_id, r1Token),
+            _.recorders.updateGCMToken(r2.recorder_client_id, r2Token),
+          ]);
+      });
+
+      it('should succeed with a message resource.', function(done) {
+        handler({
+          api_key: _.fake.API_KEY,
+          Authorization: 'Bearer ' + sender.at,
+          'Content-Type': 'application/vnd.api+json',
+          body: body,
+        }, {
+          succeed: function(result) {
+            expect(result).to.be.ok;
+            done();
+          },
+          fail: done,
+        });
+      });
+
+      it('should send 2 messages to GCM.', function() {
+        expect(_.gcm.sends).to.have.length(2);
+      });
+    });
+
+    describe('1 has a valid gcm_registration_token, 1 has expired token', function() {
+      it('should succeed.', function() {
+        //TODO
+      });
+    });
+
+    describe('1 has expired gcm_registration_token, 1 has no token', function() {
+      it('should fail.', function() {
+        //TODO
+      });
+    });
+
+    describe('both have expired gcm_registration_tokens', function() {
+      it('should fail.', function() {
+        //TODO
+      });
+    });
+  });
+
+  /*
     it('should succeed with a message object.', function() {
       expect(response.id).to.be.ok;
       expect(response.type).to.equal('messages');
@@ -81,30 +367,7 @@ describe('lambda:CreateMessage', function() {
         transcription: null
       });
     });
-  });
-
-  describe('Recipient does not have device group', function() {
-    it('should fail with a 404 error.', function(done) {
-      var b = _.cloneDeep(body);
-      b.data.attributes.recipient_email = nonuser.email;
-
-      handler({
-        Authorization: 'Bearer ' + sender.at,
-        api_key: _.fake.API_KEY,
-        'Content-Type': 'application/vnd.api+json',
-        body: b,
-      }, {
-        fail: function(err) {
-          expect(err).to.have.property('message', '404');
-          expect(JSON.parse(err.name)).to.have.property('detail', 'Recipient cannot receive messages via Peppermint');
-          done();
-        },
-        succeed: function() {
-          done(new Error('success without Peppermint user'));
-        },
-      });
-    });
-  });
+   */ 
 
   describe('Recipient is unknown', function() {
     it('should fail with a 404 error.', function(done) {

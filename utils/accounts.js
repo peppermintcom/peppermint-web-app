@@ -198,24 +198,5 @@ function parseAccountItem(account) {
     is_verified: !!account.verification_ts,
     verification_ts: account.verification_ts && account.verification_ts.N,
     verification_ip: account.verification_ip && parseInt(account.verification_ip.S, 10),
-    gcm_notification_key: account.gcm_notification_key && account.gcm_notification_key.S,
   };
 }
-
-exports.createDeviceGroup = function(email, registrationIDs) {
-  return http.postJSON('https://android.googleapis.com/gcm/notification', {
-      operation: 'create',
-      notification_key_name: email,
-      registration_ids: registrationIDs,
-    }, {
-      Authorization: 'key=' + process.env.PEPPERMINT_GCM_API_KEY, 
-      project_id: process.env.PEPPERMINT_GCM_SENDER_ID,
-    })
-    .then(function(res) {
-      if (res.statusCode === 201 || res.statusCode === 200) {
-        return update(email, {
-          gcm_notification_key: {S: notificationKey},
-        });
-      }
-    });
-};

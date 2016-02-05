@@ -1,71 +1,66 @@
 var _ = require('lodash');
-var token = require('./randomtoken');
 var conf = require('utils/conf');
-
-var gcmStore = exports.store = {};
-
-var invalidRegistrationID = {error: 'no valid registration ids'};
-var partialSend = {
-  "success":1,
-  "failure":2,
-  "failed_registration_ids": [
-    "regId1",
-    "regId2"
-  ]
-};
+var token = require('./randomtoken');
 
 var sends = exports.sends = [];
-exports.sendToDeviceGroup = function(message) {
-  devCheck();
-  if (!message || !message.to || (!message.data && !message.notification)) throw new Error('400');
-  if (!gcmStore[message.to]) throw new Error('404');
+var gcmStore = exports.store = {};
 
+//fail quickly if stubs find their way into production
+if (conf.NODE_ENV === 'production') {
+  throw new Error('GCM stubs in production');
+}
+
+exports.sync = require('./gcm').sync;
+
+exports.good = function(registrationToken) {
+  var result = {
+    multicast_id: Math.floor(Math.random() * 100000000),
+    success: 1,
+    failure: 0,
+    canonical_ids: 0,
+    results: [{message_id: token(24)}],
+  };
+
+  gcmStore[registrationToken] = result;
+
+  return result;
+};
+
+exports.bad = function(registrationToken) {
+  var err = _.sample(['InvalidRegistration', 'NotRegistered']);
+
+  var result = {
+    multicast_id: Math.floor(Math.random() * 100000000),
+    success: 0,
+    failure: 1,
+    canonical_ids: 0,
+    results: [{error: err}],
+  };
+
+  gcmStore[registrationToken] = result;
+
+  return result;
+};
+
+exports.old = function(registrationToken) {
+  var result = {
+    multicast_id: Math.floor(Math.random() * 100000000),
+    success: 1,
+    failure: 0,
+    canonical_ids: 1,
+    results: [{message_id: token(24), registration_id: token(64)}]
+  };
+ 
+  gcmStore[registrationToken] = result;
+
+  return result;
+};
+
+exports.send = function(message) {
+  if (!message || !message.to || (!message.data && !message.notification)) throw new Error('400');
+  if (!gcmStore[message.to]) throw new Error('404 no mock response for ' + message.to);
 
   sends.push(message);
 
-  return Promise.resolve({
-    success: gcmStore[message.to].length,
-    failure: 0,
-  });
+  return Promise.resolve(gcmStore[message.to]);
 };
-
-exports.createDeviceGroup = function(email, registrationID) {
-  devCheck();
-  if (!email || !registrationID) throw new Error(email + registrationID);
-
-  var notificationKey = token(64);
-  gcmStore[notificationKey] = [registrationID];
-
-  return Promise.resolve({
-    notification_key: notificationKey,
-  });
-};
-
-exports.addDeviceGroupMember = function(email, notificationKey, registrationID) {
-  devCheck();
-  gcmStore[notificationKey].push(registrationID);
-
-  return Promise.resolve();
-};
-
-exports.removeDeviceGroupMember = function(email, notificationKey, registrationID) {
-  devCheck();
-  var group = gcmStore[notificationKey];
-
-  group = _.without(group, registrationID);
-
-  if (group.length) {
-    gcmStore[notificationKey] = group;
-  } else {
-    delete gcmStore[notificationKey];
-  }
-
-  return Promise.resolve();
-};
-
-//fail quickly if stubs find their way into production
-function devCheck() {
-  if (conf.NODE_ENV === 'production') {
-    throw new Error('GCM stubs in production');
-  }
-}

@@ -16,7 +16,6 @@ var get = exports.get = function(transcriptionID) {
 
 exports.getByAudioURL = function(audioURL) {
   var transcriptionID = audioURLTranscriptionID(audioURL);
-  console.log(transcriptionID);
 
   return get(transcriptionID);
 };

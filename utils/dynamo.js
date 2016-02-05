@@ -50,6 +50,23 @@ exports.put = function(table, item, more) {
   });
 };
 
+exports.update = function(table, key, expr, values) {
+  return new Promise(function(resolve, reject) {
+    values = values ? {ExpressionAttributeValues: values} : null;
+    dynamo.updateItem(_.assign({
+      TableName: table,
+      Key: key,
+      UpdateExpression: expr,
+    }, values), function(err) {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve();
+    });
+  });
+};
+
 exports.del = function(table, key) {
   return new Promise(function(resolve, reject) {
     dynamo.deleteItem({

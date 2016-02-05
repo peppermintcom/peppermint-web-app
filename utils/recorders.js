@@ -36,7 +36,17 @@ var getByID = exports.getByID = function(recorderID) {
   });
 };
 
-exports.update = function(recorderID, values) {
+var update = exports.update = function(clientID, expr, values) {
+  return dynamo.update('recorders', {client_id: {S: clientID}}, expr, values);
+};
+
+exports.updateGCMToken = function(clientID, newToken) {
+  return update(clientID, 'SET gcm_registration_token = :token', {
+    ':token': {S: newToken},
+  });
+};
+
+exports.updateByID = function(recorderID, values) {
   return getByID(recorderID)
     .then(function(recorder) {
       return new Promise(function(resolve, reject) {
