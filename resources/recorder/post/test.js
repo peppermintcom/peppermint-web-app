@@ -1,10 +1,7 @@
 var expect = require('chai').expect;
 var handler = require('./').handler;
-var _ = require('utils');
+var _ = require('utils/test');
 
-//has to exist in the database app table
-const APP_API_KEY = 'abc123';
-//optional
 const DESCRIPTION = 'Mocha';
 
 describe('lambda:CreateRecorder', function() {
@@ -13,7 +10,7 @@ describe('lambda:CreateRecorder', function() {
       var clientID = _.token(12);
 
       handler({
-        api_key: APP_API_KEY,
+        api_key: _.fake.API_KEY,
         recorder: {
           recorder_client_id: clientID,
           description: 'Mocha',
@@ -42,7 +39,7 @@ describe('lambda:CreateRecorder', function() {
 
     before(function(done) {
       handler({
-        api_key: APP_API_KEY,
+        api_key: _.fake.API_KEY,
         recorder: {
           recorder_client_id: clientID,
         },
@@ -55,7 +52,7 @@ describe('lambda:CreateRecorder', function() {
 
     it('should invoke context.fail with a Conflict error', function(done) {
       handler({
-        api_key: APP_API_KEY,
+        api_key: _.fake.API_KEY,
         recorder: {
           recorder_client_id: clientID,
         },
@@ -91,14 +88,14 @@ describe('lambda:CreateRecorder', function() {
       given: 'no api_key',
       req: {
         recorder: {
-          recorder_client_id: 'abc123',
+          recorder_client_id: 'abcd1234',
         },
       },
       errMatches: [/^Bad Request/, /Missing required property/, /api_key/],
     }, {
       given: 'no recorder',
       req: {
-        api_key: 'abc123',
+        api_key: _.fake.API_KEY,
       },
       errMatches: [/^Bad Request/, /Missing required property/, /recorder/],
     }].forEach(function(t) {

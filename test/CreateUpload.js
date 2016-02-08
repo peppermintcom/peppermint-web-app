@@ -6,7 +6,6 @@ var _ = require('utils/test');
 
 const RECORDER_URL = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1/recorder';
 const UPLOAD_URL = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1/uploads';
-const API_KEY = 'abc123';
 
 function post(url, body, headers) {
   return new Promise(function(resolve, reject) {
@@ -33,7 +32,7 @@ describe('POST /uploads', function() {
 
   before(function() {
     return post(RECORDER_URL, {
-      api_key: API_KEY,
+      api_key: _.fake.API_KEY,
       recorder: {
         recorder_client_id: _.token(12),
       },

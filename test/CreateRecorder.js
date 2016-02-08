@@ -1,9 +1,8 @@
 var expect = require('chai').expect;
 var request = require('request');
-var _ = require('utils');
+var _ = require('utils/test');
 
 const URL = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1/recorder';
-const API_KEY = 'abc123';
 
 function call(body) {
   return new Promise(function(resolve, reject) {
@@ -27,7 +26,7 @@ describe('POST /recorder', function() {
   var clientID = _.token(12);
   var key = _.token(14);
   var params = {
-    api_key: API_KEY,
+    api_key: _.fake.API_KEY,
     recorder: {
       recorder_client_id: clientID,
       recorder_key: key,
@@ -62,7 +61,7 @@ describe('POST /recorder', function() {
     describe('without recorder_client_id or recorder_key', function() {
       it('should return a 201 response.', function() {
         return call({
-          api_key: API_KEY,
+          api_key: _.fake.API_KEY,
           recorder: {
             description: 'Mocha',
           },
@@ -123,7 +122,7 @@ describe('POST /recorder', function() {
 
   describe('Already Registered', function() {
     var params = {
-      api_key: API_KEY,
+      api_key: _.fake.API_KEY,
       recorder: {
         recorder_client_id: _.token(12),
       },

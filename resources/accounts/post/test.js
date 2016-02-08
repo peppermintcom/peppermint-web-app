@@ -90,7 +90,7 @@ describe('lambda:CreateAccount', function() {
     }, {
       given: 'no user',
       req: {
-        api_key: 'abc123',
+        api_key: _.fake.API_KEY,
       },
       errMatches: [/^Bad Request/, /Missing required property/, /u$/],
     }].forEach(function(t) {

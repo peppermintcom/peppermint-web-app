@@ -1,7 +1,7 @@
 var expect = require('chai').expect;
 var register = require('../../recorder/post').handler;
 var handler = require('./').handler;
-var _ = require('utils');
+var _ = require('utils/test');
 
 describe('recorder-token', function() {
   var clientID = _.token(12);
@@ -9,7 +9,7 @@ describe('recorder-token', function() {
 
   before(function(done) {
     register({
-      api_key: 'abc123',
+      api_key: _.fake.API_KEY,
       recorder: {
         recorder_client_id: clientID,
       },

@@ -2,12 +2,12 @@ var fs = require('fs');
 var url = require('url');
 var expect = require('chai').expect;
 var request = require('request');
-var _ = require('utils');
+var _ = require('utils/test');
 
 const RECORDER_URL = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1/recorder';
 const UPLOAD_URL = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1/uploads';
 const RECORD_URL = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1/record';
-const API_KEY = 'abc123';
+const API_KEY = _.fake.API_KEY;
 
 function post(url, body, headers) {
   return new Promise(function(resolve, reject) {

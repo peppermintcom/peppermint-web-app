@@ -1,6 +1,7 @@
 var util = require('util');
 var _ = require('lodash');
 var http = require('./http');
+var conf = require('./conf.js');
 var recorderOnly = /^peppermint recorder=[\w\+\/]+={0,2}$/i;
 var accountOnly = /^peppermint account=[\w\+\/]+={0,2}$/i;
 var recorderAccount = /^peppermint recorder=[\w\+\/]+={0,2}, account=[\w\+\/]+={0,2}$/i;
@@ -88,13 +89,12 @@ exports.google = function(creds) {
         err.name = JSON.stringify({detail: 'Google rejected access token'});
         throw err;
       }
-      if (response.statusCode !== 200) {
+      if (response.statusCode !== 200 && conf.NODE_ENV === 'production') {
         console.log(util.inspect(response.body, {depth: null}));
         throw new Error(response.statusCode);
       }
       //https://developers.google.com/+/web/api/rest/latest/people#resource
       var profile = response.body;
-      console.log(profile);
       var match = _.find(profile.emails, function(obj) {
         return obj.value.toLowerCase() === email.toLowerCase();
       });
@@ -127,7 +127,7 @@ exports.facebook = function(creds) {
         err.name = JSON.stringify({detail: 'Facebook rejected access token'});
         throw err;
       }
-      if (response.statusCode !== 200) {
+      if (response.statusCode !== 200 && conf.NODE_ENV === 'production') {
         console.log(util.inspect(response.body, {depth: null}));
         throw new Error(response.statusCode);
       }

@@ -1,5 +1,6 @@
 #lambda env vars
 utils/conf.json
+utils/apps.js
 
 utils/ops
 

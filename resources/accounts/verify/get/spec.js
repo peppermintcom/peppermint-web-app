@@ -7,7 +7,7 @@ var headers = require('definitions/headers');
 var jwt = require('definitions/jwt');
 var use = require('definitions/use');
 
-exports.tags = ['accounts'];
+exports.tags = ['private'];
 exports.summary = 'Verify an email.';
 exports.description = 'Handler for email verification links. Cannot be called directly by client apps.';
 exports.operationId = 'VerifyEmail';

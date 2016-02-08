@@ -5,7 +5,8 @@ var integrations = require('definitions/integrations');
 var headers = require('definitions/headers');
 var use = require('definitions/use');
 
-exports.tags = ['recorder-token'];
+exports.deprecated = true;
+exports.tags = ['deprecated'];
 exports.summary = 'Authenticate a recorder.';
 exports.description = 'Use the recorder_client_id and recorder_key from the POST /recorder request that registered this recorder to generate a new JWT token. This route uses Basic access authentication with an Authorization header like this: Basic Base64(recorder_client_id:recorder_key). If your recorder_client_id is UoZU5kTfnETz and your recorder_key is _tBqwNfVJI7-h86VOdhd0BvglTBRCJeuE3L4hDs3, then the Authorzation header should be "Basic VW9aVTVrVGZuRVR6Ol90QnF3TmZWSkk3LWg4NlZPZGhkMEJ2Z2xUQlJDSmV1RTNMNGhEczM=".';
 exports.operationId = 'CreateRecorderToken';

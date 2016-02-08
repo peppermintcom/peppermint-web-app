@@ -4,9 +4,8 @@
 Each app or extension that uses the API needs to register in order
 to obtain an API Key. For now this is a manual process so contact Andrew Reed if
 you need an API Key. For testing or development, you can use the key "abc123".
-(This is only used in the api_key field in the request body for the POST
-/recorder request. Ignore the input at the top of this page with "api_key"
-placeholder text).
+***Data associated with the development API Key will be periodically purged.***
+The API Key is NOT used in the input at the top of this page with "api_key" placeholder text.
 
 ## Flow
 When a user installs an app, the client will register itself as a Recorder with the
@@ -21,12 +20,8 @@ for a specific key in a S3 bucket. S3 is picky about the PUT requests clients
 make using signed_urls.  The contentType submitted to the Peppermint API POST
 /uploads endpoint must match the Content-Type header sumitted with the PUT
 request to the signed_url and no other headers besides Content-Length should be
-included. After the client completes the upload, it should submit a POST request
-to /record to get the canonical_url where the file can be read by the public.
-The clients can then share this url in an email or text message, or download the
-file and send it as an attachment in an email.
+included.
 
 ## Changes
-### Feb 3, 2016
-POST /jwts accepts google base64 email:accessToken in Authorization header.
-Response data.relationships.account.id -> data.relationships.account.data.id.
+Feb 8, 2016
+POST /recorder-token and POST /accounts/tokens are deprecated. Use POST /jwts.

@@ -226,7 +226,7 @@ describe('lambda:CreateMessage', function() {
     });
 
     describe('neither has a gcm_registration_token', function() {
-      it('should fail with a 404 error.', function() {
+      it('should fail with a 404 error.', function(done) {
         handler({
           api_key: _.fake.API_KEY,
           Authorization: 'Bearer ' + sender.at,
@@ -249,10 +249,11 @@ describe('lambda:CreateMessage', function() {
 
     describe('1 has a valid gcm_registration_token, 1 has no token', function() {
       var r1Token = _.token(64);
+      var ignore;
 
       before(function() {
         _.gcm.good(r1Token);
-        while (_.gcm.sends.pop()) {}
+        ignore = _.gcm.sends.length;
         return _.recorders.updateGCMToken(r1.recorder_client_id, r1Token);
       });
 
@@ -273,7 +274,7 @@ describe('lambda:CreateMessage', function() {
 
       it('should send 1 message to GCM.', function() {
         var msg = _.gcm.sends.pop();
-        expect(_.gcm.sends).to.have.length(0);
+        expect(_.gcm.sends).to.have.length(ignore);
         expect(msg).to.have.property('to', r1Token);
         expect(msg).to.have.property('data');
         expect(msg).to.have.property('notification');
@@ -372,7 +373,7 @@ describe('lambda:CreateMessage', function() {
   describe('Recipient is unknown', function() {
     it('should fail with a 404 error.', function(done) {
       var b = _.cloneDeep(body);
-      b.data.attributes.recipient_email = 'x' + nonuser.email;
+      b.data.attributes.recipient_email = 'x' + recipient.email;
 
       handler({
         Authorization: 'Bearer ' + sender.at,
@@ -437,7 +438,7 @@ describe('lambda:CreateMessage', function() {
     describe('Auth token does not match sender_email', function() {
       it('should fail with a 403 error.', function(done) {
         handler({
-          Authorization: 'Bearer ' + nonuser.at,
+          Authorization: 'Bearer ' + recipient.at,
           api_key: _.fake.API_KEY,
           'Content-Type': 'application/vnd.api+json',
           body: body,

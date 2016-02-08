@@ -2,11 +2,10 @@ var fs = require('fs');
 var url = require('url');
 var expect = require('chai').expect;
 var request = require('request');
-var _ = require('utils');
+var _ = require('utils/test');
 
 const RECORDER_URL = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1/recorder';
 const RECORDER_TOKEN_URL = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1/recorder-token';
-const API_KEY = 'abc123';
 
 function post(url, body, headers) {
   return new Promise(function(resolve, reject) {
@@ -34,7 +33,7 @@ describe('POST /recorder-token', function() {
 
   before(function() {
     return post(RECORDER_URL, {
-      api_key: API_KEY,
+      api_key: _.fake.API_KEY,
       recorder: {
         recorder_client_id: clientID,
         recorder_key: key,

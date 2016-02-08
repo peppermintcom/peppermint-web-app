@@ -7,7 +7,8 @@ var headers = require('definitions/headers');
 var jwt = require('definitions/jwt');
 var use = require('definitions/use');
 
-exports.tags = ['accounts'];
+exports.deprecated = true;
+exports.tags = ['deprecated'];
 exports.summary = 'Login with email and password.';
 exports.description = 'Exchange an email and password for a JWT.';
 exports.operationId = 'AccountSignIn';
