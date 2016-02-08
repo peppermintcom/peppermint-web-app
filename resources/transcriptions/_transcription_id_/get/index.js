@@ -12,6 +12,8 @@ exports.handler = function(request, reply) {
         reply.fail('Not Found');
         return;
       }
+      delete transcription.transcription_id;
+      delete transcription.recorder_id;
       reply.succeed(_.assign(transcription, {timestamp: _.timestamp(transcription.timestamp)}));
     })
     .catch(function(err) {

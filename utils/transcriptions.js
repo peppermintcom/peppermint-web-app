@@ -46,10 +46,18 @@ exports.put = function(transcription) {
   });
 };
 
+exports.del = function(transcriptionID) {
+  return dynamo.del('transcriptions', {
+    transcription_id: {S: transcriptionID},
+  });
+};
+
 function parse(item) {
   if (!item) return null;
 
   return {
+    transcription_id: item.transcription_id.S,
+    recorder_id: item.recorder_id.S,
     transcription_url: transcriptionURL(item.transcription_id.S),
     language: item.language.S,
     confidence: +item.confidence.N,

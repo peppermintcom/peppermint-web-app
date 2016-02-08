@@ -28,6 +28,13 @@ var recorder = exports.recorder = function() {
   });
 };
 
+exports.recorder2 = function() {
+  return recorder().then(function(recorder) {
+    recorder.recorder.at = recorder.at;
+    return recorder.recorder;
+  });
+};
+
 var receiver = exports.receiver = function(_recorder) {
   var gcmToken = _.token(64);
 
@@ -41,34 +48,6 @@ var receiver = exports.receiver = function(_recorder) {
         recorder.recorder.gcm_registration_token = gcmToken;
         return recorder.recorder;
       });
-    });
-};
-
-exports.accountDeviceGroup = function(_receiver, _account) {
-  return Promise.all([
-      _receiver ? Promise.resolve(_receiver) : receiver(),
-      _account ? Promise.resolve(_account) : account(),
-    ])
-    .then(function(results) {
-      var receiver = results[0];
-      var account = results[1];
-
-      return _.gcm.createDeviceGroup(account.email, receiver.gcm_registration_token)
-        .then(function(result) {
-          return Promise.all([
-              _.accounts.update(account.email.toLowerCase(), {gcm_notification_key: {S: result.notification_key}}),
-              _.dynamo.put('receivers', {
-                recorder_id: {S: receiver.recorder_id},
-                account_id: {S: account.account_id},
-              })
-            ])
-            .then(function(res) {
-              return {
-                account: _.assign(account, {gcm_notification_key: result.notification_key}),
-                receiver: receiver,
-              };
-            });
-        });
     });
 };
 
@@ -103,9 +82,9 @@ var account = exports.account = function(_user) {
   });
 };
 
-exports.transcription = function() {
-  var id = _.token(22);
-  var recorderID = _.token(22);
+exports.transcription = function(recorderID, id) {
+  var id = id || _.token(22);
+  var recorderID = recorderID || _.token(22);
 
   var tx = {
     id: id,
