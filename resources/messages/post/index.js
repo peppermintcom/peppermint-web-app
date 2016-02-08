@@ -122,6 +122,8 @@ function deliver(request, reply) {
   Promise.all(_.map(request.recipient.receivers, function(recorder) {
     return _.gcm.send({
       to: recorder.gcm_registration_token,
+      priority: 'high',
+      content_available: true,
       notification: {
         title: 'New Message',
         body: request.sender.full_name + ' sent you a message',

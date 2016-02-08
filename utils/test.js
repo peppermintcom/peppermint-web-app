@@ -6,6 +6,8 @@ const API_URL = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1'
 
 var exports = _.assign(exports, _);
 
+exports.API_URL = API_URL;
+
 exports.fake = require('./fake');
 
 var deleteAccount = exports.deleteAccount = function(email) {
@@ -118,8 +120,11 @@ exports.httpPlain = function(method, path, body, headers) {
 
 exports.http = function(method, path, body, headers) {
   return new Promise(function(resolve, reject) {
+    var url = /^http/.test(path) ? path : API_URL + path;
+
+    //GET
     if (method.toLowerCase() === 'get') {
-      request(API_URL + path, {
+      request(url, {
         headers: headers,
       }, function(err, res, body) {
         if (err) {
@@ -132,8 +137,30 @@ exports.http = function(method, path, body, headers) {
       return;
     }
 
+    //DELETE
+    if (method.toLowerCase() === 'delete') {
+      request({
+        url: url,
+        body: body,
+        method: 'DELETE',
+        headers: headers,
+      }, function(err, res, body) {
+        if (err) {
+          reject(err);
+          return;
+        }
+        if (res.headers['content-type'] && /json$/.test(res.headers['content-type'])) {
+          res.body = JSON.parse(body);
+        } else {
+          res.body = body;
+        }
+        resolve(res);
+      });
+      return;
+    }
+
     request({
-      url: API_URL + path,
+      url: url,
       method: method,
       json: true,
       body: body,

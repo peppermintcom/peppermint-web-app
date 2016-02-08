@@ -33,9 +33,11 @@ describe('POST /jwts', function() {
     var name = 'Andrew Reed';
     //https://developers.facebook.com/tools/explorer/
     var accessToken = process.env.FACEBOOK_AT;
-    if (!accessToken) {
-      throw new Error('FACEBOOK_AT=access_token from graph explorer');
-    }
+    before(function() {
+      if (!accessToken) {
+        throw new Error('FACEBOOK_AT=access_token from graph explorer');
+      }
+    });
 
     describe('with invalid access token', function() {
       before(function() {
@@ -191,9 +193,11 @@ describe('POST /jwts', function() {
     var name = 'Andrew Reed';
     //https://developers.google.com/oauthplayground
     var accessToken = process.env.GOOGLE_AT;
-    if (!accessToken) {
-      throw new Error('GOOGLE_AT=access_token from oauth playground');
-    }
+    before(function() {
+      if (!accessToken) {
+        throw new Error('GOOGLE_AT=access_token from oauth playground');
+      }
+    });
 
     describe('with invalid access token', function() {
       before(function() {

@@ -26,6 +26,7 @@ exports.responses = {
       'Content-Type': {type: 'string'},
     },
   },
+  '400': responses.jsonAPI.BadRequest,
   '401': responses.jsonAPI.Unauthorized,
   '403': responses.jsonAPI.Forbidden,
   '500': responses.plain.Internal,
@@ -41,8 +42,9 @@ exports['x-amazon-apigateway-integration'] = {
   },
   responses: {
     'default': integrations.NoContent,
+    '400': integrations.jsonAPI.BadRequest,
     '401': integrations.jsonAPI.Unauthorized,
     '403': integrations.jsonAPI.Forbidden,
-    '^(?!401)(.|\\n)+': integrations.plain.Internal,
+    '^(?!400|401|403)(.|\\n)+': integrations.plain.Internal,
   },
 };
