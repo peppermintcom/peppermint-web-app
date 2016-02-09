@@ -21,23 +21,48 @@ describe('lambda:AddAccountReceiver', function() {
         });
     });
 
-    it('should link the recorder and the account.', function(done) {
-      handler({
-        Authorization: 'Bearer ' + _.jwt.creds(accountID, recorderID),
-        'Content-Type': 'application/vnd.api+json',
-        api_key: _.fake.API_KEY,
-        account_id: accountID,
-        body: {data: [{type: 'recorders', id: recorderID}]},
-      }, {
-        fail: done,
-        succeed: function(result) {
-          _.receivers.get(recorderID, accountID)
-            .then(function(record) {
-              expect(record).to.be.ok;
-              done();
-            })
-            .catch(done);
-        },
+    describe('account is not linked to recorder', function() {
+      it('should link the recorder and the account.', function(done) {
+        handler({
+          Authorization: 'Bearer ' + _.jwt.creds(accountID, recorderID),
+          'Content-Type': 'application/vnd.api+json',
+          api_key: _.fake.API_KEY,
+          account_id: accountID,
+          body: {data: [{type: 'recorders', id: recorderID}]},
+        }, {
+          fail: done,
+          succeed: function(result) {
+            _.receivers.get(recorderID, accountID)
+              .then(function(record) {
+                expect(record).to.be.ok;
+                done();
+              })
+              .catch(done);
+          },
+        });
+      });
+    });
+
+    //dependency on success of above test
+    describe('account is already linked to recorder', function() {
+      it('should succeed.', function(done) {
+        handler({
+          Authorization: 'Bearer ' + _.jwt.creds(accountID, recorderID),
+          'Content-Type': 'application/vnd.api+json',
+          api_key: _.fake.API_KEY,
+          account_id: accountID,
+          body: {data: [{type: 'recorders', id: recorderID}]},
+        }, {
+          fail: done,
+          succeed: function(result) {
+            _.receivers.get(recorderID, accountID)
+              .then(function(record) {
+                expect(record).to.be.ok;
+                done();
+              })
+              .catch(done);
+          },
+        });
       });
     });
   });

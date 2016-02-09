@@ -26,7 +26,7 @@ describe('POST /accounts/:id/relationships/receivers', function() {
       });
   });
 
-  describe('neither recorder nor receiver is registered with GCM', function() {
+  describe('valid requests', function() {
     var response;
 
     before(function() {
