@@ -267,7 +267,7 @@ describe('POST /messages', function() {
     });
   });
 
-  describe('Recipient does not have an account device group.', function() {
+  describe('Recipient does not have a receiver.', function() {
     describe('response', function() {
       var response;
 
@@ -311,7 +311,56 @@ describe('POST /messages', function() {
         }
       });
     });
+  });
 
+  describe('Recipient\'s receiver does not have gcm_registration_token.', function() {
+    describe('response', function() {
+      var response;
+
+      before(function() {
+        return _.receivers.link(recorder.recorder_id, recipient.account_id);
+      });
+
+      before(function() {
+        return post({
+            data: {
+              type: 'messages',
+              attributes: {
+                sender_email: sender.email,
+                recipient_email: recipient.email,
+                audio_url: _.fake.AUDIO_URL,
+              },
+            },
+          }, {
+            'X-Api-Key': _.fake.API_KEY,
+            Authorization: 'Bearer ' + jwt,
+            'Content-Type': 'application/vnd.api+json',
+          })
+          .then(function(res) {
+            response = res;
+          });
+      });
+
+      it('should have status code 404.', function() {
+        expect(response.statusCode).to.equal(404);
+      });
+
+      it('should send valid JSON-API content.', function() {
+        expect(response.headers).to.have.property('content-type', 'application/vnd.api+json');
+        if (!tv4.validate(response.body, spec.responses['404'].schema)) {
+          throw tv4.error;
+        }
+      });
+
+      it('should format body according to spec.', function() {
+        expect(response.body).to.deep.equal({
+          errors: [{detail: 'Recipient cannot receive messages via Peppermint'}],
+        });
+        if (!tv4.validate(response.body, spec.responses['404'].schema)) {
+          throw tv4.error;
+        }
+      });
+    });
   });
 
   describe('Wrong Content-Type', function() {

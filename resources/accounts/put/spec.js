@@ -5,7 +5,7 @@ var account = require('definitions/account');
 var responses = require('definitions/responses');
 var integrations = require('definitions/integrations');
 
-exports.tags = ['accounts'];
+exports.tags = ['private'];
 exports.summary = 'Change password.';
 exports.description = 'Currently this operation only supports changing passwords using an email password reset link. It may be expanded in the future to support changing other account information using a regular account auth token from a client app.';
 exports.operationId = 'ChangePassword';

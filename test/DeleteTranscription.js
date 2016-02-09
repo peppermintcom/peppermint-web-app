@@ -46,6 +46,8 @@ describe('DELETE /transcriptions/:id', function() {
         })
         .then(function(res) {
           expect(res.statusCode).to.equal(204);
+          expect(res.headers).not.to.have.property('content-type');
+          expect(res.headers).to.have.property('content-length', '0');
         });
       });
     });
@@ -69,6 +71,10 @@ describe('DELETE /transcriptions/:id', function() {
               throw tv4.error;
             }
           });
+        });
+
+        it('should not delete the transcription.', function() {
+          return mustExist(tx.transcription_url);
         });
       });
 
@@ -106,6 +112,10 @@ describe('DELETE /transcriptions/:id', function() {
             }
           });
         });
+
+        it('should not delete the transcription.', function() {
+          return mustExist(tx.transcription_url);
+        });
       });
 
       describe('authenticated by account only', function() {
@@ -142,18 +152,16 @@ describe('DELETE /transcriptions/:id', function() {
               throw tv4.error;
             }
           });
+        });
 
+        it('should not delete the transcription.', function() {
+          return mustExist(tx.transcription_url);
         });
       });
 
       describe('authenticated as recorder that produced audio', function() {
         before(function() {
-          return _.http('GET', tx.transcription_url, null, {
-            'X-Api-Key': _.fake.API_KEY,
-          })
-          .then(function(res) {
-            expect(res.statusCode).to.equal(200);
-          });
+          return mustExist(tx.transcription_url);
         });
 
         it('should return a 204 response.', function() {
@@ -167,25 +175,44 @@ describe('DELETE /transcriptions/:id', function() {
         });
  
         it('subsequent GETs should 404.', function() {
-          return _.http('GET', tx.transcription_url, null, {
-            'X-Api-Key': _.fake.API_KEY,
-          })
-          .then(function(res) {
-            expect(res.statusCode).to.equal(404);
-          });
+          return mustNotExist(tx.transcription_url);
         });
       });
     });
   });
 
   describe('without X-Api-Key header', function() {
-    it('should fail with a 401 error.', function() {
-      return _.http('DELETE', tx.transcription_url + 'x', null, {
+    it('should fail with a 400 error.', function() {
+      return _.http('DELETE', tx.transcription_url, null, {
         Authorization: 'Bearer ' + recorder.at,
       })
       .then(function(res) {
-        expect(res.statusCode).to.equal(401);
+        expect(res.statusCode).to.equal(400);
       });
     });
   });
 });
+
+function exists(url) {
+  return _.http('GET', url, null, {
+      'X-Api-Key': _.fake.API_KEY,
+    })
+    .then(function(res) {
+      if (res.statusCode === 200) {
+        return true;
+      }
+      return false;
+    });
+}
+
+function mustExist(url) {
+  return exists(url).then(function(exists) {
+    expect(exists).to.equal(true);
+  });
+}
+
+function mustNotExist(url) {
+  return exists(url).then(function(exists) {
+    expect(exists).not.to.equal(true);
+  });
+}
