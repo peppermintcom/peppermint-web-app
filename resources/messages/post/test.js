@@ -90,6 +90,7 @@ describe('lambda:CreateMessage', function() {
 
     describe('recorder has valid gcm_registration_token', function() {
       var gcmToken = _.token(64);
+      var response;
 
       before(function() {
         return _.recorders.updateByID(recorder.recorder_id, {
@@ -109,7 +110,8 @@ describe('lambda:CreateMessage', function() {
           body: body,
         }, {
           succeed: function(result) {
-            expect(result).to.be.ok;
+            responseOK(result, body.data.attributes);
+            response = result;
             done();
           },
           fail: done,
@@ -118,16 +120,14 @@ describe('lambda:CreateMessage', function() {
 
       it('should have sent to GCM.', function() {
         var last = _.gcm.sends.pop();
-
-        expect(last).to.have.property('to', gcmToken);
-        expect(last).to.have.property('data');
-        expect(last).to.have.property('notification');
+        msgOK(last, gcmToken, sender.full_name, response);
       });
     });
 
     describe('recorder has an old gcm_registration_token', function() {
       var gcmToken = _.token(64);
       var gcmResponse;
+      var response;
 
       before(function() {
         return _.recorders.updateByID(recorder.recorder_id, {
@@ -147,7 +147,8 @@ describe('lambda:CreateMessage', function() {
           body: body,
         }, {
           succeed: function(result) {
-            expect(result).to.be.ok;
+            responseOK(result, body.data.attributes);
+            response = result;
             done();
           },
           fail: done,
@@ -156,10 +157,7 @@ describe('lambda:CreateMessage', function() {
 
       it('should send a message to GCM.', function() {
         var last = _.gcm.sends.pop();
-
-        expect(last).to.have.property('to', gcmToken);
-        expect(last).to.have.property('data');
-        expect(last).to.have.property('notification');
+        msgOK(last, gcmToken, sender.full_name, response);
       });
 
       it('should update the recorder registration token in the database to the one returned by GCM.', function() {
@@ -250,6 +248,7 @@ describe('lambda:CreateMessage', function() {
     describe('1 has a valid gcm_registration_token, 1 has no token', function() {
       var r1Token = _.token(64);
       var ignore;
+      var response;
 
       before(function() {
         _.gcm.good(r1Token);
@@ -265,7 +264,8 @@ describe('lambda:CreateMessage', function() {
           body: body,
         }, {
           succeed: function(result) {
-            expect(result).to.be.ok;
+            responseOK(result, body.data.attributes);
+            response = result;
             done();
           },
           fail: done,
@@ -274,10 +274,7 @@ describe('lambda:CreateMessage', function() {
 
       it('should send 1 message to GCM.', function() {
         var msg = _.gcm.sends.pop();
-        expect(_.gcm.sends).to.have.length(ignore);
-        expect(msg).to.have.property('to', r1Token);
-        expect(msg).to.have.property('data');
-        expect(msg).to.have.property('notification');
+        msgOK(msg, r1Token, sender.full_name, response);
       });
     });
 
@@ -297,6 +294,75 @@ describe('lambda:CreateMessage', function() {
           ]);
       });
 
+      describe('one is Android, one is iOS', function() {
+        var response;
+
+        before(function() {
+          return Promise.all([
+              _.recorders.update(r1.recorder_client_id, 'SET api_key = :key', {
+                ':key': {S: _.fake.API_KEY_ANDROID},
+              }),
+              _.recorders.update(r2.recorder_client_id, 'SET api_key = :key', {
+                ':key': {S: _.fake.API_KEY_IOS},
+              }),
+            ]);
+        });
+
+        it('should succeed with a message resource.', function(done) {
+          handler({
+            api_key: _.fake.API_KEY,
+            Authorization: 'Bearer ' + sender.at,
+            'Content-Type': 'application/vnd.api+json',
+            body: body,
+          }, {
+            succeed: function(result) {
+              responseOK(result, body.data.attributes);
+              response = result;
+              done();
+            },
+            fail: done,
+          });
+        });
+
+        it('should send 2 messages to GCM.', function() {
+          expect(_.gcm.sends).to.have.length(2);
+        });
+
+        it('message to Android should not have notification or content_available fields.', function() {
+          var msg = _.find(_.gcm.sends, function(msg) {
+            return msg.to === r1Token;
+          });
+          expect(msg).to.be.ok;
+          msgOK(msg, r1Token, sender.full_name, response);
+        });
+
+        it('message to iOS should have notification and content_available fields.', function() {
+          var msg = _.find(_.gcm.sends, function(msg) {
+            return msg.to === r2Token;
+          });
+          msgOK(msg, r2Token, sender.full_name, response);
+          msgOKiOS(msg, sender.full_name);
+        });
+      });
+    });
+
+    describe('1 has a valid gcm_registration_token, 1 has expired token', function() {
+      var r1Token = _.token(64);
+      var r2Token = _.token(64);
+      var gcmResponse;
+
+      before(function() {
+        _.gcm.good(r1Token);
+        gcmResponse = _.gcm.old(r2Token);
+
+        while (_.gcm.sends.pop()) {}
+
+        return Promise.all([
+            _.recorders.updateGCMToken(r1.recorder_client_id, r1Token),
+            _.recorders.updateGCMToken(r2.recorder_client_id, r2Token),
+          ]);
+      });
+
       it('should succeed with a message resource.', function(done) {
         handler({
           api_key: _.fake.API_KEY,
@@ -305,70 +371,148 @@ describe('lambda:CreateMessage', function() {
           body: body,
         }, {
           succeed: function(result) {
-            expect(result).to.be.ok;
+            responseOK(result, body.data.attributes);
+            response = result;
             done();
           },
           fail: done,
         });
       });
 
-      it('should send 2 messages to GCM.', function() {
+      it('should send 2 message to GCM.', function() {
         expect(_.gcm.sends).to.have.length(2);
       });
-    });
 
-    describe('1 has a valid gcm_registration_token, 1 has expired token', function() {
-      it('should succeed.', function() {
-        //TODO
+      it('should send 1 message to the good token.', function() {
+        var msg = _.find(_.gcm.sends, function(msg) {
+          return msg.to === r1Token;
+        });
+        msgOK(msg, r1Token, sender.full_name, response);
+      });
+
+      it('should send 1 message to the old token.', function() {
+        var msg = _.find(_.gcm.sends, function(msg) {
+          return msg.to === r2Token;
+        });
+        msgOK(msg, r2Token, sender.full_name, response);
+      });
+
+      it('should update the old token in the database.', function() {
+        return _.recorders.get(r2.recorder_client_id)
+          .then(function(recorder) {
+            expect(recorder.gcm_registration_token).not.to.equal(r2Token);
+            expect(recorder).to.have.property('gcm_registration_token', gcmResponse.results[0].registration_id);
+          });
       });
     });
 
     describe('1 has expired gcm_registration_token, 1 has no token', function() {
-      it('should fail.', function() {
-        //TODO
+      var r1Token = _.token(64);
+      var response;
+      var gcmResponse;
+
+      before(function() {
+        gcmResponse = _.gcm.old(r1Token);
+
+        while (_.gcm.sends.pop()) {}
+
+        return Promise.all([
+            _.recorders.updateGCMToken(r1.recorder_client_id, r1Token),
+            _.recorders.update(r2.recorder_client_id, 'REMOVE gcm_registration_token'),
+          ]);
+      });
+
+      it('should succeed with a message resource.', function(done) {
+        handler({
+          api_key: _.fake.API_KEY,
+          Authorization: 'Bearer ' + sender.at,
+          'Content-Type': 'application/vnd.api+json',
+          body: body,
+        }, {
+          succeed: function(result) {
+            responseOK(result, body.data.attributes);
+            response = result;
+            done();
+          },
+          fail: done,
+        });
+      });
+
+      it('should send 1 message to the old token via GCM.', function() {
+        expect(_.gcm.sends).to.have.length(1);
+        var msg = _.gcm.sends.pop();
+        msgOK(msg, r1Token, sender.full_name, response);
+      });
+
+      it('should update the old token in the database.', function() {
+        return _.recorders.get(r1.recorder_client_id)
+          .then(function(recorder) {
+            expect(recorder.gcm_registration_token).not.to.equal(r1Token);
+            expect(recorder).to.have.property('gcm_registration_token', gcmResponse.results[0].registration_id);
+          });
       });
     });
 
     describe('both have expired gcm_registration_tokens', function() {
-      it('should fail.', function() {
-        //TODO
+      var r1Token = _.token(64);
+      var r2Token = _.token(64);
+      var gcmResponse1, gcmResponse2;
+      var response;
+
+      before(function() {
+        gcmResponse1 = _.gcm.old(r1Token);
+        gcmResponse2 = _.gcm.old(r2Token);
+
+        while (_.gcm.sends.pop()) {}
+
+        return Promise.all([
+            _.recorders.updateGCMToken(r1.recorder_client_id, r1Token),
+            _.recorders.updateGCMToken(r2.recorder_client_id, r2Token),
+          ]);
+      });
+
+      it('should succeed with a message resource.', function(done) {
+        handler({
+          api_key: _.fake.API_KEY,
+          Authorization: 'Bearer ' + sender.at,
+          'Content-Type': 'application/vnd.api+json',
+          body: body,
+        }, {
+          succeed: function(result) {
+            responseOK(result, body.data.attributes);
+            response = result;
+            done();
+          },
+          fail: done,
+        });
+      });
+
+      it('should send 2 messages via GCM.', function() {
+        expect(_.gcm.sends).to.have.length(2);
+        var msg = _.find(_.gcm.sends, function(msg) {
+          return msg.to === r1Token;
+        });
+        msgOK(msg, r1Token, sender.full_name, response);
+        msg = _.find(_.gcm.sends, function(msg) {
+          return msg.to === r2Token;
+        });
+        msgOK(msg, r2Token, sender.full_name, response);
+      });
+
+      it('should update the old tokens in the database.', function() {
+        return Promise.all([
+            _.recorders.get(r1.recorder_client_id),
+            _.recorders.get(r2.recorder_client_id),
+          ])
+          .then(function(recorders) {
+            expect(recorders[0].gcm_registration_token).not.to.equal(r1Token);
+            expect(recorders[0]).to.have.property('gcm_registration_token', gcmResponse1.results[0].registration_id);
+            expect(recorders[1].gcm_registration_token).not.to.equal(r2Token);
+            expect(recorders[1]).to.have.property('gcm_registration_token', gcmResponse2.results[0].registration_id);
+          });
       });
     });
   });
-
-  /*
-    it('should succeed with a message object.', function() {
-      expect(response.id).to.be.ok;
-      expect(response.type).to.equal('messages');
-      expect(response.attributes).to.have.property('created');
-      expect(response.attributes).to.have.property('audio_url', body.data.attributes.audio_url);
-      expect(response.attributes).to.have.property('sender_email', body.data.attributes.sender_email.toLowerCase());
-      expect(response.attributes).to.have.property('recipient_email', body.data.attributes.recipient_email.toLowerCase());
-      if (!tv4.validate(response, spec.responses['202'].schema)) {
-        throw tv4.error;
-      }
-    });
-
-    it('should send a message to GCM for the account\'s device group', function() {
-      var m = _.gcm.sends.pop();
-
-      expect(m).to.have.property('to', user.account.gcm_notification_key);
-      expect(m.notification).to.deep.equal({
-        title: 'New Message',
-        body: 'John Doe sent you a message',
-        icon: 'myicon',
-      });
-      expect(m.data).to.deep.equal({
-        message_id: response.id,
-        audio_url: body.data.attributes.audio_url,
-        sender_name: 'John Doe',
-        sender_email: response.attributes.sender_email,
-        recipient_email: response.attributes.recipient_email,
-        created: response.attributes.created,
-        transcription: null
-      });
-    });
-   */ 
 
   describe('Recipient is unknown', function() {
     it('should fail with a 404 error.', function(done) {
@@ -625,3 +769,38 @@ describe('lambda:CreateMessage', function() {
     });
   });
 });
+
+function responseOK(response, attrs) {
+  expect(response.id).to.be.ok;
+  expect(response.type).to.equal('messages');
+  expect(response.attributes).to.have.property('created');
+  expect(response.attributes).to.have.property('audio_url', attrs.audio_url);
+  expect(response.attributes).to.have.property('sender_email', attrs.sender_email.toLowerCase());
+  expect(response.attributes).to.have.property('recipient_email', attrs.recipient_email.toLowerCase());
+  if (!tv4.validate(response, spec.responses['202'].schema)) {
+    throw tv4.error;
+  }
+}
+
+function msgOK(msg, to, from, response) {
+  expect(msg).to.be.ok;
+  expect(msg).to.have.property('to', to);
+  expect(msg).to.have.property('priority', 'high');
+  expect(msg.data).to.deep.equal({
+    message_id: response.id,
+    audio_url: response.attributes.audio_url,
+    sender_name: from,
+    sender_email: response.attributes.sender_email,
+    recipient_email: response.attributes.recipient_email,
+    created: response.attributes.created,
+    transcription: undefined
+  });
+}
+
+function msgOKiOS(msg, from) {
+  expect(msg).to.have.property('content_available', true);
+  expect(msg.notification).to.deep.equal({
+    title: 'New Message',
+    body: from + ' sent you a message',
+  });
+}

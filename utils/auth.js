@@ -125,8 +125,9 @@ exports.facebook = function(creds) {
     return Promise.reject(new Error('email is required'));
   }
 
-  return http.get('https://graph.facebook.com/me?access_token=' + accessToken)
+  return http.get('https://graph.facebook.com/me?access_token=' + accessToken + '&fields=name,email')
     .then(function(response) {
+      console.log(response.body);
       if (response.statusCode === 400) {
         var err = new Error('401');
         err.name = JSON.stringify({detail: 'Facebook rejected access token'});

@@ -120,25 +120,8 @@ function includeTranscription(request, reply) {
 
 function deliver(request, reply) {
   Promise.all(_.map(request.recipient.receivers, function(recorder) {
-    return _.gcm.send({
-      to: recorder.gcm_registration_token,
-      priority: 'high',
-      content_available: true,
-      notification: {
-        title: 'New Message',
-        body: request.sender.full_name + ' sent you a message',
-        icon: 'myicon',
-      },
-      data: {
-        audio_url: request.message.audio_url,
-        message_id: request.message.message_id,
-        sender_name: request.sender.full_name,
-        sender_email: request.message.sender_email,
-        recipient_email: request.message.recipient_email,
-        created: _.timestamp(request.message.created),
-        transcription: request.message.transcription,
-      },
-    });
+    var formatter = _.apps.isAndroid(recorder.api_key) ? android : iOS;
+    return _.gcm.send(formatter(request.message, recorder.gcm_registration_token, request.sender.full_name));
   }))
   .then(function(results) {
     var success = 0;
@@ -168,4 +151,37 @@ function deliver(request, reply) {
 
 function respond(request, reply) {
   reply.succeed(_.messages.resource(request.message));
+}
+
+function data(message, from_name) {
+  return {
+    audio_url: message.audio_url,
+    message_id: message.message_id,
+    sender_name: from_name,
+    sender_email: message.sender_email,
+    recipient_email: message.recipient_email,
+    created: _.timestamp(message.created),
+    transcription: message.transcription,
+  };
+}
+
+function iOS(message, to, from_name) {
+  return {
+    to: to,
+    priority: 'high',
+    content_available: true,
+    notification: {
+      title: 'New Message',
+      body: from_name + ' sent you a message',
+    },
+    data: data(message, from_name),
+  };
+}
+
+function android(message, to, from_name) {
+  return {
+    to: to,
+    priority: 'high',
+    data: data(message, from_name),
+  };
 }

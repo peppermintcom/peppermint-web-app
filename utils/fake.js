@@ -2,8 +2,10 @@ var _ = require('./');
 
 _.gcm = require('./gcmstub');
 
-var API_KEY = exports.API_KEY = 'abc123';
 var AUDIO_URL = exports.AUDIO_URL = 'http://go.peppermint.com/x/x.m4a';
+var API_KEY = exports.API_KEY = 'abc123';
+exports.API_KEY_ANDROID = 'android-dev';
+exports.API_KEY_IOS = 'ios-dev';
 
 var recorder = exports.recorder = function() {
   var handler = require('../resources/recorder/post').handler;
