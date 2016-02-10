@@ -95,6 +95,11 @@ exports.google = function(creds) {
       }
       //https://developers.google.com/+/web/api/rest/latest/people#resource
       var profile = response.body;
+      if (!profile.emails || !profile.emails.length) {
+        var err = new Error('400');
+        err.name = JSON.stringify({detail: 'Access token does not have emails in scope'});
+        throw err;
+      }
       var match = _.find(profile.emails, function(obj) {
         return obj.value.toLowerCase() === email.toLowerCase();
       });
@@ -133,8 +138,15 @@ exports.facebook = function(creds) {
       }
       //https://developers.facebook.com/docs/graph-api/reference/user
       var profile = response.body;
+      if (!profile.email) {
+        var err = new Error('400');
+        err.name = JSON.stringify({detail: 'Access token does not include email scope'});
+        throw err;
+      }
       if (profile.email !== email) {
-        throw new Error('email does not match Facebook profile');
+        var err = new Error('401');
+        err.name = JSON.stringify({detail: 'Email does not match Facebook profile'});
+        throw err;
       }
 
       return {
