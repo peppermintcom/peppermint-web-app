@@ -40,7 +40,6 @@
     "jwt-simple": "^0.3.1",
     "lodash": "^3.10.1",
     "mandrill-api": "^1.0.45",
-    "pg": "^4.4.2",
     "randomstring": "^1.1.0",
     "request": "^2.65.0",
     "tv4": "^1.2.7"

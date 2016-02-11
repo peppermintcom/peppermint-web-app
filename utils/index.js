@@ -25,6 +25,7 @@ exports.receivers = require('./receivers');
 exports.token = token;
 exports.recorders = require('./recorders');
 exports.timestamp = require('./timestamp');
+exports.uploads = require('./uploads');
 exports.jwt = jwt;
 exports.errors = errors;
 
