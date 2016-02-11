@@ -185,23 +185,24 @@ describe('PUT /recorders/:recorderID', function() {
 
   describe('with Content-Type "text/plain"', function() {
     it('should respond with a 415 error.', function() {
-      return put(body, {
+      return put(JSON.stringify(body), {
           'X-Api-Key': _.fake.API_KEY,
           Authorization: 'Bearer ' + jwt,
           'Content-Type': 'text/plain',
         })
         .then(function(res) {
+          var body = JSON.parse(res.body);
           expect(res.statusCode).to.equal(415);
-          expect(res.body).to.deep.equal({
+          expect(body).to.deep.equal({
             errors: [{
               detail: 'Use "application/vnd.api+json"',
             }],
           });
           expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
-          if (!tv4.validate(res.body, jsonapischema)) {
+          if (!tv4.validate(body, jsonapischema)) {
             throw tv4.error;
           }
-          if (!tv4.validate(res.body, spec.responses['415'].schema)) {
+          if (!tv4.validate(body, spec.responses['415'].schema)) {
             throw tv4.error;
           }
         });
