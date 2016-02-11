@@ -11,7 +11,7 @@ exports.handler = _.middleware.process([
   allow,
   lookupRecipientReceivers,
   newMessage,
-  includeTranscription,
+  includeTranscriptionAndDuration,
   deliver,
   respond,
 ]);
@@ -105,12 +105,26 @@ function newMessage(request, reply) {
     });
 };
 
-function includeTranscription(request, reply) {
-  _.transcriptions.getByAudioURL(request.message.audio_url)
-    .then(function(transcription) {
+function includeTranscriptionAndDuration(request, reply) {
+  Promise.all([
+      _.transcriptions.getByAudioURL(request.message.audio_url),
+      _.uploads.getByURL(request.message.audio_url),
+    ])
+    .then(function(results) {
+      var transcription = results[0];
+      var upload = results[1];
+
       if (transcription) {
         request.message.transcription = transcription.text;
       }
+      if (!upload) {
+        reply.fail({
+          status: '400',
+          detail: 'No upload found at the audio_url',
+        });
+        return;
+      }
+      request.message.duration = upload.seconds;
       reply.succeed(request);
     })
     .catch(function(err) {
@@ -162,6 +176,7 @@ function data(message, from_name) {
     recipient_email: message.recipient_email,
     created: _.timestamp(message.created),
     transcription: message.transcription,
+    duration: message.duration,
   };
 }
 

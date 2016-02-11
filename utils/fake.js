@@ -2,7 +2,8 @@ var _ = require('./');
 
 _.gcm = require('./gcmstub');
 
-var AUDIO_URL = exports.AUDIO_URL = 'http://go.peppermint.com/x/x.m4a';
+var UPLOAD_KEY = exports.UPLOAD_KEY = 'HYAgptKg2IUZclZ3HDrfDP/hr5cclxmJqs7QSj97XgtLD.mp3';
+var AUDIO_URL = exports.AUDIO_URL = 'http://go.peppermint.com/' + UPLOAD_KEY;
 var API_KEY = exports.API_KEY = 'abc123';
 exports.API_KEY_ANDROID = 'android-dev';
 exports.API_KEY_IOS = 'ios-dev';

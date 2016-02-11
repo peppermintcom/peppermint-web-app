@@ -42,6 +42,7 @@ exports.handler = function(req, res) {
   var key = [jwt.recorder_id, _.token(22)].join('/') + extension;
   var uploadMeta = _.assign({
       pathname: {S: key},
+      created: {N: Date.now().toString()},
     },
     req.body.sender_name ? {sender_name: {S: req.body.sender_name}} : {},
     req.body.sender_email ? {sender_email: {S: req.body.sender_email}}: {}

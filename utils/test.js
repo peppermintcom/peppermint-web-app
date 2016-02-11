@@ -159,10 +159,12 @@ exports.http = function(method, path, body, headers) {
       return;
     }
 
+    var type = (headers && (headers['Content-Type'] || headers['content-type'])) || 'application/json';
+
     request({
       url: url,
       method: method,
-      json: true,
+      json: /json$/.test(type),
       body: body,
       headers: headers,
     }, function(err, res, body) {

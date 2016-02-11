@@ -45,6 +45,7 @@ exports.resource = function(message) {
     sender_email: message.sender_email,
     recipient_email: message.recipient_email,
     created: timestamp(message.created),
+    duration: message.duration,
   };
 
   if (message.transcription_url) {

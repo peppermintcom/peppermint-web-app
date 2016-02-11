@@ -6,6 +6,7 @@ var _ = require('utils/test');
 
 describe('lambda:CreateMessage', function() {
   var sender, recipient, body;
+  var duration = 6;
 
   before(function() {
     return Promise.all([
@@ -110,7 +111,7 @@ describe('lambda:CreateMessage', function() {
           body: body,
         }, {
           succeed: function(result) {
-            responseOK(result, body.data.attributes);
+            responseOK(result, body.data.attributes, duration);
             response = result;
             done();
           },
@@ -120,7 +121,30 @@ describe('lambda:CreateMessage', function() {
 
       it('should have sent to GCM.', function() {
         var last = _.gcm.sends.pop();
-        msgOK(last, gcmToken, sender.full_name, response);
+        msgOK(last, gcmToken, sender.full_name, response, duration);
+      });
+
+      describe('no upload for audio_url', function() {
+        it('should fail with a 400 error.', function(done) {
+          var b = _.cloneDeep(body);
+          b.data.attributes.audio_url = _.fake.AUDIO_URL + 'x';
+
+          handler({
+            api_key: _.fake.API_KEY,
+            Authorization: 'Bearer ' + sender.at,
+            'Content-Type': 'application/vnd.api+json',
+            body: b,
+          }, {
+            succeed: function() {
+              done(new Error('success without audio_url'));
+            },
+            fail: function(err) {
+              expect(err.message).to.equal('400');
+              expect(JSON.parse(err.name)).to.have.property('detail', 'No upload found at the audio_url');
+              done();
+            },
+          });
+        });
       });
     });
 
@@ -147,7 +171,7 @@ describe('lambda:CreateMessage', function() {
           body: body,
         }, {
           succeed: function(result) {
-            responseOK(result, body.data.attributes);
+            responseOK(result, body.data.attributes, duration);
             response = result;
             done();
           },
@@ -157,7 +181,7 @@ describe('lambda:CreateMessage', function() {
 
       it('should send a message to GCM.', function() {
         var last = _.gcm.sends.pop();
-        msgOK(last, gcmToken, sender.full_name, response);
+        msgOK(last, gcmToken, sender.full_name, response, duration);
       });
 
       it('should update the recorder registration token in the database to the one returned by GCM.', function() {
@@ -264,7 +288,7 @@ describe('lambda:CreateMessage', function() {
           body: body,
         }, {
           succeed: function(result) {
-            responseOK(result, body.data.attributes);
+            responseOK(result, body.data.attributes, duration);
             response = result;
             done();
           },
@@ -274,7 +298,7 @@ describe('lambda:CreateMessage', function() {
 
       it('should send 1 message to GCM.', function() {
         var msg = _.gcm.sends.pop();
-        msgOK(msg, r1Token, sender.full_name, response);
+        msgOK(msg, r1Token, sender.full_name, response, duration);
       });
     });
 
@@ -316,7 +340,7 @@ describe('lambda:CreateMessage', function() {
             body: body,
           }, {
             succeed: function(result) {
-              responseOK(result, body.data.attributes);
+              responseOK(result, body.data.attributes, duration);
               response = result;
               done();
             },
@@ -333,14 +357,14 @@ describe('lambda:CreateMessage', function() {
             return msg.to === r1Token;
           });
           expect(msg).to.be.ok;
-          msgOK(msg, r1Token, sender.full_name, response);
+          msgOK(msg, r1Token, sender.full_name, response, duration);
         });
 
         it('message to iOS should have notification and content_available fields.', function() {
           var msg = _.find(_.gcm.sends, function(msg) {
             return msg.to === r2Token;
           });
-          msgOK(msg, r2Token, sender.full_name, response);
+          msgOK(msg, r2Token, sender.full_name, response, duration);
           msgOKiOS(msg, sender.full_name);
         });
       });
@@ -371,7 +395,7 @@ describe('lambda:CreateMessage', function() {
           body: body,
         }, {
           succeed: function(result) {
-            responseOK(result, body.data.attributes);
+            responseOK(result, body.data.attributes, duration);
             response = result;
             done();
           },
@@ -387,14 +411,14 @@ describe('lambda:CreateMessage', function() {
         var msg = _.find(_.gcm.sends, function(msg) {
           return msg.to === r1Token;
         });
-        msgOK(msg, r1Token, sender.full_name, response);
+        msgOK(msg, r1Token, sender.full_name, response, duration);
       });
 
       it('should send 1 message to the old token.', function() {
         var msg = _.find(_.gcm.sends, function(msg) {
           return msg.to === r2Token;
         });
-        msgOK(msg, r2Token, sender.full_name, response);
+        msgOK(msg, r2Token, sender.full_name, response, duration);
       });
 
       it('should update the old token in the database.', function() {
@@ -430,7 +454,7 @@ describe('lambda:CreateMessage', function() {
           body: body,
         }, {
           succeed: function(result) {
-            responseOK(result, body.data.attributes);
+            responseOK(result, body.data.attributes, duration);
             response = result;
             done();
           },
@@ -441,7 +465,7 @@ describe('lambda:CreateMessage', function() {
       it('should send 1 message to the old token via GCM.', function() {
         expect(_.gcm.sends).to.have.length(1);
         var msg = _.gcm.sends.pop();
-        msgOK(msg, r1Token, sender.full_name, response);
+        msgOK(msg, r1Token, sender.full_name, response, duration);
       });
 
       it('should update the old token in the database.', function() {
@@ -479,7 +503,7 @@ describe('lambda:CreateMessage', function() {
           body: body,
         }, {
           succeed: function(result) {
-            responseOK(result, body.data.attributes);
+            responseOK(result, body.data.attributes, duration);
             response = result;
             done();
           },
@@ -492,11 +516,11 @@ describe('lambda:CreateMessage', function() {
         var msg = _.find(_.gcm.sends, function(msg) {
           return msg.to === r1Token;
         });
-        msgOK(msg, r1Token, sender.full_name, response);
+        msgOK(msg, r1Token, sender.full_name, response, duration);
         msg = _.find(_.gcm.sends, function(msg) {
           return msg.to === r2Token;
         });
-        msgOK(msg, r2Token, sender.full_name, response);
+        msgOK(msg, r2Token, sender.full_name, response, duration);
       });
 
       it('should update the old tokens in the database.', function() {
@@ -770,19 +794,20 @@ describe('lambda:CreateMessage', function() {
   });
 });
 
-function responseOK(response, attrs) {
+function responseOK(response, attrs, duration) {
   expect(response.id).to.be.ok;
   expect(response.type).to.equal('messages');
   expect(response.attributes).to.have.property('created');
   expect(response.attributes).to.have.property('audio_url', attrs.audio_url);
   expect(response.attributes).to.have.property('sender_email', attrs.sender_email.toLowerCase());
   expect(response.attributes).to.have.property('recipient_email', attrs.recipient_email.toLowerCase());
+  expect(response.attributes).to.have.property('duration', duration);
   if (!tv4.validate(response, spec.responses['202'].schema)) {
     throw tv4.error;
   }
 }
 
-function msgOK(msg, to, from, response) {
+function msgOK(msg, to, from, response, duration) {
   expect(msg).to.be.ok;
   expect(msg).to.have.property('to', to);
   expect(msg).to.have.property('priority', 'high');
@@ -793,6 +818,7 @@ function msgOK(msg, to, from, response) {
     sender_email: response.attributes.sender_email,
     recipient_email: response.attributes.recipient_email,
     created: response.attributes.created,
+    duration: duration,
     transcription: undefined
   });
 }

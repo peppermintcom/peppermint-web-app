@@ -11,6 +11,7 @@ exports.example = {
     sender_email: 'bob@example.com',
     recipient_email: 'ann@example.com',
     created: '2015-10-19 09:19:55',
+    duration: 6,
   },
 };
 
@@ -22,8 +23,9 @@ var attributesSchema = {
     sender_email: {type: 'string'},
     recipient_email: {type: 'string'},
     created: timestamp,
+    duration: {type: 'number'},
   },
-  required: ['audio_url', 'sender_email', 'recipient_email', 'created'],
+  required: ['audio_url', 'sender_email', 'recipient_email', 'created', 'duration'],
   additionalProperties: false,
 };
 

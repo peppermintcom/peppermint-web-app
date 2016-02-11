@@ -1,17 +1,30 @@
+var url = require('url');
 var dynamo = require('./dynamo');
 
-exports.get = function(pathname) {
+var get = exports.get = function(pathname) {
   return dynamo.get('uploads', {
     pathname: {S: pathname},
   })
   .then(parse);
 };
 
+exports.getByURL = function(audioURL) {
+  return get(pathname(audioURL));
+};
+
 exports.update = function(pathname, expr, values) {
   return dynamo.update('uploads', {pathname: {S: pathname}}, expr, values);
 };
 
+function pathname(audioURL) {
+  var parts = url.parse(audioURL);
+
+  return parts.pathname.substring(1);
+}
+
 function parse(item) {
+  if (!item) return null;
+
   return {
     pathname: item.pathname.S,
     sender_email: item.sender_email && item.sender_email.S,

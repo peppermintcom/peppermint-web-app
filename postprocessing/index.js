@@ -1,4 +1,5 @@
 var fs = require('fs');
+var util = require('util');
 var aws = require('aws-sdk');
 var ffprobe = require('node-ffprobe');
 var s3 = new aws.S3();
@@ -8,7 +9,7 @@ var _ = require('utils');
 process.env.PATH += ':' + process.env.LAMBDA_TASK_ROOT;
 
 function main(e, context) {
-  console.log(e);
+  console.log(key(e));
   fetch(e)
     .then(saveTmp)
     .then(probe)

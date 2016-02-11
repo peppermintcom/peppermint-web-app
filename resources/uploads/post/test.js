@@ -64,6 +64,7 @@ describe('lambda:CreateUpload', function() {
               .then(function(uploadMeta) {
                 expect(uploadMeta.sender_name.S).to.equal(user.full_name);
                 expect(uploadMeta.sender_email.S).to.equal(user.email);
+                expect(uploadMeta).to.have.property('created');
                 done();
               })
               .catch(done);

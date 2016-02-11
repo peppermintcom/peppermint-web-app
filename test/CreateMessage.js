@@ -363,6 +363,52 @@ describe('POST /messages', function() {
     });
   });
 
+  describe('No upload item for audio_url', function() {
+    var response;
+
+    before(function() {
+      return _.receivers.link(recorder.recorder_id, recipient.account_id);
+    });
+
+    before(function() {
+      return _.recorders.updateGCMToken(recorder.recorder_client_id, _.token(64));
+    });
+
+    before(function() {
+      return post({
+          data: {
+            type: 'messages',
+            attributes: {
+              sender_email: sender.email,
+              recipient_email: recipient.email,
+              audio_url: _.fake.AUDIO_URL + 'x',
+            },
+          },
+        }, {
+          'X-Api-Key': _.fake.API_KEY,
+          Authorization: 'Bearer ' + jwt,
+          'Content-Type': 'application/vnd.api+json',
+        })
+        .then(function(res) {
+          response = res;
+        });
+    });
+    
+    it('should respond with a 400 error.', function() {
+      expect(response.statusCode).to.equal(400);
+      expect(response.body).to.deep.equal({
+        errors: [{detail: 'No upload found at the audio_url'}],
+      });
+      expect(response.headers).to.have.property('content-type', 'application/vnd.api+json');
+      if (!tv4.validate(response.body, spec.responses['400'].schema)) {
+        throw tv4.error;
+      }
+      if (!tv4.validate(response.body, jsonapischema)) {
+        throw tv4.error;
+      }
+    });
+  });
+
   describe('Wrong Content-Type', function() {
     describe('response', function() {
       var response;
