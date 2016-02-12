@@ -40,6 +40,7 @@ function lookupAccounts(request, reply) {
       request.recipient = accounts[1];
 
       if (!request.sender) {
+        console.log('sender not found: ' + request.body.data.attributes.sender_email);
         reply.fail({
           status: '404',
           detail: 'No account exists with sender_email',
@@ -47,6 +48,7 @@ function lookupAccounts(request, reply) {
         return;
       }
       if (!request.recipient) {
+        console.log('reicpient not found: ' + request.body.data.attributes.recipient_email);
         reply.fail({
           status: '404',
           detail: 'Recipient cannot receive messages via Peppermint',
@@ -78,6 +80,7 @@ function lookupRecipientReceivers(request, reply) {
         return !!r.gcm_registration_token;
       });
       if (!receivers.length) {
+        console.log('no recorders are related to recipient: ' + request.recipient.email);
         reply.fail({
           status: '404',
           detail: 'Recipient cannot receive messages via Peppermint',
@@ -150,6 +153,7 @@ function deliver(request, reply) {
   })
   .then(function(success) {
     if (success < 1) {
+      console.log('no successes sending to gcm');
       reply.fail({
         status: '404',
         detail: 'Recipient cannot receive messages via Peppermint',
@@ -185,10 +189,12 @@ function iOS(message, to, from_name) {
     to: to,
     priority: 'high',
     content_available: true,
+    /*
     notification: {
       title: 'New Message',
       body: from_name + ' sent you a message',
     },
+    */
     data: data(message, from_name),
   };
 }
