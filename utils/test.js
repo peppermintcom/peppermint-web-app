@@ -1,5 +1,6 @@
 //This module contains all utilities in index.js plus more used only in tests.
 var request = require('request');
+var fake = require('./fake');
 var _ = require('./index');
 
 const API_URL = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1';
@@ -76,7 +77,7 @@ exports.basic = function(user, password) {
 
 var GOOGLE = 1;
 var FACEBOOK = 2;
-exports.peppermintScheme = function(recorderUser, recorderPass, accountUser, accountPass, provider) {
+var peppermintScheme = exports.peppermintScheme = function(recorderUser, recorderPass, accountUser, accountPass, provider) {
   var h = 'Peppermint ';
 
   if (recorderUser) {
@@ -118,7 +119,7 @@ exports.httpPlain = function(method, path, body, headers) {
   });
 };
 
-exports.http = function(method, path, body, headers) {
+var http = exports.http = function(method, path, body, headers) {
   return new Promise(function(resolve, reject) {
     var url = /^http/.test(path) ? path : API_URL + path;
 
@@ -179,3 +180,17 @@ exports.http = function(method, path, body, headers) {
 };
 
 exports.gcm = require('./gcmstub');
+
+exports.auth = function (recorderUser, recorderPass, accountUser, accountPass) {
+  return http('POST', '/jwts', {}, {
+    Authorization: peppermintScheme(recorderUser, recorderPass, accountUser, accountPass),
+    'X-Api-Key': fake.API_KEY,
+  })
+  .then(function(response) {
+    if (response.statusCode !== 200) {
+      console.log(response.body);
+      throw new Error(response.statusCode);
+    }
+    return response.body.data.attributes.token;
+  });
+}

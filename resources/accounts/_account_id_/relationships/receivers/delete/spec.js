@@ -10,6 +10,7 @@ exports.produces = ['application/vnd.api+json', 'text/plain'];
 exports.parameters = [
   headers.XApiKey,
   headers.AuthorizationBearer,
+  headers.ContentType,
   {
     name: 'account_id',
     'in': 'path',
@@ -54,6 +55,7 @@ exports.responses = {
   '400': responses.jsonAPI.BadRequest,
   '401': responses.jsonAPI.Unauthorized,
   '403': responses.jsonAPI.Forbidden,
+  '415': responses.jsonAPI.Unsupported,
   '500': responses.plain.Internal,
 };
 
@@ -63,13 +65,14 @@ exports['x-amazon-apigateway-integration'] = {
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {
-    'application/json': '{"Content-Type": "$input.params(\'Content-Type\')", "Authorization": "$input.params(\'Authorization\')", "api_key": "$input.params(\'X-Api-Key\')", "body": $input.json(\'$\'), "account_id": "$input.params(\'account_id\')"}',
+    'application/vnd.api+json': '{"Content-Type": "$input.params(\'Content-Type\')", "Authorization": "$input.params(\'Authorization\')", "api_key": "$input.params(\'X-Api-Key\')", "body": $input.json(\'$\'), "account_id": "$input.params(\'account_id\')"}',
   },
   responses: {
     'default': integrations.NoContent,
     '400': integrations.jsonAPI.BadRequest,
     '401': integrations.jsonAPI.Unauthorized,
     '403': integrations.jsonAPI.Forbidden,
-    '^(?!400|401|403)(.|\\n)+': integrations.plain.Internal,
+    '415': integrations.jsonAPI.Unsupported,
+    '^(?!400|401|403:415)(.|\\n)+': integrations.plain.Internal,
   },
 };
