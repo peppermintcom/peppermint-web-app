@@ -33,6 +33,6 @@ gulp.task('deploy', ['swagger'], gateway);
 gulp.task('publishSpec', ['swaggerUI'], publishSpec);
 
 gulp.task('spike', function() {
-  return gulp.src('resources/accounts/_account_id_/relationships/receivers/delete/index.js')
+  return gulp.src('resources/accounts/_account_id_/relationships/receivers/_recorder_id_/delete/index.js')
     .pipe(lambda());
 });

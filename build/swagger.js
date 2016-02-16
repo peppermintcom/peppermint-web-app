@@ -29,7 +29,7 @@ const OPTIONS = {
         statusCode: '200',
         responseParameters: {
           'method.response.header.Access-Control-Allow-Origin': "'*'",
-          'method.response.header.Access-Control-Allow-Methods': "'GET,POST,PUT'",
+          'method.response.header.Access-Control-Allow-Methods': "'GET,POST,PUT,DELETE'",
           'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
         },
       },
@@ -139,5 +139,5 @@ function parameterize(path) {
 }
 
 function getPathParams(path) {
-  return path.match(/\{.+\}/g);
+  return path.match(/\{\w+\}/g);
 }

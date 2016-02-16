@@ -2,8 +2,8 @@ var expect = require('chai').expect;
 var handler = require('.').handler;
 var _ = require('utils/test');
 
-describe('lambda:RemoveAccountReceiver', function() {
-  var account, recorder, body;
+describe.only('lambda:RemoveAccountReceiver', function() {
+  var account, recorder;
 
   before(function() {
     return Promise.all([
@@ -13,23 +13,16 @@ describe('lambda:RemoveAccountReceiver', function() {
       .then(function(results) {
         account = results[0];
         recorder = results[1];
-        body = {
-          data: [{
-            type: 'recorders',
-            id: recorder.recorder_id,
-          }],
-        };
       });
   });
 
   describe('relationship does not exist', function() {
     it('should succeed.', function(done) {
       handler({
-        'api_key': _.fake.API_KEY,
-        'Authorization': 'Bearer ' + recorder.at,
-        'Content-Type': 'application/vnd.api+json',
-        'account_id': account.account_id,
-        body: body,
+        api_key: _.fake.API_KEY,
+        Authorization: 'Bearer ' + recorder.at,
+        account_id: account.account_id,
+        recorder_id: recorder.recorder_id,
       }, {
         succeed: function(response) {
           expect(response).to.be.undefined;
@@ -39,36 +32,12 @@ describe('lambda:RemoveAccountReceiver', function() {
       });
     });
 
-    describe('unformatted body', function() {
-      it('should fail with a 400 error.', function(done) {
-        var b = _.cloneDeep(body);
-        b.data.pop();
-
-        handler({
-          api_key: _.fake.API_KEY,
-          Authorization: 'Bearer ' + recorder.at,
-          'Content-Type': 'application/vnd.api+json',
-          account_id: account.account_id,
-          body: b,
-        }, {
-          succeed: function() {
-            done(new Error('success with malformed body'));
-          },
-          fail: function(err) {
-            expect(err).to.have.property('message');
-            done();
-          },
-        });
-      });
-    });
-
     describe('unauthenticated', function() {
       it('should fail with a 401 error.', function(done) {
         handler({
           api_key: _.fake.API_KEY,
-          'Content-Type': 'application/vnd.api+json',
           account_id: account.account_id,
-          body: body,
+          recorder_id: recorder.recorder_id,
         }, {
           succeed: function() {
             done(new Error('success without Authorization'));
@@ -87,9 +56,8 @@ describe('lambda:RemoveAccountReceiver', function() {
         handler({
           api_key: _.fake.API_KEY,
           Authorization: 'Bearer ' + account.at,
-          'Content-Type': 'application/vnd.api+json',
           account_id: account.account_id,
-          body: body,
+          recorder_id: recorder.recorder_id,
         }, {
           succeed: function() {
             done(new Error('success without recorder authentication'));
@@ -112,9 +80,8 @@ describe('lambda:RemoveAccountReceiver', function() {
       handler({
         api_key: _.fake.API_KEY,
         Authorization: 'Bearer ' + recorder.at,
-        'Content-Type': 'application/vnd.api+json',
         account_id: account.account_id,
-        body: body,
+        recorder_id: recorder.recorder_id,
       }, {
         succeed: function(response) {
           expect(response).to.be.undefined;

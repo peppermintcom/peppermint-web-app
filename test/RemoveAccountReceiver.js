@@ -1,11 +1,11 @@
 var expect = require('chai').expect;
 var tv4 = require('tv4');
 var jsonapischema = require('./jsonapischema');
-var spec = require('../resources/accounts/_account_id_/relationships/receivers/delete/spec');
+var spec = require('../resources/accounts/_account_id_/relationships/receivers/_recorder_id_/delete/spec');
 var _ = require('utils/test');
 
-describe('DELETE /accounts/:id/relationships/receivers', function() {
-  var account, recorder, accountID, recorderID, del, body;
+describe('DELETE /accounts/:id/relationships/receivers/:id', function() {
+  var account, recorder, accountID, recorderID, del;
   var recorderJWT, accountJWT;
 
   before(function() {
@@ -18,10 +18,7 @@ describe('DELETE /accounts/:id/relationships/receivers', function() {
       recorder = results[1].recorder;
       accountID = account.account_id;
       recorderID = recorder.recorder_id;
-      del = _.partial(_.http, 'DELETE', '/accounts/' + accountID + '/relationships/receivers');
-      body = {
-        data: [{type: 'recorders', id: recorder.recorder_id}],
-      };
+      del = _.partial(_.http, 'DELETE', '/accounts/' + accountID + '/relationships/receivers/' + recorderID, null);
     });
   });
 
@@ -41,9 +38,8 @@ describe('DELETE /accounts/:id/relationships/receivers', function() {
   });
 
   it('should respond with 204 status.', function() {
-    return del(JSON.stringify(body), {
+    return del({
       'X-Api-Key': _.fake.API_KEY,
-      'Content-Type': 'application/vnd.api+json',
       Authorization: 'Bearer ' + recorderJWT,
     })
     .then(function(response) {
@@ -60,16 +56,12 @@ describe('DELETE /accounts/:id/relationships/receivers', function() {
       });
   });
 
-  describe('unformatted body', function() {
+  describe('unknown X-Api-Key', function() {
     var response;
 
     it('should respond with a 400 status.', function() {
-      var b = _.cloneDeep(body);
-      delete b.data;
-
-      return del(JSON.stringify(b), {
-        'X-Api-Key': _.fake.API_KEY,
-        'Content-Type': 'application/vnd.api+json',
+      return del({
+        'X-Api-Key': _.fake.API_KEY + 'x',
         Authorization: 'Bearer ' + recorderJWT,
       })
       .then(function(_response) {
@@ -78,8 +70,8 @@ describe('DELETE /accounts/:id/relationships/receivers', function() {
       });
     });
 
-    it('should respond with a jsonapi error in the body.', function() {
-      validateResponse('400', response);
+    it('should responde with a jsonapi error.', function() {
+      validateResponse('401', response);
     });
   });
 
@@ -87,9 +79,8 @@ describe('DELETE /accounts/:id/relationships/receivers', function() {
     var response;
 
     it('should respond with a 401 status.', function() {
-      return del(JSON.stringify(body), {
+      return del({
         'X-Api-Key': _.fake.API_KEY,
-        'Content-Type': 'application/vnd.api+json',
       })
       .then(function(_response) {
         response = _response;
@@ -106,10 +97,9 @@ describe('DELETE /accounts/:id/relationships/receivers', function() {
     var response;
 
     it('should respond with a 403 status.', function() {
-      return del(JSON.stringify(body), {
+      return del({
         'X-Api-Key': _.fake.API_KEY,
         Authorization: 'Bearer ' + accountJWT,
-        'Content-Type': 'application/vnd.api+json',
       })
       .then(function(_response) {
         response = _response;
@@ -126,14 +116,9 @@ describe('DELETE /accounts/:id/relationships/receivers', function() {
     var response;
 
     it('should respond with a 403 status.', function() {
-      var b = _.cloneDeep(body);
-      
-      b.data[0].id += 'x';
-
-      return del(JSON.stringify(body), {
+      return del({
         'X-Api-Key': _.fake.API_KEY,
         Authorization: 'Bearer ' + accountJWT,
-        'Content-Type': 'application/vnd.api+json',
       })
       .then(function(_response) {
         response = _response;
@@ -143,26 +128,6 @@ describe('DELETE /accounts/:id/relationships/receivers', function() {
 
     it('should respond with a 403 json error.', function() {
       validateResponse('403', response);
-    });
-  });
-
-  describe('wrong content-type', function() {
-    var response;
-
-    it('should respond with a 415 status.', function() {
-      return del(JSON.stringify(body), {
-        'X-Api-Key': _.fake.API_KEY,
-        Authorization: 'Bearer ' + accountJWT,
-        'Content-Type': 'application/json',
-      })
-      .then(function(_response) {
-        response = _response;
-        expect(response.statusCode).to.equal(415);
-      });
-    });
-
-    it('should respond with a 415 json error.', function() {
-      validateResponse('415', response);
     });
   });
 });
