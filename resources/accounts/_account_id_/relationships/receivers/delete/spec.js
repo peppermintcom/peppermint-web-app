@@ -4,6 +4,7 @@ var integrations = require('definitions/integrations');
 
 exports.tags = ['accounts', 'inter-app'];
 exports.summary = 'Break an account-recorder receiver relationship';
+exports.description = 'The Authorization header only needs to contain recorder credentials. Request body should be formatted like: {data: [{type: "recorders", id: "recorder123"}]}';
 exports.operationId = 'RemoveAccountReceiver';
 exports.produces = ['application/vnd.api+json', 'text/plain'];
 
