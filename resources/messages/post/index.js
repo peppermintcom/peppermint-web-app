@@ -137,8 +137,21 @@ function includeTranscriptionAndDuration(request, reply) {
 
 function deliver(request, reply) {
   Promise.all(_.map(request.recipient.receivers, function(recorder) {
-    var formatter = _.apps.isAndroid(recorder.api_key) ? android : iOS;
-    return _.gcm.send(formatter(request.message, recorder.gcm_registration_token, request.sender.full_name));
+    var formatter;
+
+    if (_.apps.isAndroid(recorder.api_key)) {
+      formatter = android;
+    } else if (recorder.api_key === 'ios-dev') {
+      formatter = iOSDev;
+    } else {
+      formatter = iOS;
+    }
+
+    var formats = formatter(request.message, recorder.gcm_registration_token, request.sender.full_name);
+    
+    return Promise.all(formats.map(function(m) {
+      return _.gcm.send(m);
+    });
   }))
   .then(function(results) {
     var success = 0;
@@ -185,24 +198,49 @@ function data(message, from_name) {
 }
 
 function iOS(message, to, from_name) {
-  return {
+  return [{
     to: to,
     priority: 'high',
     content_available: true,
-    /*
-    notification: {
-      title: 'New Message',
-      body: from_name + ' sent you a message',
-    },
-    */
     data: data(message, from_name),
-  };
+  }];
+}
+
+function iOSDev(message, to, from_name) {
+  return [{
+    to: to,
+    priority: high,
+    notification: {
+      badge : "1",
+      sound : "notification.aiff",
+      body : "Message Content",
+      title : "Message Title",
+      click_action : "AudioMessage",
+      sender_name: message.from_emai,
+      sender_email: message.from_email,
+      created: _.timestamp(message.created),
+    },
+    {
+      to: to,
+      priority: 'high',
+      content_available: true,
+      data: {
+        recipient_email: message.recipient_email,
+        audio_url: message.audio_url,
+        sender_name: from_name,
+        sender_email: message.from_email,
+        created: _.timestamp(message.created),
+        duration : message.duration,
+        message_id : message.message_id,
+      },
+    },
+  ];
 }
 
 function android(message, to, from_name) {
-  return {
+  return [{
     to: to,
     priority: 'high',
     data: data(message, from_name),
-  };
+  }];
 }
