@@ -136,7 +136,9 @@ function includeTranscriptionAndDuration(request, reply) {
 }
 
 function deliver(request, reply) {
-  Promise.all(_.map(request.recipient.receivers, function(recorder) {
+  var queue = [];
+
+  _.each(request.recipient.receivers, function(recorder) {
     var formatter;
 
     if (_.apps.isAndroid(recorder.api_key)) {
@@ -148,17 +150,25 @@ function deliver(request, reply) {
     }
 
     var formats = formatter(request.message, recorder.gcm_registration_token, request.sender.full_name);
-    
-    return Promise.all(formats.map(function(m) {
-      return _.gcm.send(m);
+ 
+    _.each(formats, function(message) {
+      queue.push({
+        recorder: recorder,
+        message:message,
+      });
     });
+  });
+
+  Promise.all(_.map(queue, function(message) {
+    return _.gcm.send(message.message);
   }))
   .then(function(results) {
     var success = 0;
 
     return Promise.all(_.map(results, function(result, i) {
         success += result.success;
-        return _.gcm.sync([request.recipient.receivers[i]], result);
+
+        return _.gcm.sync([queue[i].recorder], result);
       }))
       .then(function() {
         return success;
@@ -209,32 +219,32 @@ function iOS(message, to, from_name) {
 function iOSDev(message, to, from_name) {
   return [{
     to: to,
-    priority: high,
+    priority: 'high',
     notification: {
       badge : "1",
       sound : "notification.aiff",
       body : "Message Content",
       title : "Message Title",
       click_action : "AudioMessage",
-      sender_name: message.from_emai,
-      sender_email: message.from_email,
+      sender_name: from_name,
+      sender_email: message.sender_email,
       created: _.timestamp(message.created),
     },
-    {
-      to: to,
-      priority: 'high',
-      content_available: true,
-      data: {
-        recipient_email: message.recipient_email,
-        audio_url: message.audio_url,
-        sender_name: from_name,
-        sender_email: message.from_email,
-        created: _.timestamp(message.created),
-        duration : message.duration,
-        message_id : message.message_id,
-      },
+  },
+  {
+    to: to,
+    priority: 'high',
+    content_available: true,
+    data: {
+      recipient_email: message.recipient_email,
+      audio_url: message.audio_url,
+      sender_name: from_name,
+      sender_email: message.sender_email,
+      created: _.timestamp(message.created),
+      duration : message.duration,
+      message_id : message.message_id,
     },
-  ];
+  }];
 }
 
 function android(message, to, from_name) {
