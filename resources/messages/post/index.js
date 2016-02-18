@@ -11,8 +11,10 @@ exports.handler = _.middleware.process([
   allow,
   lookupRecipientReceivers,
   newMessage,
-  includeTranscriptionAndDuration,
+  getPostprocessResult,
+  includeTranscription,
   deliver,
+  saveMessage,
   respond,
 ]);
 
@@ -95,31 +97,18 @@ function lookupRecipientReceivers(request, reply) {
     });
 }
 
-//create and save a message item to the database. Attaches a "message" property
-//to the request.
+//create a message item and attach it to the request but do not save it to the
+//database yet.
 function newMessage(request, reply) {
-  _.messages.create(request.body.data.attributes)
-    .then(function(message) {
-      request.message = message;
-      reply.succeed(request);
-    })
-    .catch(function(err) {
-      reply.fail(err);
-    });
-};
+  request.message = _.messages.create(request.body.data.attributes);
+  reply.succeed(request);
+}
 
-function includeTranscriptionAndDuration(request, reply) {
-  Promise.all([
-      _.transcriptions.getByAudioURL(request.message.audio_url),
-      _.uploads.getByURL(request.message.audio_url),
-    ])
-    .then(function(results) {
-      var transcription = results[0];
-      var upload = results[1];
-
-      if (transcription) {
-        request.message.transcription = transcription.text;
-      }
+//If the upload has been postprocessed get duration and add it
+//to the message object and add a postprocessed flag to the request.
+function getPostprocessResult(request, reply) {
+  _.uploads.getByURL(request.message.audio_url)
+    .then(function(upload) {
       if (!upload) {
         reply.fail({
           status: '400',
@@ -127,7 +116,28 @@ function includeTranscriptionAndDuration(request, reply) {
         });
         return;
       }
-      request.message.duration = upload.seconds;
+      if (upload.postprocessed) {
+        request.postprocessed = true;
+        request.message.duration = upload.seconds;
+      }
+      reply.succeed(request);
+    })
+    .catch(function(err) {
+      reply.fail(err);
+    });
+}
+
+function includeTranscription(request, reply) {
+  if (!request.postprocessed) {
+    reply.succeed(request);
+    return;
+  }
+
+  _.transcriptions.getByAudioURL(request.message.audio_url)
+    .then(function(transcription) {
+      if (transcription) {
+        request.message.transcription = transcription.text;
+      }
       reply.succeed(request);
     })
     .catch(function(err) {
@@ -136,121 +146,32 @@ function includeTranscriptionAndDuration(request, reply) {
 }
 
 function deliver(request, reply) {
-  var queue = [];
-
-  _.each(request.recipient.receivers, function(recorder) {
-    var formatter;
-
-    if (_.apps.isAndroid(recorder.api_key)) {
-      formatter = android;
-    } else if (recorder.api_key === 'ios-dev') {
-      formatter = iOSDev;
-    } else {
-      formatter = iOS;
-    }
-
-    var formats = formatter(request.message, recorder.gcm_registration_token, request.sender.full_name);
- 
-    _.each(formats, function(message) {
-      queue.push({
-        recorder: recorder,
-        message:message,
-      });
-    });
-  });
-
-  Promise.all(_.map(queue, function(message) {
-    return _.gcm.send(message.message);
-  }))
-  .then(function(results) {
-    var success = 0;
-
-    return Promise.all(_.map(results, function(result, i) {
-        success += result.success;
-
-        return _.gcm.sync([queue[i].recorder], result);
-      }))
-      .then(function() {
-        return success;
-      });
-  })
-  .then(function(success) {
-    if (success < 1) {
-      console.log('no successes sending to gcm');
-      reply.fail({
-        status: '404',
-        detail: 'Recipient cannot receive messages via Peppermint',
-      });
-      return;
-    }
+  if (!request.postprocessed) {
     reply.succeed(request);
-  })
-  .catch(function(err) {
-    reply.fail(err);
-  });
+    return;
+  }
+  _.gcm.deliver(request.recipient.receivers, request.message, request.sender)
+    .then(function(successes) {
+      request.message.delivered = Date.now();
+      reply.succeed(request);
+    })
+    .catch(function(err) {
+      reply.fail(err);
+    });
+}
+
+function saveMessage(request, reply) {
+  //save whether delivered or not; will be sent by postprocessing function if
+  //needed
+  _.messages.put(request.message)
+    .then(function() {
+      reply.succeed(request);
+    })
+    .catch(function(err) {
+      reply.fail(err);
+    });
 }
 
 function respond(request, reply) {
   reply.succeed(_.messages.resource(request.message));
-}
-
-function data(message, from_name) {
-  return {
-    audio_url: message.audio_url,
-    message_id: message.message_id,
-    sender_name: from_name,
-    sender_email: message.sender_email,
-    recipient_email: message.recipient_email,
-    created: _.timestamp(message.created),
-    transcription: message.transcription,
-    duration: message.duration,
-  };
-}
-
-function iOS(message, to, from_name) {
-  return [{
-    to: to,
-    priority: 'high',
-    content_available: true,
-    data: data(message, from_name),
-  }];
-}
-
-function iOSDev(message, to, from_name) {
-  return [{
-    to: to,
-    priority: 'high',
-    notification: {
-      badge : "1",
-      sound : "notification.aiff",
-      body : "Message Content",
-      title : "Message Title",
-      click_action : "AudioMessage",
-      sender_name: from_name,
-      sender_email: message.sender_email,
-      created: _.timestamp(message.created),
-    },
-  },
-  {
-    to: to,
-    priority: 'high',
-    content_available: true,
-    data: {
-      recipient_email: message.recipient_email,
-      audio_url: message.audio_url,
-      sender_name: from_name,
-      sender_email: message.sender_email,
-      created: _.timestamp(message.created),
-      duration : message.duration,
-      message_id : message.message_id,
-    },
-  }];
-}
-
-function android(message, to, from_name) {
-  return [{
-    to: to,
-    priority: 'high',
-    data: data(message, from_name),
-  }];
 }

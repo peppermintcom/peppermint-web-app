@@ -12,8 +12,12 @@ exports.getByURL = function(audioURL) {
   return get(pathname(audioURL));
 };
 
-exports.update = function(pathname, expr, values) {
+var update = exports.update = function(pathname, expr, values) {
   return dynamo.update('uploads', {pathname: {S: pathname}}, expr, values);
+};
+
+exports.updateByAudioURL = function(audioURL, expr, values) {
+  return update(pathname(audioURL), expr, values);
 };
 
 function pathname(audioURL) {
@@ -32,6 +36,7 @@ function parse(item) {
     created: item.created && parseInt(item.created.N, 10),
     uploaded: item.uploaded && parseInt(item.uploaded.N, 10),
     seconds: item.seconds && parseInt(item.seconds.N, 10),
+    postprocessed: item.postprocessed && +item.postprocessed.N,
     api_key: item.api_key && item.api_key.S,
   };
 }

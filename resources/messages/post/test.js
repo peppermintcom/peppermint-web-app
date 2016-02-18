@@ -30,6 +30,14 @@ describe('lambda:CreateMessage', function() {
     });
   });
 
+  //set duration on upload so the send happens
+  before(function() {
+    return _.uploads.updateByAudioURL(_.fake.AUDIO_URL, 'SET seconds = :seconds, postprocessed = :postprocessed', {
+      ':seconds': {N: '6'},
+      ':postprocessed': {N: Date.now().toString()},
+    });
+  });
+
   describe('recipient has no recorders linked to account', function() {
     it('should fail with a 404 error.', function(done) {
       handler({
@@ -332,6 +340,12 @@ describe('lambda:CreateMessage', function() {
             ]);
         });
 
+        after(function() {
+          return _.recorders.update(r2.recorder_client_id, 'SET api_key = :key', {
+            ':key': {S: _.fake.API_KEY_ANDROID},
+          });
+        });
+
         it('should succeed with a message resource.', function(done) {
           handler({
             api_key: _.fake.API_KEY,
@@ -348,8 +362,8 @@ describe('lambda:CreateMessage', function() {
           });
         });
 
-        it('should send 2 messages to GCM.', function() {
-          expect(_.gcm.sends).to.have.length(2);
+        it('should send 3 messages to GCM.', function() {
+          expect(_.gcm.sends).to.have.length(3);
         });
 
         it('message to Android should not have notification or content_available fields.', function() {
@@ -360,12 +374,18 @@ describe('lambda:CreateMessage', function() {
           msgOK(msg, r1Token, sender.full_name, response, duration);
         });
 
-        it('message to iOS should have notification and content_available fields.', function() {
-          var msg = _.find(_.gcm.sends, function(msg) {
-            return msg.to === r2Token;
+        it('should send a notification message and a data message to iOS', function() {
+          var msgN = _.find(_.gcm.sends, function(msg) {
+            return (msg.to === r2Token) && msg.notification;
           });
-          msgOK(msg, r2Token, sender.full_name, response, duration);
-          msgOKiOS(msg, sender.full_name);
+          var msgD = _.find(_.gcm.sends, function(msg) {
+            return (msg.to === r2Token) && msg.data;
+          });
+          expect(msgN).to.be.ok;
+          expect(msgD).to.be.ok;
+          expect(msgN).not.to.equal(msgD);
+          msgOK(msgD, r2Token, sender.full_name, response, duration);
+          msgOKiOSNotification(msgN, sender.full_name);
         });
       });
     });
@@ -819,14 +839,11 @@ function msgOK(msg, to, from, response, duration) {
     recipient_email: response.attributes.recipient_email,
     created: response.attributes.created,
     duration: duration,
-    transcription: undefined
+    transcription: undefined,
   });
 }
 
-function msgOKiOS(msg, from) {
-  expect(msg).to.have.property('content_available', true);
-  expect(msg.notification).to.deep.equal({
-    title: 'New Message',
-    body: from + ' sent you a message',
-  });
+function msgOKiOSNotification(msg, from) {
+  expect(msg).to.have.property('priority', 'high');
+  expect(msg).to.have.property('notification');
 }

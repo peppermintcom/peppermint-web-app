@@ -3,27 +3,34 @@ var timestamp = require('./timestamp');
 var token = require('./randomtoken');
 var _ = require('lodash');
 
+//adds id and created properties and formats a message
 exports.create = function(message) {
-  var created = Date.now();
-  var msg = _.assign({message_id: token(22), created: created}, message);
+  return _.assign({message_id: token(22), created: Date.now()}, message, {
+    sender_email: message.sender_email.toLowerCase(),
+    recipient_email: message.recipient_email.toLowerCase(),
+  });
+};
 
-  var m = format(msg);
-
-  return dynamo.put('messages', m)
-    .then(function() {
-      return parse(m);
-    })
+//saves the message to the database
+exports.put = function(message) {
+  return dynamo.put('messages', format(message));
 };
 
 //converts from plain object to dynamo format
 function format(message) {
-  return {
+  var msg = {
     message_id: {S: message.message_id},
     audio_url: {S: message.audio_url},
     sender_email: {S: message.sender_email.toLowerCase()},
     recipient_email: {S: message.recipient_email.toLowerCase()},
     created: {N: message.created.toString()},
   };
+
+  if (message.delivered) {
+    msg.delivered = {N: message.delivered.toString()};
+  }
+
+  return msg;
 }
 
 //converts from dynamo item to plain object
@@ -34,6 +41,7 @@ function parse(item) {
     sender_email: item.sender_email.S,
     recipient_email: item.recipient_email.S,
     created: +item.created.N,
+    delivered: item.delivered && +item.delivered.N,
   };
 }
 

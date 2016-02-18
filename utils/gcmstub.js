@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var conf = require('utils/conf');
 var token = require('./randomtoken');
+var gcm = require('./gcm');
 
 var sends = exports.sends = [];
 var gcmStore = exports.store = {};
@@ -10,7 +11,7 @@ if (conf.NODE_ENV === 'production') {
   throw new Error('GCM stubs in production');
 }
 
-exports.sync = require('./gcm').sync;
+exports.sync = gcm.sync;
 
 exports.good = function(registrationToken) {
   var result = {
@@ -56,7 +57,7 @@ exports.old = function(registrationToken) {
   return result;
 };
 
-exports.send = function(message) {
+var send = exports.send = function(message) {
   if (!message || !message.to || (!message.data && !message.notification)) throw new Error('400');
   if (!gcmStore[message.to]) throw new Error('404 no mock response for ' + message.to);
 
@@ -64,3 +65,5 @@ exports.send = function(message) {
 
   return Promise.resolve(gcmStore[message.to]);
 };
+
+exports.deliver = gcm.deliver;

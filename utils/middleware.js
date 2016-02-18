@@ -38,6 +38,16 @@ exports.process = function(handlers) {
             }
             //other errors can be passed on if they have a message property
             if (err.message) {
+
+              //format name as jsonapi error if plain string
+              try {
+                JSON.parse(err.name);
+              } catch(e) {
+                //err.name is not already a JSON stringified error object with a
+                //detail property so make it one
+                err.name = JSON.stringify({detail: err.name});
+              }
+
               reply.fail(err);
               return;
             }
