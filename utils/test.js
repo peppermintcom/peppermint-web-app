@@ -193,4 +193,4 @@ exports.auth = function (recorderUser, recorderPass, accountUser, accountPass) {
     }
     return response.body.data.attributes.token;
   });
-}
+};

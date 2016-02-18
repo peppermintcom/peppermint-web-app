@@ -70,6 +70,10 @@ exports.sendPasswordResetEmail = function(email, jwt) {
 };
 
 var get = exports.get = function(email) {
+  if (!email) {
+    return Promise.resolve(null);
+  }
+
   return dynamo.get('accounts', {
     email: {S: email.toLowerCase()},
   })
