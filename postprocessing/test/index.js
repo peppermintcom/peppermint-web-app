@@ -23,6 +23,11 @@ describe('lambda:Postprocess', function() {
   var don;
   var messageToDon;
   var donGCMToken;
+  //sue has an android receiver with an expired but usable
+  //gcm_registration_token
+  var sue;
+  var messageToSue;
+  var sueGCMToken;
 
   before(function() {
     return _.messages.delByAudioURL(_.fake.AUDIO_URL);
@@ -119,12 +124,36 @@ describe('lambda:Postprocess', function() {
 
   //pending message to an accout with an expired Android receiver
   before(function() {
+    return Promise.all([
+      _.fake.account(),
+      _.fake.recorder2(),
+    ])
+    .then(function(results) {
+      var sueRecorder = results[1];
+      sue = results[0];
+      sueGCMToken = _.token(64);
+      messageToSue = _.messages.create({
+        sender_email: sender1.email,
+        recipient_email: sue.email,
+        audio_url: AUDIO_URL,
+      });
 
+      _.gcm.old(sueGCMToken);
+
+      return Promise.all([
+        _.messages.put(messageToSue),
+        _.receivers.link(sueRecorder.recorder_id, sue.account_id),
+        _.recorders.update(sueRecorder.recorder_client_id, 'SET gcm_registration_token = :gcm_registration_token, api_key = :api_key', {
+          ':gcm_registration_token': {S: sueGCMToken},
+          ':api_key': {S: _.fake.API_KEY_ANDROID},
+        }),
+      ]);
+    });
   });
 
   //pending message to an account with an invalid receiver
   before(function() {
-
+    throw 'start here';
   });
 
   describe('put event for mp3 that is 5.5 seconds long', function() {
@@ -191,12 +220,21 @@ describe('lambda:Postprocess', function() {
       });
     });
 
-    it('should have sent a total of 2 messages to GCM.', function() {
+    it("should mark Sue's message delivered.", function() {
+      return _.messages.get(messageToSue.message_id).then(function(message) {
+        expect(message.handled).to.be.within(Date.now() - 2*TIMEOUT, Date.now());
+        expect(message).to.have.property('handled_by', _.messages.handlers.POSTPROCESSING);
+        expect(message).to.have.property('outcome', 'GCM success count: 1');
+      });
+    });
+
+    it('should have sent a total of 3 messages to GCM.', function() {
       //Sam: 0
       //Jen: 0
       //Ray: 0
       //Don: 2 - because each iOS gets 2 separate messages
-      expect(_.gcm.sends).to.have.length(2);
+      //Sue: 1
+      expect(_.gcm.sends).to.have.length(3);
     });
   });
 });
