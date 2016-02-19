@@ -28,6 +28,9 @@ describe('lambda:Postprocess', function() {
   var sue;
   var messageToSue;
   var sueGCMToken;
+  //bob has an invalid gcm_registration_token
+  var bob;
+  var messageToBob;
 
   before(function() {
     return _.messages.delByAudioURL(_.fake.AUDIO_URL);
@@ -153,7 +156,30 @@ describe('lambda:Postprocess', function() {
 
   //pending message to an account with an invalid receiver
   before(function() {
-    throw 'start here';
+    return Promise.all([
+      _.fake.account(),
+      _.fake.recorder2(),
+    ])
+    .then(function(results) {
+      var bobRecorder = results[1];
+      var bobGCMToken = _.token(64);
+      bob = results[0];
+      messageToBob = _.messages.create({
+        sender_email: sender2.email,
+        recipient_email: bob.email,
+        audio_url: AUDIO_URL,
+      });
+
+      _.gcm.bad(bobGCMToken);
+
+      return Promise.all([
+        _.messages.put(messageToBob),
+        _.receivers.link(bobRecorder.recorder_id, bob.account_id),
+        _.recorders.update(bobRecorder.recorder_client_id, 'SET gcm_registration_token = :gcm_registration_token', {
+          ':gcm_registration_token': {S: bobGCMToken},
+        }),
+      ]);
+    });
   });
 
   describe('put event for mp3 that is 5.5 seconds long', function() {
@@ -228,13 +254,22 @@ describe('lambda:Postprocess', function() {
       });
     });
 
-    it('should have sent a total of 3 messages to GCM.', function() {
+    it("should mark Bob's message handled with delivery failure.", function() {
+      return _.messages.get(messageToBob.message_id).then(function(message) {
+        expect(message.handled).to.be.within(Date.now() - 2*TIMEOUT, Date.now());
+        expect(message).to.have.property('handled_by', _.messages.handlers.POSTPROCESSING);
+        expect(message).to.have.property('outcome', 'GCM success count: 0');
+      });
+    });
+
+    it('should have sent a total of 4 messages to GCM.', function() {
       //Sam: 0
       //Jen: 0
       //Ray: 0
       //Don: 2 - because each iOS gets 2 separate messages
       //Sue: 1
-      expect(_.gcm.sends).to.have.length(3);
+      //Bob: 1
+      expect(_.gcm.sends).to.have.length(4);
     });
   });
 });

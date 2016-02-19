@@ -58,11 +58,6 @@ exports.deliver = function (receivers, message, sender) {
       }));
     })
     .then(function() {
-      if (success < 1) {
-        var err = new Error('404');
-        err.name = 'Recipient cannot receive messages via Peppermint';
-        throw err;
-      }
       return success;
     });
 }

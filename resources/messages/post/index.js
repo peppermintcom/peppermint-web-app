@@ -152,6 +152,13 @@ function deliver(request, reply) {
   }
   _.gcm.deliver(request.recipient.receivers, request.message, request.sender)
     .then(function(successes) {
+      if (successes < 1) {
+        reply.fail({
+          status: '404',
+          detail: 'Recipient cannot receive messages via Peppermint',
+        });
+        return;
+      }
       request.message.delivered = Date.now();
       reply.succeed(request);
     })
