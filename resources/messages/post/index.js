@@ -159,7 +159,11 @@ function deliver(request, reply) {
         });
         return;
       }
-      request.message.delivered = Date.now();
+      _.assign(request.message, {
+        handled: Date.now(),
+        handled_by: _.messages.handlers.CREATE_MESSAGE,
+        outcome: 'GCM success count: ' + successes,
+      });
       reply.succeed(request);
     })
     .catch(function(err) {

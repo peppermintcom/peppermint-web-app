@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -t 10000 --bail --recursive utils/ resources/",
+    "test": "mocha -t 10000 --bail --recursive utils/ resources/ postprocessing/",
     "integration-tests": "mocha -t 20000 --bail test/",
     "start": "gulp serve",
     "swagger": "gulp swagger"

@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var handler = require('.').handler;
 var _ = require('utils/test');
 
-describe.only('lambda:RemoveAccountReceiver', function() {
+describe('lambda:RemoveAccountReceiver', function() {
   var account, recorder;
 
   before(function() {

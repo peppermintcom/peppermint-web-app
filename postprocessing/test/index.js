@@ -32,7 +32,9 @@ describe('lambda:Postprocess', function() {
   var bob;
   var messageToBob;
 
+  //clear state
   before(function() {
+    while (_.gcm.sends.pop()) {}
     return _.messages.delByAudioURL(_.fake.AUDIO_URL);
   });
 

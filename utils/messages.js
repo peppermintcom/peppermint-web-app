@@ -80,6 +80,12 @@ function format(message) {
   if (message.handled) {
     msg.handled = {N: message.handled.toString()};
   }
+  if (message.handled_by) {
+    msg.handled_by = {S: message.handled_by};
+  }
+  if (message.outcome) {
+    msg.outcome = {S: message.outcome};
+  }
 
   return msg;
 }
