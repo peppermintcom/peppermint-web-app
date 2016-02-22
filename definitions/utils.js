@@ -1,6 +1,6 @@
 var _ = require('lodash');
 
-exports.resourceObjectSchema = function(type, attributesSchema) {
+var obj = exports.resourceObjectSchema = function(type, attributesSchema) {
   return {
     type: 'object',
     properties: {
@@ -15,6 +15,13 @@ exports.resourceObjectSchema = function(type, attributesSchema) {
     },
     required: ['type', 'id', 'attributes'],
     additionalProperties: false,
+  };
+};
+
+exports.resourceCollectionSchema = function(type, attributesSchema) {
+  return {
+    type: 'array',
+    items: obj(type, attributesSchema),
   };
 };
 

@@ -37,3 +37,11 @@ delete reqSchema.properties.id;
 delete reqSchema.properties.relationships;
 reqSchema.required = ['type', 'attributes'];
 exports.schemaRequest = reqSchema;
+
+var collectionSchema = _.resourceCollectionSchema('messages', attributesSchema);
+var collectionExample = {};
+
+exports.collection = {
+  schema: collectionSchema,
+  example: collectionExample,
+};
