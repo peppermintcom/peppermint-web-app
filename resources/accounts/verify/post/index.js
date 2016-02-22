@@ -31,6 +31,20 @@ exports.handler = function(request, reply) {
         reply.succeed({});
       })
       .catch(function(err) {
+        switch (err) {
+        case 'hard-bounce':
+          reply.fail('Bad Request: hard-bounce');
+          return;
+        case 'soft-bounce':
+          reply.fail('Bad Request: soft-bounce');
+          return;
+        case 'spam':
+          reply.fail('Bad Request: spam');
+          return;
+        case 'unsub':
+          reply.fail('Bad Request: unsub');
+          return;
+        }
         reply.fail(err);
       });
   });

@@ -4,7 +4,7 @@ var integrations = require('definitions/integrations');
 
 exports.tags = ['accounts'];
 exports.summary = 'Resend verification email.';
-exports.description = 'Looks up the email address associated with the account_id specified in the Authorization header and sends an email with a verification link.';
+exports.description = 'Looks up the email address associated with the account_id specified in the Authorization header and sends an email with a verification link. If the email cannot be delivered to the email the returned error will have a 400 status code and a body equal to any of "Bad Request: hard-bounce", "Bad Request: soft-bounce", "Bad Request: spam", or "Bad Request: unsub", depending on the cause';
 exports.operationId = 'ReverifyEmail';
 
 exports.parameters = [
@@ -18,6 +18,7 @@ exports.responses = {
       'Access-Control-Allow-Origin': {type: 'string'},
     },
   },
+  '400': responses.BadRequest,
   '401': responses.Unauthorized,
   '500': responses.Internal,
 };
@@ -32,7 +33,8 @@ exports['x-amazon-apigateway-integration'] = {
   },
   responses: {
     'default': integrations.Ok,
+    'Bad Request.*': integrations.BadRequest,
     'Unauthorized.*': integrations.Unauthorized,
-    '^(?!Unauthorized)(.|\\n)+': integrations.Internal,
+    '^(?!BadRequest|Unauthorized)(.|\\n)+': integrations.Internal,
   },
 };

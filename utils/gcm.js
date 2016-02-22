@@ -102,7 +102,6 @@ function iOSDev(message, to, from_name) {
   {
     to: to,
     priority: 'high',
-    content_available: true,
     data: {
       recipient_email: message.recipient_email,
       audio_url: message.audio_url,
