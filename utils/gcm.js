@@ -28,11 +28,14 @@ exports.deliver = function (receivers, message, sender) {
   _.each(receivers, function(recorder) {
     var formatter;
 
+    console.log(recorder.api_key);
     if (apps.isAndroid(recorder.api_key)) {
       formatter = android;
     } else if (recorder.api_key === 'ios-dev') {
+      console.log('iOSDev formatter');
       formatter = iOSDev;
     } else {
+      console.log('iOS production formatter');
       formatter = iOS;
     }
 
@@ -91,8 +94,8 @@ function iOSDev(message, to, from_name) {
     notification: {
       badge : "1",
       sound : "notification.aiff",
-      body : "Message Content",
-      title : "Message Title",
+      title: "You have a new message",
+      body: (from_name || message.sender_email) + ' sent you a message',
       click_action : "AudioMessage",
       sender_name: from_name,
       sender_email: message.sender_email,

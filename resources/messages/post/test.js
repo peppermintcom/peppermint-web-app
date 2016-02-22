@@ -334,7 +334,7 @@ describe('lambda:CreateMessage', function() {
           ]);
       });
 
-      describe('one is Android, one is iOS', function() {
+      describe.only('one is Android, one is iOS', function() {
         var response;
 
         before(function() {
@@ -390,6 +390,7 @@ describe('lambda:CreateMessage', function() {
             return (msg.to === r2Token) && msg.data;
           });
           expect(msgN).to.be.ok;
+          console.log(msgN);
           expect(msgD).to.be.ok;
           expect(msgN).not.to.equal(msgD);
           msgOK(msgD, r2Token, sender.full_name, response, duration);

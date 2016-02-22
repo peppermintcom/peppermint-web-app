@@ -188,6 +188,10 @@ function deliver(message) {
 function deliverPending(e) {
   return getPendingMessages(e)
     .then(function(messages) {
+      messages = _.map(messages, function(message) {
+        message.duration = e.duration;
+        return message;
+      });
       return Promise.all(_.map(messages, deliver));
     });
 }
