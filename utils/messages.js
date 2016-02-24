@@ -13,6 +13,8 @@ var timestamp = require('./timestamp');
 var token = require('./randomtoken');
 var _ = require('lodash');
 
+var LIMIT = exports.LIMIT = 40;
+
 //adds id and created properties and formats a message
 exports.create = function(message) {
   return _.assign({message_id: token(22), created: Date.now()}, message, {
@@ -66,12 +68,14 @@ exports.query = function(recipientEmail, since) {
         ':recipient_email': {S: recipientEmail},
         ':since': {N: since.toString()},
       },
+      Limit: LIMIT,
     }, function(err, data) {
       if (err) {
         reject(err);
         return;
       }
-      resolve(_.map(data.Items, parse));
+      data.Items = _.map(data.Items, parse);
+      resolve(data);
     });
   });
 };

@@ -22,7 +22,7 @@ function validate(request, reply) {
 }
 
 function allow(request, reply) {
-  if (request.recipient_id !== request.jwt.recipient_id) {
+  if (request.recipient_id !== request.jwt.account_id) {
     reply.fail({
       status: '403',
       detail: 'not authenticated as recipient',
@@ -50,18 +50,31 @@ function lookupAccount(request, reply) {
 }
 
 function query(request, reply) {
-  _.messages.query(request.recipient.email, request.since)
-    .then(function(messages) {
-      request.messages = messages;
+  var since = request.since ? _.parseTime(request.since).valueOf() : 0;
+
+  _.messages.query(request.recipient.email, since)
+    .then(function(data) {
+      request.messages = data.Items;
+      if (data.LastEvaluatedKey) {
+        request.last = +data.LastEvaluatedKey.created.N;
+      }
+      reply.succeed(request);
     })
     .catch(function(err) {
       reply.fail(err);
     });
-  });
 }
 
 function respond(request, reply) {
-  reply.succeed({
+  var body = {
     data: _.map(request.messages, _.messages.resource),
-  });
+  };
+
+  if (request.last) {
+    body.links = {
+      next: 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1/messages?recipient=' + request.recipient_id + '&since=' + encodeURIComponent(_.timestamp(request.last)),
+    }
+  }
+
+  reply.succeed(body);
 }

@@ -35,3 +35,5 @@ exports.adapt = function(attrSchema, permitted, required) {
     additionalProperties: !!attrSchema.additionalProperties,
   };
 };
+
+module.exports = _.assign(_, exports);
