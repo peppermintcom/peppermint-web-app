@@ -54,6 +54,28 @@ var queryAudioURL = exports.queryAudioURL = function(audioURL) {
   });
 };
 
+exports.query = function(recipientEmail, since) {
+  since = since || 0;
+
+  return new Promise(function(resolve, reject) {
+    dynamo.query({
+      TableName: 'messages',
+      IndexName: 'recipient_email-created-index',
+      KeyConditionExpression: 'recipient_email = :recipient_email AND created > :since',
+      ExpressionAttributeValues: {
+        ':recipient_email': {S: recipientEmail},
+        ':since': {N: since.toString()},
+      },
+    }, function(err, data) {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(_.map(data.Items, parse));
+    });
+  });
+};
+
 var del = exports.del = function(messageID) {
   return dynamo.del('messages', {message_id: {S: messageID}});
 };
