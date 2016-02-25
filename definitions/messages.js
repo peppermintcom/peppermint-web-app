@@ -22,6 +22,7 @@ var attributesSchema = {
     recipient_email: {type: 'string'},
     created: timestamp,
     duration: {type: 'number'},
+    transcription: {type: 'string'},
   },
   required: ['audio_url', 'sender_email', 'recipient_email', 'created', 'duration'],
   additionalProperties: false,

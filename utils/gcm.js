@@ -28,14 +28,11 @@ exports.deliver = function (receivers, message, sender) {
   _.each(receivers, function(recorder) {
     var formatter;
 
-    console.log(recorder.api_key);
     if (apps.isAndroid(recorder.api_key)) {
       formatter = android;
     } else if (recorder.api_key === 'ios-dev') {
-      console.log('iOSDev formatter');
       formatter = iOSDev;
     } else {
-      console.log('iOS production formatter');
       formatter = iOS;
     }
 

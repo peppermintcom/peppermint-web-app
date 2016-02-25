@@ -124,4 +124,27 @@ exports.fetch = function(table, index, attribute, value) {
   });
 };
 
+function query(params, lastKey, items) {
+  var last = lastKey ? {ExclusiveStartKey: lastKey} : null;
+  items = items || [];
+
+  return new Promise(function(resolve, reject) {
+    dynamo.query(_.assign({}, params, last), function(err, data) {
+      if (err) {
+        reject(err);
+        return;
+      }
+      if (data.LastEvaluatedKey) {
+        resolve(query(params, data.LastEvaluatedKey, data.Items.concat(items)));
+        return;
+      }
+      resolve(data.Items.concat(items));
+    });
+  });
+}
+
+exports.queryAll = function(params) {
+  return query(params);
+};
+
 module.exports = _.assign(dynamo, exports);

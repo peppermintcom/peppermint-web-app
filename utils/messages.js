@@ -39,22 +39,16 @@ exports.update = function(messageID, expr, values) {
 };
 
 var queryAudioURL = exports.queryAudioURL = function(audioURL) {
-  return new Promise(function(resolve, reject) {
-    dynamo.query({
-      TableName: 'messages',
-      IndexName: 'audio_url-index',
-      //"account_id = :account_id"
-      KeyConditionExpression: 'audio_url = :audio_url',
-      ExpressionAttributeValues: {
-        ':audio_url': {S: audioURL},
-      },
-    }, function(err, data) {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(_.map(data.Items, parse));
-    });
+  return dynamo.queryAll({
+    TableName: 'messages',
+    IndexName: 'audio_url-index',
+    KeyConditionExpression: 'audio_url = :audio_url',
+    ExpressionAttributeValues: {
+      ':audio_url': {S: audioURL},
+    },
+  })
+  .then(function(messages) {
+    return _.map(messages, parse);
   });
 };
 

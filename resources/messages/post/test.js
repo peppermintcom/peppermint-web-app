@@ -38,6 +38,13 @@ describe('lambda:CreateMessage', function() {
     });
   });
 
+  //remove transcription if exists
+  before(function() {
+    return _.transcriptions.updateByAudioURL(_.fake.AUDIO_URL, 'REMOVE #text', null, {
+      '#text': 'text',
+    });
+  });
+
   describe('recipient has no recorders linked to account', function() {
     it('should fail with a 404 error.', function(done) {
       handler({

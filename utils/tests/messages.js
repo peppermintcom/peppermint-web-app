@@ -20,9 +20,9 @@ describe('_.messages', function() {
     describe('given there is one message for the recipient', function() {
       it('should return a message collection with one parsed item.', function() {
         return _.messages.query(message.recipient_email, 0)
-          .then(function(messages) {
-            expect(messages).to.have.length(1);
-            expect(messages[0]).to.have.property('message_id', message.message_id);
+          .then(function(data) {
+            expect(data.Items).to.have.length(1);
+            expect(data.Items[0]).to.have.property('message_id', message.message_id);
           });
       });
     });
