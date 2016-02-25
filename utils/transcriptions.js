@@ -20,6 +20,12 @@ exports.getByAudioURL = function(audioURL) {
   return get(transcriptionID);
 };
 
+exports.updateByAudioURL = function(audioURL, expr, values, names) {
+  var key = {transcription_id: {S: audioURLTranscriptionID(audioURL)}};
+
+  return dynamo.update('transcriptions', key, expr, values, names);
+};
+
 /**
  * save a transcription in the transcriptions table in dyanmo
  * @param {Object} transcription
@@ -62,7 +68,7 @@ function parse(item) {
     language: item.language.S,
     confidence: +item.confidence.N,
     audio_url: audioURL(item.recorder_id.S, item.transcription_id.S),
-    text: item.text.S,
+    text: item.text && item.text.S,
     ip: item.ip_address.S,
     timestamp: +item.timestamp.N,
   };
@@ -79,7 +85,8 @@ function audioURL(recorderID, transcriptionID) {
 function audioURLTranscriptionID(audioURL) {
   var urlParts = url.parse(audioURL);
   var pathParts = urlParts.pathname.split('/');
-  var fileParts = pathParts && pathParts[1] && pathParts[1].split('.')[0];
+  var filename = pathParts.pop();
+  var fileParts = filename.split('.');
 
   return fileParts && fileParts[0];
 }

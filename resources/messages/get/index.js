@@ -52,13 +52,26 @@ function lookupAccount(request, reply) {
 function query(request, reply) {
   var since = request.since ? _.parseTime(request.since).valueOf() : 0;
 
+  if (_.isNaN(since)) {
+    reply.fail({
+      status: '400',
+      detail: 'cannot parse since parameter',
+    });
+    return;
+  }
+
   _.messages.query(request.recipient.email, since)
     .then(function(data) {
-      request.messages = data.Items;
       if (data.LastEvaluatedKey) {
         request.last = +data.LastEvaluatedKey.created.N;
       }
-      reply.succeed(request);
+
+      //add duration and transcription
+      return Promise.all(_.map(data.Items, _.messages.expand))
+        .then(function(messages) {
+          request.messages = data.Items;
+          reply.succeed(request);
+        });
     })
     .catch(function(err) {
       reply.fail(err);

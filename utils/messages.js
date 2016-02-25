@@ -11,6 +11,8 @@
 var dynamo = require('./dynamo');
 var timestamp = require('./timestamp');
 var token = require('./randomtoken');
+var uploads = require('./uploads');
+var transcriptions = require('./transcriptions');
 var _ = require('lodash');
 
 var LIMIT = exports.LIMIT = 40;
@@ -54,6 +56,34 @@ var queryAudioURL = exports.queryAudioURL = function(audioURL) {
       resolve(_.map(data.Items, parse));
     });
   });
+};
+
+//mutates the message argument
+function attachDuration(message) {
+  return uploads.getByURL(message.audio_url)
+    .then(function(upload) {
+      message.duration = upload && upload.seconds;
+
+      return message;
+    });
+}
+
+//mutates the message argument
+function attachTranscription(message) {
+  return transcriptions.getByAudioURL(message.audio_url)
+    .then(function(transcription) {
+      message.transcription = transcription && transcription.text;
+
+      return message;
+    });
+}
+
+//mutates the message argument
+exports.expand = function(message) {
+  return Promise.all([
+    attachDuration(message),
+    attachTranscription(message),
+  ]);
 };
 
 exports.query = function(recipientEmail, since) {
@@ -145,6 +175,9 @@ exports.resource = function(message) {
 
   if (message.transcription_url) {
     attrs.transcription_url = message.transcription_url;
+  }
+  if (message.transcription) {
+    attrs.transcription = message.transcription;
   }
 
   return {
