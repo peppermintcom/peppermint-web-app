@@ -1,10 +1,12 @@
 var expect = require('chai').expect;
-var _ = require('utils/test');
+var spec = require('../resources/messages/get/spec');
+var _ = require('./utils');
 
 describe('GET /messages', function() {
   this.timeout(5 * 60 * 1000);
   var recipient;
   var recipientJWT;
+  var get;
   
   //setup recipient
   before(function() {
@@ -20,6 +22,11 @@ describe('GET /messages', function() {
       expect(res.statusCode).to.equal(200);
       recipientJWT = res.body.data.attributes.token;
     });
+  });
+
+  //delete the fake messages
+  after(function() {
+    return _.messages.delByAudioURL(_.fake.AUDIO_URL);
   });
 
   describe('recipient received 80 messages in 2015 and 2 in 2016', function() {
@@ -111,6 +118,48 @@ describe('GET /messages', function() {
             expect(res.body).not.to.have.property('links');
           });
       });
+    });
+  });
+
+  describe('common client errors', function() {
+    _.clientErrors(spec, function() {
+      return {
+        method: 'GET',
+        url: '/messages?recipient=' + recipient.account_id,
+        headers: {
+          Authorization: 'Bearer ' + recipientJWT,
+          'X-Api-Key': _.fake.API_KEY,
+          Accept: 'application/vnd.api+json',
+        },
+      };
+    });
+  });
+
+  describe('since parameter is malformed', function() {
+    _.fail(400, 'cannot parse since parameter', spec, function() {
+      return {
+        method: 'GET',
+        url: '/messages?recipient=' + recipient.account_id + '&since=any',
+        headers: {
+          Authorization: 'Bearer ' + recipientJWT,
+          'X-Api-Key': _.fake.API_KEY,
+          Accept: 'application/vnd.api+json',
+        },
+      };
+    });
+  });
+
+  describe('Authorization header does not authenticate recipient', function() {
+    _.fail(403, 'not authenticated as recipient', spec, function() {
+      return {
+        method: 'GET',
+        url: '/messages?recipient=' + recipient.account_id + 'x',
+        headers: {
+          Authorization: 'Bearer ' + recipientJWT,
+          'X-Api-Key': _.fake.API_KEY,
+          Accept: 'application/vnd.api+json',
+        },
+      };
     });
   });
 });
