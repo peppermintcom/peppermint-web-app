@@ -148,4 +148,11 @@ exports.queryAll = function(params) {
   return query(params);
 };
 
+exports.isConditionFailed = function(err) {
+  if (err && err.code === 'ConditionalCheckFailedException') {
+    return true;
+  }
+  return false;
+};
+
 module.exports = _.assign(dynamo, exports);
