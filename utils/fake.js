@@ -105,3 +105,18 @@ exports.transcription = function(recorderID, id) {
     return tx;
   });
 };
+
+exports.message = function(sender, recipient) {
+  sender = sender || user();
+  recipient = recipient || user();
+
+  var msg = {
+    recipient_email: recipient.email.toLowerCase(),
+    sender_email: sender.email.toLowerCase(),
+    audio_url: AUDIO_URL,
+    created: Date.now(),
+    message_id: _.token(22),
+  };
+
+  return _.messages.put(msg).then(function() { return msg; });
+};

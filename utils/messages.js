@@ -34,8 +34,8 @@ exports.get = function(messageID) {
   return dynamo.get('messages', {message_id: {S: messageID}}).then(parse);
 };
 
-exports.update = function(messageID, expr, values) {
-  return dynamo.update('messages', {message_id: {S: messageID}}, expr, values);
+exports.update = function(messageID, expr, values, names, condition) {
+  return dynamo.update('messages', {message_id: {S: messageID}}, expr, values, names, condition);
 };
 
 var queryAudioURL = exports.queryAudioURL = function(audioURL) {
@@ -153,6 +153,7 @@ function parse(item) {
     handled: item.handled && +item.handled.N,
     handled_by: item.handled_by && item.handled_by.S,
     outcome: item.outcome && item.outcome.S,
+    read: item.read && +item.read.N,
   };
 }
 
@@ -172,6 +173,9 @@ exports.resource = function(message) {
   }
   if (message.transcription) {
     attrs.transcription = message.transcription;
+  }
+  if (message.read) {
+    attrs.read = timestamp(message.read);
   }
 
   return {

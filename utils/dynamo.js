@@ -59,16 +59,17 @@ exports.put = function(table, item, more) {
   });
 };
 
-exports.update = function(table, key, expr, values, names) {
+exports.update = function(table, key, expr, values, names, condition) {
   return new Promise(function(resolve, reject) {
     values = values ? {ExpressionAttributeValues: values} : null;
     names = names ? {ExpressionAttributeNames: names} : null;
+    condition = condition ? {ConditionExpression: condition} : null;
 
     dynamo.updateItem(_.assign({
       TableName: table,
       Key: key,
       UpdateExpression: expr,
-    }, values, names), function(err) {
+    }, values, names, condition), function(err) {
       if (err) {
         reject(err);
         return;
