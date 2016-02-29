@@ -4,25 +4,34 @@ var _ = require('utils/test');
 describe('_.messages', function() {
   var sender = _.fake.user();
   var recipient = _.fake.user();
-  var message;
+  var messages;
 
-  before(function() {
-    message = _.messages.create({
-      sender_email: sender.email,
-      audio_url: _.fake.AUDIO_URL,
-      recipient_email: recipient.email,
+  describe('given there are 5 messages (3 unread) for the recipient', function() {
+    before(function() {
+      return _.fake.messages(recipient, 3, 2)
+        .then(function(_messages) {
+          messages = _messages;
+        });
     });
 
-    return _.messages.put(message);
-  });
-
-  describe('query', function() {
-    describe('given there is one message for the recipient', function() {
-      it('should return a message collection with one parsed item.', function() {
-        return _.messages.query(message.recipient_email, 0)
+    describe('query', function() {
+      it('should return a message collection with five parsed items.', function() {
+        return _.messages.query(recipient.email.toLowerCase())
           .then(function(data) {
-            expect(data.Items).to.have.length(1);
-            expect(data.Items[0]).to.have.property('message_id', message.message_id);
+            expect(data.Items).to.have.length(5);
+            //2 should have read timestamp
+            expect(_.filter(data.Items, function(msg) {
+              return !!msg.read;
+            })).to.have.length(2);
+          });
+      });
+    });
+
+    describe('recentUnread', function() {
+      it('should return messages from the past month without a read timestamp.', function() {
+        return _.messages.recentUnread(recipient.email.toLowerCase())
+          .then(function(messages) {
+            expect(messages).to.have.length(3);
           });
       });
     });

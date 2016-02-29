@@ -106,7 +106,7 @@ exports.transcription = function(recorderID, id) {
   });
 };
 
-exports.message = function(sender, recipient) {
+var message = exports.message = function(sender, recipient, isRead) {
   sender = sender || user();
   recipient = recipient || user();
 
@@ -118,5 +118,27 @@ exports.message = function(sender, recipient) {
     message_id: _.token(22),
   };
 
+  if (isRead) {
+    msg.read = Date.now();
+  }
+
   return _.messages.put(msg).then(function() { return msg; });
+};
+
+exports.messages = function(recipient, unread, read) {
+  var messages;
+
+  return Promise.all(_.map(_.range(unread), function(i) {
+    return message(null, recipient, false);
+  }))
+  .then(function(_messages) {
+    messages = _messages;
+    
+    return Promise.all(_.map(_.range(read), function(i) {
+      return message(null, recipient, true);
+    }));
+  })
+  .then(function(_messages) {
+    return _messages.concat(messages);
+  });
 };

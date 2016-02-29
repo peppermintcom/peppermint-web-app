@@ -16,6 +16,8 @@ var transcriptions = require('./transcriptions');
 var _ = require('lodash');
 
 var LIMIT = exports.LIMIT = 40;
+//when fetching unread messages, only check from the past month
+var UNREAD_TERM = 1000 * 60 * 60 * 24 * 30;
 
 //adds id and created properties and formats a message
 exports.create = function(message) {
@@ -101,6 +103,32 @@ exports.query = function(recipientEmail, since) {
       data.Items = _.map(data.Items, parse);
       resolve(data);
     });
+  });
+};
+
+function unread(recipientEmail, since) {
+  return dynamo.queryAll({
+    TableName: 'messages',
+    IndexName: 'recipient_email-created-index',
+    KeyConditionExpression: 'recipient_email = :recipient_email AND created > :since',
+    FilterExpression: 'attribute_not_exists(#read)',
+    ExpressionAttributeValues: {
+      ':recipient_email': {S: recipientEmail},
+      ':since': {N: since.toString()},
+    },
+    ExpressionAttributeNames: {
+      '#read': 'read',
+    },
+  });
+}
+
+var recentUnread = exports.recentUnread = function(recipientEmail) {
+  return unread(recipientEmail, Date.now() - UNREAD_TERM);
+};
+
+exports.recentUnreadCount = function(recipientEmail) {
+  return recentUnread(recipientEmail).then(function(messages) {
+    return (messages && messages.length) || 0;
   });
 };
 
