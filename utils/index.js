@@ -1,4 +1,5 @@
 require('es6-promise').polyfill();
+var util = require('util');
 var conf = require('./conf.js');
 var _ = require('lodash');
 var bcrypt = require('bcryptjs');
@@ -29,6 +30,10 @@ exports.parseTime = require('./parseTime');
 exports.uploads = require('./uploads');
 exports.jwt = jwt;
 exports.errors = errors;
+
+exports.log = function(x) {
+  console.log(util.inspect(x, {depth: null}));
+};
 
 /**
  * @param {String} plaintext

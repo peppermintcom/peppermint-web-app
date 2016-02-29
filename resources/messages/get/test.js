@@ -7,6 +7,7 @@ const begin = '2016-01-01 00:00:00';
 describe('lambda:SearchMessages', function() {
   var sender = _.fake.user();
   var recipient;
+  var msgs;
 
   before(function() {
     return _.fake.account().then(function(account) {
@@ -34,20 +35,22 @@ describe('lambda:SearchMessages', function() {
     });
   });
 
-  describe('recipient has 2 messages from 2015 and 2 from 2016', function() {
+  describe('recipient has 2 read messages from 2015 and 2 unread from 2016', function() {
     before(function() {
-      var msgs = [{
+      msgs = [{
         recipient_email: recipient.email,
         sender_email: _.fake.user().email,
         audio_url: _.fake.AUDIO_URL,
         created: new Date('2015-12-31T12:59:59').valueOf(),
         message_id: _.token(22),
+        read: new Date().valueOf(),
       }, {
         recipient_email: recipient.email,
         sender_email: _.fake.user().email,
         audio_url: _.fake.AUDIO_URL,
         created: new Date('2015-12-31T12:59:59').valueOf(),
         message_id: _.token(22),
+        read: new Date().valueOf(),
       }, {
         recipient_email: recipient.email,
         sender_email: _.fake.user().email,
@@ -120,6 +123,10 @@ describe('lambda:SearchMessages', function() {
                 expect(msg.attributes.transcription).to.be.undefined;
                 expect(msg.attributes.duration).to.be.undefined;
               });
+              expect(res.data[0].attributes).to.have.property('read');
+              expect(res.data[1].attributes).to.have.property('read');
+              expect(res.data[2].attributes).not.to.have.property('read');
+              expect(res.data[3].attributes).not.to.have.property('read');
               done();
             },
             fail: function(err) {

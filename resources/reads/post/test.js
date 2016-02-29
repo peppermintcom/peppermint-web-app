@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var handler = require('./').handler;
 var _ = require('utils/test');
 
-describe.only('lambda:ReadMessage', function() {
+describe('lambda:ReadMessage', function() {
   var recipient, sender, recorder, message;
   var params;
 

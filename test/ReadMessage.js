@@ -162,7 +162,7 @@ describe('POST /reads', function() {
     });
   });
 
-  describe.only('application/json', function() {
+  describe('application/json', function() {
     _.fail(415, 'Use "application/vnd.api+json"', spec, function() {
       return {
         method: 'POST',

@@ -136,6 +136,9 @@ function format(message) {
   if (message.outcome) {
     msg.outcome = {S: message.outcome};
   }
+  if (message.read) {
+    msg.read = {N: message.read.toString()};
+  }
 
   return msg;
 }

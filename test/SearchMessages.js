@@ -31,6 +31,7 @@ describe('GET /messages', function() {
 
   describe('recipient received 80 messages in 2015 and 2 in 2016', function() {
     var messages;
+    var messages2016 = [_.token(22), _.token(22)];
 
     before(function() {
       var created = new Date('2015-12-01T12:00:00').valueOf();
@@ -45,45 +46,68 @@ describe('GET /messages', function() {
         };
       });
 
+      msgs = [];
       //2016 messages
       msgs.push({
         recipient_email: recipient.email,
         sender_email: _.fake.user().email,
         audio_url: _.fake.AUDIO_URL,
         created: new Date('2016-01-01T00:00:01').valueOf(),
-        message_id: _.token(22),
+        message_id: messages2016[0],
       });
       msgs.push({
         recipient_email: recipient.email,
         sender_email: _.fake.user().email,
         audio_url: _.fake.AUDIO_URL,
         created: new Date('2016-01-01T00:00:02').valueOf(),
-        message_id: _.token(22),
+        message_id: messages2016[1],
       });
 
       return Promise.all(_.map(msgs, function(msg) {
         return _.messages.put(msg);
-      }));
+      }))
     });
 
     describe('?recipient=:id&since=2016-01-01 00:00:00', function() {
-      it('should return 2 messages.', function() {
-        return _.http('GET', '/messages?recipient=' + recipient.account_id + '&since=' + encodeURIComponent('2016-01-01 00:00:00'), null, {
-          'X-Api-Key': _.fake.API_KEY,
-          Authorization: 'Bearer ' + recipientJWT,
-        })
-        .then(function(res) {
-          expect(res.statusCode).to.equal(200);
-          expect(res.body).to.have.property('data');
-          expect(res.body.data).to.have.length(2);
-          expect(res.body).not.to.have.property('links');
+      describe('first message from 2016 has been read', function() {
+        before(function() {
+          return _.http('POST', '/reads', {data: {id: messages2016[0], type: 'reads'}}, {
+            'X-Api-Key': _.fake.API_KEY,
+            Authorization: 'Bearer ' + recipientJWT,
+            'Content-Type': 'application/vnd.api+json',
+          })
+          .then(function(response) {
+            expect(response.statusCode).to.equal(204);
+          });
+        });
+
+        it('should return 2 messages, one with a read timestamp.', function() {
+          return _.http('GET', '/messages?recipient=' + recipient.account_id + '&since=' + encodeURIComponent('2016-01-01 00:00:00'), null, {
+            'X-Api-Key': _.fake.API_KEY,
+            Authorization: 'Bearer ' + recipientJWT,
+          })
+          .then(function(res) {
+            expect(res.statusCode).to.equal(200);
+            expect(res.body).to.have.property('data');
+            expect(res.body.data).to.have.length(2);
+            expect(res.body).not.to.have.property('links');
+            expect(res.body.data[0].attributes).to.have.property('read');
+          });
         });
       });
     });
 
     describe('?recipient=:id&since=2017-01-01 00:00:00', function() {
       it('should return no messages.', function() {
-
+        return _.http('GET', '/messages?recipient=' + recipient.account_id + '&since=' + encodeURIComponent('2017-01-01 00:00:00'), null, {
+          'X-Api-Key': _.fake.API_KEY,
+          Authorization: 'Bearer ' + recipientJWT,
+        })
+        .then(function(res) {
+          expect(res.statusCode).to.equal(200);
+          expect(res.body.data).to.have.length(0);
+          expect(res.body).not.to.have.property('links');
+        });
       });
     });
 
