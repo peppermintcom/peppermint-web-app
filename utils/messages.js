@@ -2,6 +2,7 @@
  * message_id: string uuid
  * audio_url: http://go.peppermint.com/ + key
  * sender_email: string
+ * sender_name: string
  * recipient_email: string
  * created: number, non-null
  * handled: number time
@@ -171,6 +172,9 @@ function format(message) {
     created: {N: message.created.toString()},
   };
 
+  if (message.sender_name) {
+    msg.sender_name = {S: message.sender_name};
+  }
   if (message.handled) {
     msg.handled = {N: message.handled.toString()};
   }
@@ -195,6 +199,7 @@ function parse(item) {
     message_id: item.message_id.S,
     audio_url: item.audio_url.S,
     sender_email: item.sender_email.S,
+    sender_name: item.sender_name && item.sender_name.S,
     recipient_email: item.recipient_email.S,
     created: +item.created.N,
     handled: item.handled && +item.handled.N,
@@ -210,6 +215,7 @@ exports.resource = function(message) {
   var attrs = {
     audio_url: message.audio_url,
     sender_email: message.sender_email,
+    sender_name: message.sender_name,
     recipient_email: message.recipient_email,
     created: timestamp(message.created),
     duration: message.duration,

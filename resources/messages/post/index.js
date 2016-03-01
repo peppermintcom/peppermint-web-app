@@ -42,7 +42,6 @@ function lookupAccounts(request, reply) {
       request.recipient = accounts[1];
 
       if (!request.sender) {
-        console.log('sender not found: ' + request.body.data.attributes.sender_email);
         reply.fail({
           status: '404',
           detail: 'No account exists with sender_email',
@@ -50,7 +49,6 @@ function lookupAccounts(request, reply) {
         return;
       }
       if (!request.recipient) {
-        console.log('reicpient not found: ' + request.body.data.attributes.recipient_email);
         reply.fail({
           status: '404',
           detail: 'Recipient cannot receive messages via Peppermint',
@@ -82,7 +80,6 @@ function lookupRecipientReceivers(request, reply) {
         return !!r.gcm_registration_token;
       });
       if (!receivers.length) {
-        console.log('no recorders are related to recipient: ' + request.recipient.email);
         reply.fail({
           status: '404',
           detail: 'Recipient cannot receive messages via Peppermint',
@@ -100,7 +97,7 @@ function lookupRecipientReceivers(request, reply) {
 //create a message item and attach it to the request but do not save it to the
 //database yet.
 function newMessage(request, reply) {
-  request.message = _.messages.create(request.body.data.attributes);
+  request.message = _.messages.create(_.assign({sender_name: request.sender.full_name}, request.body.data.attributes));
   reply.succeed(request);
 }
 
@@ -150,7 +147,7 @@ function deliver(request, reply) {
     reply.succeed(request);
     return;
   }
-  _.gcm.deliver(request.recipient.receivers, request.message, request.sender)
+  _.gcm.deliver(request.recipient.receivers, request.message)
     .then(function(successes) {
       if (successes < 1) {
         reply.fail({

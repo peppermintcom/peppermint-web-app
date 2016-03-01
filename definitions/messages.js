@@ -8,6 +8,7 @@ var example = exports.example = {
   attributes: {
     audio_url: 'http://go.peppermint.com/xyz.m4a',
     sender_email: 'bob@example.com',
+    sender_name: 'Bob',
     recipient_email: 'ann@example.com',
     created: '2015-10-19 09:19:55',
   },
@@ -19,6 +20,7 @@ var attributesSchema = {
     audio_url: {type: 'string'},
     transcription_url: {type: 'string'},
     sender_email: {type: 'string'},
+    sender_name: {type: 'string'},
     recipient_email: {type: 'string'},
     created: timestamp,
     duration: {type: 'number'},

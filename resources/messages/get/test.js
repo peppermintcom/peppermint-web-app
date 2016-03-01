@@ -40,6 +40,7 @@ describe('lambda:SearchMessages', function() {
       msgs = [{
         recipient_email: recipient.email,
         sender_email: _.fake.user().email,
+        sender_name: sender.full_name,
         audio_url: _.fake.AUDIO_URL,
         created: new Date('2015-12-31T12:59:59').valueOf(),
         message_id: _.token(22),
@@ -47,6 +48,7 @@ describe('lambda:SearchMessages', function() {
       }, {
         recipient_email: recipient.email,
         sender_email: _.fake.user().email,
+        sender_name: sender.full_name,
         audio_url: _.fake.AUDIO_URL,
         created: new Date('2015-12-31T12:59:59').valueOf(),
         message_id: _.token(22),
@@ -54,12 +56,14 @@ describe('lambda:SearchMessages', function() {
       }, {
         recipient_email: recipient.email,
         sender_email: _.fake.user().email,
+        sender_name: sender.full_name,
         audio_url: _.fake.AUDIO_URL,
         created: new Date('2016-01-01T00:00:01').valueOf(),
         message_id: _.token(22),
       }, {
         recipient_email: recipient.email,
         sender_email: _.fake.user().email,
+        sender_name: sender.full_name,
         audio_url: _.fake.AUDIO_URL,
         created: new Date('2016-01-01T00:00:01').valueOf(),
         message_id: _.token(22),
@@ -86,6 +90,7 @@ describe('lambda:SearchMessages', function() {
               expect(msg.attributes).to.have.property('recipient_email', recipient.email.toLowerCase());
               expect(msg.attributes).to.have.property('audio_url', _.fake.AUDIO_URL);
               expect(msg.attributes).to.have.property('created', '2016-01-01 00:00:01');
+              expect(msg.attributes).to.have.property('sender_name', sender.full_name);
             });
             done();
           },
@@ -122,6 +127,7 @@ describe('lambda:SearchMessages', function() {
                 expect(msg).to.have.property('attributes');
                 expect(msg.attributes.transcription).to.be.undefined;
                 expect(msg.attributes.duration).to.be.undefined;
+                expect(msg.attributes).to.have.property('sender_name', sender.full_name);
               });
               expect(res.data[0].attributes).to.have.property('read');
               expect(res.data[1].attributes).to.have.property('read');
@@ -167,6 +173,7 @@ describe('lambda:SearchMessages', function() {
                 expect(msg).to.have.property('attributes');
                 expect(msg.attributes).to.have.property('transcription', text);
                 expect(msg.attributes).to.have.property('duration', 6);
+                expect(msg.attributes).to.have.property('sender_name', sender.full_name);
               });
               done();
             },

@@ -4,6 +4,7 @@ var _ = require('./utils');
 
 describe('GET /messages', function() {
   this.timeout(5 * 60 * 1000);
+  var sender = _.fake.user();
   var recipient;
   var recipientJWT;
   var get;
@@ -40,17 +41,18 @@ describe('GET /messages', function() {
         return {
           recipient_email: recipient.email,
           sender_email: _.fake.user().email,
+          sender_name: sender.full_name,
           audio_url: _.fake.AUDIO_URL,
           created: created + i*1000,
           message_id: _.token(22),
         };
       });
 
-      msgs = [];
       //2016 messages
       msgs.push({
         recipient_email: recipient.email,
         sender_email: _.fake.user().email,
+        sender_name: sender.full_name,
         audio_url: _.fake.AUDIO_URL,
         created: new Date('2016-01-01T00:00:01').valueOf(),
         message_id: messages2016[0],
@@ -58,6 +60,7 @@ describe('GET /messages', function() {
       msgs.push({
         recipient_email: recipient.email,
         sender_email: _.fake.user().email,
+        sender_name: sender.full_name,
         audio_url: _.fake.AUDIO_URL,
         created: new Date('2016-01-01T00:00:02').valueOf(),
         message_id: messages2016[1],
@@ -92,6 +95,9 @@ describe('GET /messages', function() {
             expect(res.body.data).to.have.length(2);
             expect(res.body).not.to.have.property('links');
             expect(res.body.data[0].attributes).to.have.property('read');
+            res.body.data.forEach(function(datum) {
+              expect(datum.attributes).to.have.property('sender_name', sender.full_name);
+            });
           });
         });
       });
@@ -124,6 +130,9 @@ describe('GET /messages', function() {
             expect(res.body).to.have.property('data');
             expect(res.body.data).to.have.length(40);
             expect(res.body).to.have.property('links');
+            res.body.data.forEach(function(message) {
+              expect(message.attributes).to.have.property('sender_name', sender.full_name);
+            });
 
             return _.http('GET', res.body.links.next, null, headers)
           })
@@ -132,6 +141,9 @@ describe('GET /messages', function() {
             expect(res.body).to.have.property('data');
             expect(res.body.data).to.have.length(40);
             expect(res.body).to.have.property('links');
+            res.body.data.forEach(function(message) {
+              expect(message.attributes).to.have.property('sender_name', sender.full_name);
+            });
 
             return _.http('GET', res.body.links.next, null, headers)
           })
@@ -140,6 +152,9 @@ describe('GET /messages', function() {
             expect(res.body).to.have.property('data');
             expect(res.body.data).to.have.length(2);
             expect(res.body).not.to.have.property('links');
+            res.body.data.forEach(function(message) {
+              expect(message.attributes).to.have.property('sender_name', sender.full_name);
+            });
           });
       });
     });

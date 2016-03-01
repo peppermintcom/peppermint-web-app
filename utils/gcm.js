@@ -38,9 +38,9 @@ function formatter(recorder) {
   }
 }
 
-function format(receivers, message, sender) {
+function format(receivers, message) {
   return Promise.all(_.map(_.map(receivers, formatter), function(formatter, i) {
-    return formatter(message, receivers[i].gcm_registration_token, sender.full_name)
+    return formatter(message, receivers[i].gcm_registration_token)
       .then(_.partial(bindToRecorder, receivers[i]));
   }))
   .then(_.flatten);
@@ -55,12 +55,12 @@ function bindToRecorder(recorder, messages) {
   });
 }
 
-exports.deliver = function (receivers, message, sender) {
+exports.deliver = function (receivers, message) {
   //gets send stub in dev environment
   var send = this.send;
   var success = 0;
 
-  return format(receivers, message, sender)
+  return format(receivers, message)
     .then(function(messages) {
       return Promise.all(_.map(messages, function(message) {
         return send(message.message);
@@ -78,11 +78,11 @@ exports.deliver = function (receivers, message, sender) {
     });
 };
 
-function data(message, from_name) {
+function data(message) {
   return {
     audio_url: message.audio_url,
     message_id: message.message_id,
-    sender_name: from_name,
+    sender_name: message.sender_name,
     sender_email: message.sender_email,
     recipient_email: message.recipient_email,
     created: timestamp(message.created),
@@ -91,16 +91,16 @@ function data(message, from_name) {
   };
 }
 
-function iOS(message, to, from_name) {
+function iOS(message, to) {
   return Promise.resolve([{
     to: to,
     priority: 'high',
     content_available: true,
-    data: data(message, from_name),
+    data: data(message),
   }]);
 }
 
-function iOSDev(message, to, from_name) {
+function iOSDev(message, to) {
   return messages.recentUnreadCount(message.recipient_email, message.message_id)
     .then(function(count) {
       return [{
@@ -110,9 +110,9 @@ function iOSDev(message, to, from_name) {
           badge : count.toString(),
           sound : 'notification.aiff',
           title: 'You have a new message',
-          body: (from_name || message.sender_email) + ' sent you a message',
+          body: (message.sender_name || message.sender_email) + ' sent you a message',
           click_action : 'AudioMessage',
-          sender_name: from_name,
+          sender_name: message.sender_name,
           sender_email: message.sender_email,
           created: timestamp(message.created),
         },
@@ -123,7 +123,7 @@ function iOSDev(message, to, from_name) {
         data: {
           recipient_email: message.recipient_email,
           audio_url: message.audio_url,
-          sender_name: from_name,
+          sender_name: message.sender_name,
           sender_email: message.sender_email,
           created: timestamp(message.created),
           duration : message.duration,
@@ -134,11 +134,11 @@ function iOSDev(message, to, from_name) {
     });
 }
 
-function android(message, to, from_name) {
+function android(message, to) {
   return Promise.resolve([{
     to: to,
     priority: 'high',
-    data: data(message, from_name),
+    data: data(message),
   }]);
 }
 //update database for invalid tokens

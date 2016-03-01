@@ -850,6 +850,7 @@ function responseOK(response, attrs, duration) {
   expect(response.attributes).to.have.property('sender_email', attrs.sender_email.toLowerCase());
   expect(response.attributes).to.have.property('recipient_email', attrs.recipient_email.toLowerCase());
   expect(response.attributes).to.have.property('duration', duration);
+  expect(response.attributes.sender_name).to.be.ok;
   if (!tv4.validate(response, spec.responses['202'].schema)) {
     throw tv4.error;
   }
