@@ -2,10 +2,14 @@ var http = require('./http');
 var conf = require('./conf');
 var recorders = require('./recorders');
 var messages = require('./messages');
+var notices = require('./notices');
 var _ = require('lodash');
 var apps = require('./apps');
 var timestamp = require('./timestamp');
 
+//publishes a notice to gcm weird if status code response is not 200. There may
+//be other unhandled errors with a 200 status code. Sync will publish a notice
+//for those.
 var send = exports.send = function(message) {
   return http.postJSON('https://gcm-http.googleapis.com/gcm/send', message, {
     Authorization: 'key=' + conf.PEPPERMINT_GCM_API_KEY,
@@ -15,10 +19,13 @@ var send = exports.send = function(message) {
     console.log(res.headers);
     console.log(res.body);
     if (res.statusCode != 200) {
-      throw new Error(res.statusCode);
+      return notices.gcmWeird(res.body, res.statusCode)
+        .then(function() {
+          throw new Error(res.statusCode);
+        });
     }
     return res.body;
-  });
+  })
 };
 
 /*
@@ -152,7 +159,7 @@ var sync = exports.sync = function(recorders, results) {
         if (/InvalidRegistration|NotRegistered/.test(r.error)) {
           return deleteToken(recorders[i]);
         }
-        //Unavailable could be retried
+        return notices.gcmWeird(r.error);
       }
       return Promise.resolve();
     }));
