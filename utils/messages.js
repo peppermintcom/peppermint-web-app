@@ -119,6 +119,9 @@ function unread(recipientEmail, since) {
     ExpressionAttributeNames: {
       '#read': 'read',
     },
+  })
+  .then(function(messages) {
+    return _.map(messages, parse);
   });
 }
 
@@ -126,9 +129,22 @@ var recentUnread = exports.recentUnread = function(recipientEmail) {
   return unread(recipientEmail, Date.now() - UNREAD_TERM);
 };
 
-exports.recentUnreadCount = function(recipientEmail) {
+/*
+ * This query operation is not strongly consistent. If the recent unread result
+ * set does not contain messageID then increment the count.
+ */
+exports.recentUnreadCount = function(recipientEmail, messageID) {
   return recentUnread(recipientEmail).then(function(messages) {
-    return (messages && messages.length) || 0;
+    var adjustment = 0;
+
+    if (messageID) {
+      var has = _.find(messages, function(message) {
+        return message.message_id === messageID;
+      });
+      if (!has) adjustment++;
+    }
+
+    return messages.length + adjustment;
   });
 };
 

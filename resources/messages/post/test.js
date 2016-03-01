@@ -139,7 +139,7 @@ describe('lambda:CreateMessage', function() {
         msgOK(last, gcmToken, sender.full_name, response, duration);
       });
 
-      it('should marrk the message delivered.', function() {
+      it('should mark the message delivered.', function() {
         return _.messages.get(response.id).then(function(message) {
           expect(message).to.have.property('handled_by', _.messages.handlers.CREATE_MESSAGE);
           expect(message).to.have.property('handled');

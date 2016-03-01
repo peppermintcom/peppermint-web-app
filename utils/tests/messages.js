@@ -35,5 +35,43 @@ describe('_.messages', function() {
           });
       });
     });
+
+    describe('recentUnreadCount', function() {
+      describe('no messageID argument', function() {
+        it('should return 3.', function() {
+          return _.messages.recentUnreadCount(recipient.email.toLowerCase())
+            .then(function(count) {
+              expect(count).to.equal(3);
+            });
+        });
+
+      });
+
+      describe('messageID of message not in result set', function() {
+        it('should return 4.', function() {
+          var readMsg = _.find(messages, function(message) {
+            return !!message.read;
+          });
+
+          return _.messages.recentUnreadCount(recipient.email.toLowerCase(), readMsg.message_id)
+            .then(function(count) {
+              expect(count).to.equal(4);
+            });
+        });
+      });
+
+      describe('messageID of message not in result set', function() {
+        it('should return 3.', function() {
+          var unreadMsg = _.find(messages, function(message) {
+            return !message.read;
+          });
+
+          return _.messages.recentUnreadCount(recipient.email.toLowerCase(), unreadMsg.message_id)
+            .then(function(count) {
+              expect(count).to.equal(3);
+            });
+        });
+      });
+    });
   });
 });

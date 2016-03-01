@@ -1,6 +1,7 @@
 var http = require('./http');
 var conf = require('./conf');
 var recorders = require('./recorders');
+var messages = require('./messages');
 var _ = require('lodash');
 var apps = require('./apps');
 var timestamp = require('./timestamp');
@@ -20,47 +21,62 @@ var send = exports.send = function(message) {
   });
 };
 
+/*
+ * Format each message for delivery to a client. iOS produces 2 push
+ * notifications for each message. Resolves to a list of objects with a
+ * formatted message property ready to pass to GCM and a recorder property
+ * representing the device the message is addressed to.
+ */
+
+function formatter(recorder) {
+  if (apps.isAndroid(recorder.api_key)) {
+    return android;
+  } else if (recorder.api_key === 'ios-dev') {
+    return iOSDev;
+  } else {
+    return iOS;
+  }
+}
+
+function format(receivers, message, sender) {
+  return Promise.all(_.map(_.map(receivers, formatter), function(formatter, i) {
+    return formatter(message, receivers[i].gcm_registration_token, sender.full_name)
+      .then(_.partial(bindToRecorder, receivers[i]));
+  }))
+  .then(_.flatten);
+}
+
+function bindToRecorder(recorder, messages) {
+  return _.map(messages, function(message) {
+    return {
+      recorder: recorder,
+      message: message,
+    };
+  });
+}
+
 exports.deliver = function (receivers, message, sender) {
+  //gets send stub in dev environment
   var send = this.send;
-  var queue = [];
   var success = 0;
 
-  _.each(receivers, function(recorder) {
-    var formatter;
+  return format(receivers, message, sender)
+    .then(function(messages) {
+      return Promise.all(_.map(messages, function(message) {
+        return send(message.message);
+      }))
+      .then(function(results) {
+        return Promise.all(_.map(results, function(result, i) {
+          success += result.success;
 
-    if (apps.isAndroid(recorder.api_key)) {
-      formatter = android;
-    } else if (recorder.api_key === 'ios-dev') {
-      formatter = iOSDev;
-    } else {
-      formatter = iOS;
-    }
-
-    var formats = formatter(message, recorder.gcm_registration_token, sender.full_name);
- 
-    _.each(formats, function(formattedMsg) {
-      queue.push({
-        recorder: recorder,
-        message: formattedMsg,
-      });
-    });
-  });
-
-  return Promise.all(_.map(queue, function(message) {
-      return send(message.message);
-    }))
-    .then(function(results) {
-
-      return Promise.all(_.map(results, function(result, i) {
-        success += result.success;
-
-        return sync([queue[i].recorder], result);
-      }));
+          return sync([messages[i].recorder], result);
+        }));
+      })
     })
     .then(function() {
       return success;
     });
-}
+};
 
 function data(message, from_name) {
   return {
@@ -76,51 +92,54 @@ function data(message, from_name) {
 }
 
 function iOS(message, to, from_name) {
-  return [{
+  return Promise.resolve([{
     to: to,
     priority: 'high',
     content_available: true,
     data: data(message, from_name),
-  }];
+  }]);
 }
 
 function iOSDev(message, to, from_name) {
-  return [{
-    to: to,
-    priority: 'high',
-    notification: {
-      badge : "1",
-      sound : "notification.aiff",
-      title: "You have a new message",
-      body: (from_name || message.sender_email) + ' sent you a message',
-      click_action : "AudioMessage",
-      sender_name: from_name,
-      sender_email: message.sender_email,
-      created: timestamp(message.created),
-    },
-  },
-  {
-    to: to,
-    priority: 'high',
-    data: {
-      recipient_email: message.recipient_email,
-      audio_url: message.audio_url,
-      sender_name: from_name,
-      sender_email: message.sender_email,
-      created: timestamp(message.created),
-      duration : message.duration,
-      message_id : message.message_id,
-      transcription: message.transcription,
-    },
-  }];
+  return messages.recentUnreadCount(message.recipient_email, message.message_id)
+    .then(function(count) {
+      return [{
+        to: to,
+        priority: 'high',
+        notification: {
+          badge : count.toString(),
+          sound : 'notification.aiff',
+          title: 'You have a new message',
+          body: (from_name || message.sender_email) + ' sent you a message',
+          click_action : 'AudioMessage',
+          sender_name: from_name,
+          sender_email: message.sender_email,
+          created: timestamp(message.created),
+        },
+      },
+      {
+        to: to,
+        priority: 'high',
+        data: {
+          recipient_email: message.recipient_email,
+          audio_url: message.audio_url,
+          sender_name: from_name,
+          sender_email: message.sender_email,
+          created: timestamp(message.created),
+          duration : message.duration,
+          message_id : message.message_id,
+          transcription: message.transcription,
+        },
+      }];
+    });
 }
 
 function android(message, to, from_name) {
-  return [{
+  return Promise.resolve([{
     to: to,
     priority: 'high',
     data: data(message, from_name),
-  }];
+  }]);
 }
 //update database for invalid tokens
 var sync = exports.sync = function(recorders, results) {
