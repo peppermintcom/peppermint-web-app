@@ -361,46 +361,59 @@ describe('lambda:CreateMessage', function() {
           });
         });
 
-        it('should succeed with a message resource.', function(done) {
-          handler({
-            api_key: _.fake.API_KEY,
-            Authorization: 'Bearer ' + sender.at,
-            'Content-Type': 'application/vnd.api+json',
-            body: body,
-          }, {
-            succeed: function(result) {
-              responseOK(result, body.data.attributes, duration);
-              response = result;
-              done();
-            },
-            fail: done,
-          });
-        });
+        describe('recipient has 2 unread messages', function() {
+          this.timeout(60000);
 
-        it('should send 3 messages to GCM.', function() {
-          expect(_.gcm.sends).to.have.length(3);
-        });
+          before(function() {
+            return _.messages.delByAudioURL(_.fake.AUDIO_URL);
+          });
 
-        it('message to Android should not have notification or content_available fields.', function() {
-          var msg = _.find(_.gcm.sends, function(msg) {
-            return msg.to === r1Token;
+          before(function() {
+            return _.fake.messages(recipient, 2);
           });
-          expect(msg).to.be.ok;
-          msgOK(msg, r1Token, sender.full_name, response, duration);
-        });
 
-        it('should send a notification message and a data message to iOS', function() {
-          var msgN = _.find(_.gcm.sends, function(msg) {
-            return (msg.to === r2Token) && msg.notification;
+          it('should succeed with a message resource.', function(done) {
+            handler({
+              api_key: _.fake.API_KEY,
+              Authorization: 'Bearer ' + sender.at,
+              'Content-Type': 'application/vnd.api+json',
+              body: body,
+            }, {
+              succeed: function(result) {
+                responseOK(result, body.data.attributes, duration);
+                response = result;
+                done();
+              },
+              fail: done,
+            });
           });
-          var msgD = _.find(_.gcm.sends, function(msg) {
-            return (msg.to === r2Token) && msg.data;
+
+          it('should send 3 messages to GCM.', function() {
+            expect(_.gcm.sends).to.have.length(3);
           });
-          expect(msgN).to.be.ok;
-          expect(msgD).to.be.ok;
-          expect(msgN).not.to.equal(msgD);
-          msgOK(msgD, r2Token, sender.full_name, response, duration);
-          msgOKiOSNotification(msgN, sender.full_name);
+
+          it('message to Android should not have notification or content_available fields.', function() {
+            var msg = _.find(_.gcm.sends, function(msg) {
+              return msg.to === r1Token;
+            });
+            expect(msg).to.be.ok;
+            msgOK(msg, r1Token, sender.full_name, response, duration);
+          });
+
+          it('should send a notification message and a data message to iOS', function() {
+            var msgN = _.find(_.gcm.sends, function(msg) {
+              return (msg.to === r2Token) && msg.notification;
+            });
+            var msgD = _.find(_.gcm.sends, function(msg) {
+              return (msg.to === r2Token) && msg.data;
+            });
+            expect(msgN).to.be.ok;
+            expect(msgD).to.be.ok;
+            expect(msgN).not.to.equal(msgD);
+            msgOK(msgD, r2Token, sender.full_name, response, duration);
+            msgOKiOSNotification(msgN, sender.full_name);
+            expect(msgN.notification).to.have.property('badge', '3');
+          });
         });
       });
     });
