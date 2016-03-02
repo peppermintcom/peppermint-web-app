@@ -18,22 +18,44 @@ var obj = exports.resourceObjectSchema = function(type, attributesSchema) {
   };
 };
 
-exports.resourceCollectionSchema = function(type, attributesSchema) {
+exports.resourceCollectionSchema = function(resourceSchema) {
   return {
     type: 'array',
-    items: obj(type, attributesSchema),
+    items: resourceSchema,
   };
 };
 
-exports.adapt = function(attrSchema, permitted, required) {
-  var props = _.pick(attrSchema.properties, permitted.concat(required));
+exports.adapt = function(schema, permitted, required) {
+  var props = _.pick(schema.properties, permitted.concat(required));
 
   return {
     type: 'object',
     properties: props,
     required: required,
-    additionalProperties: !!attrSchema.additionalProperties,
+    additionalProperties: !!schema.additionalProperties,
   };
+};
+
+exports.jsonapi = function(data, links) {
+  var props = {data: data};
+
+  if (links) {
+    props.links = links;
+  }
+
+  return {
+    type: 'object',
+    properties: props,
+    required: ['data'],
+  };
+};
+
+exports.linksSchema = {
+  type: 'object',
+  properties: {
+    next: {type: 'string'},
+  },
+  additionalProperties: false,
 };
 
 module.exports = _.assign(_, exports);

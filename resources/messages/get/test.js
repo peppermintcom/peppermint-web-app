@@ -1,4 +1,6 @@
 var expect = require('chai').expect;
+var tv4 = require('tv4');
+var spec = require('./spec');
 var handler = require('./').handler;
 var _ = require('utils/test');
 
@@ -16,7 +18,7 @@ describe('lambda:SearchMessages', function() {
   });
 
   //valid, authenticated requests
-  describe('no messages for recipient', function() {
+  describe.only('no messages for recipient', function() {
     it('should succeed with an empty collection', function(done) {
       handler({
         api_key: _.fake.API_KEY,
@@ -26,6 +28,10 @@ describe('lambda:SearchMessages', function() {
       }, {
         succeed: function(res) {
           expect(res).to.deep.equal({data: []});
+          if (!tv4.validate(res, spec.responses['200'].schema)) {
+            console.log(tv4.error);
+            throw tv4.error;
+          }
           done();
         },
         fail: function(err) {

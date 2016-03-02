@@ -22,6 +22,11 @@ make using signed_urls.  The contentType submitted to the Peppermint API POST
 request to the signed_url and no other headers besides Content-Length should be
 included.
 
-## Changes
-Feb 8, 2016
-POST /recorder-token and POST /accounts/tokens are deprecated. Use POST /jwts.
+## Inter-App Flow
+After initializing an upload using POST /uploads, submit a POST request to
+/messages. You must be authenticated as sender_email to make a request (using an
+		auth token returned either from POST /accounts or POST /jwts).
+The audio_url submitted to POST /messages must be the canonical_url returned by
+POST /uploads. You do not have to wait for the audio to finish uploading before
+calling POST /messages. The API will wait until the audio is ready before
+forwarding the message to GCM for delivery to the recipient.

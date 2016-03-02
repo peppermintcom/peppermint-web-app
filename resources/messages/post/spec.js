@@ -6,7 +6,7 @@ var _ = require('utils');
 
 exports.tags = ['messages', 'inter-app'];
 exports.summary = 'Send a message to an app.';
-exports.description = 'Checks if there is an installed app associated with an email, then sends the message to that app if found. The message sent via GCM will have the following fields in the data payload (all strings): message_id, audio_url, sender_name, sender_email, recipient_email, created, transcription; coming soon "duration" (number). The notification payload will have fields title "New Message" body "{{name}} sent you a message", and icon "myicon"';
+exports.description = 'Checks if there is an installed app associated with an email, then sends the message to that app if found.';
 exports.operationId = 'CreateMessage';
 exports.consumes = exports.produces = ['application/vnd.api+json'];
 
@@ -20,7 +20,7 @@ exports.parameters = [
     schema: {
       type: 'object',
       properties: {
-        data: defs.messages.schemaRequest,
+        data: defs.messages.requestSchema,
       },
       required: ['data'],
       additionalProperties: false,
@@ -35,9 +35,9 @@ exports.responses = {
       'Content-Type': {type: 'string'},
       'Access-Control-Allow-Origin': {type: 'string'},
     },
-    schema: defs.messages.schema,
+    schema: defs.messages.responseSchema,
     examples: {
-      'application/vnd.api+json': defs.messages.example,
+      'application/vnd.api+json': {data: defs.messages.example},
     },
   },
   '400': responses.jsonAPI.BadRequest,

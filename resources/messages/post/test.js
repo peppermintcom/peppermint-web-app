@@ -140,7 +140,7 @@ describe('lambda:CreateMessage', function() {
       });
 
       it('should mark the message delivered.', function() {
-        return _.messages.get(response.id).then(function(message) {
+        return _.messages.get(response.data.id).then(function(message) {
           expect(message).to.have.property('handled_by', _.messages.handlers.CREATE_MESSAGE);
           expect(message).to.have.property('handled');
           expect(message).to.have.property('outcome');
@@ -751,6 +751,29 @@ describe('lambda:CreateMessage', function() {
     });
   });
 
+  describe('audio_url is not canonical_url', function() {
+    it('should fail with a 400 error.', function(done) {
+      var b = _.cloneDeep(body);
+      
+      b.data.attributes.audio_url = 'https://peppermint.com/short';
+      handler({
+        body: b,
+        'Content-Type': 'application/vnd.api+json',
+        Authorization: 'Bearer ' + sender.at,
+        api_key: _.fake.API_KEY,
+      }, {
+        succeed: function() {
+          done(new Error('success with non-canonical audio_url'));
+        },
+        fail: function(err) {
+          expect(err).to.have.property('message', '400');
+          expect(JSON.parse(err.name)).to.have.property('detail', 'String does not match pattern: ^http://go.peppermint.com');
+          done();
+        },
+      });
+    });
+  });
+
   describe('Missing fields in body', function() {
     describe('audio_url', function() {
       it('should fail with a 400 error.', function(done) {
@@ -843,14 +866,18 @@ describe('lambda:CreateMessage', function() {
 });
 
 function responseOK(response, attrs, duration) {
-  expect(response.id).to.be.ok;
-  expect(response.type).to.equal('messages');
-  expect(response.attributes).to.have.property('created');
-  expect(response.attributes).to.have.property('audio_url', attrs.audio_url);
-  expect(response.attributes).to.have.property('sender_email', attrs.sender_email.toLowerCase());
-  expect(response.attributes).to.have.property('recipient_email', attrs.recipient_email.toLowerCase());
-  expect(response.attributes).to.have.property('duration', duration);
-  expect(response.attributes.sender_name).to.be.ok;
+  expect(response.data).to.be.ok;
+  var data = response.data;
+
+  expect(data.id).to.be.ok;
+  expect(data.type).to.equal('messages');
+  expect(data.attributes).to.have.property('created');
+  expect(data.attributes).to.have.property('audio_url', attrs.audio_url);
+  expect(data.attributes).to.have.property('sender_email', attrs.sender_email.toLowerCase());
+  expect(data.attributes).to.have.property('recipient_email', attrs.recipient_email.toLowerCase());
+  expect(data.attributes).to.have.property('sender_name');
+  expect(data.attributes).to.have.property('duration', duration);
+  expect(data.attributes.sender_name).to.be.ok;
   if (!tv4.validate(response, spec.responses['202'].schema)) {
     throw tv4.error;
   }
@@ -861,12 +888,12 @@ function msgOK(msg, to, from, response, duration) {
   expect(msg).to.have.property('to', to);
   expect(msg).to.have.property('priority', 'high');
   expect(msg.data).to.deep.equal({
-    message_id: response.id,
-    audio_url: response.attributes.audio_url,
+    message_id: response.data.id,
+    audio_url: response.data.attributes.audio_url,
     sender_name: from,
-    sender_email: response.attributes.sender_email,
-    recipient_email: response.attributes.recipient_email,
-    created: response.attributes.created,
+    sender_email: response.data.attributes.sender_email,
+    recipient_email: response.data.attributes.recipient_email,
+    created: response.data.attributes.created,
     duration: duration,
     transcription: undefined,
   });

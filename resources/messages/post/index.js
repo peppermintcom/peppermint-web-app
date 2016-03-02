@@ -181,5 +181,5 @@ function saveMessage(request, reply) {
 }
 
 function respond(request, reply) {
-  reply.succeed(_.messages.resource(request.message));
+  reply.succeed({data: _.messages.resource(request.message)});
 }
