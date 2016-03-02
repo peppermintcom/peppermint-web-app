@@ -174,7 +174,7 @@ exports.upsert = function(profile) {
         });
     });
 };
-    
+ 
 exports.resource = function(account) {
   if (!account) return null;
 

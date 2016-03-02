@@ -178,7 +178,7 @@ function deliver(message) {
       if (message === DONE) {
         return;
       }
-      return _.gcm.deliver(message.recipient.receivers, message, message.sender)
+      return _.gcm.deliver(message.recipient.receivers, message)
         .then(function(successes) {
           return saveMessageResult(message.message_id, 'GCM success count: ' + successes);
         });
