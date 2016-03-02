@@ -60,7 +60,7 @@ function query(request, reply) {
     return;
   }
 
-  _.messages.query(request.recipient.email, since)
+  _.messages.queryRecipient(request.recipient.email, since)
     .then(function(data) {
       if (data.LastEvaluatedKey) {
         request.last = +data.LastEvaluatedKey.created.N;

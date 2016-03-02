@@ -18,7 +18,7 @@ describe('lambda:SearchMessages', function() {
   });
 
   //valid, authenticated requests
-  describe.only('no messages for recipient', function() {
+  describe('no messages for recipient', function() {
     it('should succeed with an empty collection', function(done) {
       handler({
         api_key: _.fake.API_KEY,

@@ -16,7 +16,7 @@ describe('_.messages', function() {
 
     describe('query', function() {
       it('should return a message collection with five parsed items.', function() {
-        return _.messages.query(recipient.email.toLowerCase())
+        return _.messages.queryRecipient(recipient.email.toLowerCase())
           .then(function(data) {
             expect(data.Items).to.have.length(5);
             //2 should have read timestamp

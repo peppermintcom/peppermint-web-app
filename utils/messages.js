@@ -83,29 +83,48 @@ exports.expand = function(message) {
   ]);
 };
 
-exports.query = function(recipientEmail, since) {
+/**
+ * query messages using either the recipient or sender email index sorted by
+ * created time.
+ * @param {String} role - either "recipient" or "sender"
+ * @param {String} email
+ * @param {Number} since - only find messages created after this time
+ * @return {Promise} resolves to an object where Items field is a list of parsed
+ * message objects
+ */
+function queryEmail(role, email, since) {
   since = since || 0;
 
   return new Promise(function(resolve, reject) {
+    //'recipient_email'
+    var primary = role + '_email';
+    var values = {
+      ':since': {N: since.toString()},
+      //:recipient_email: {S: email},
+    };
+    values[':' + primary] = {S: email};
+
     dynamo.query({
       TableName: 'messages',
-      IndexName: 'recipient_email-created-index',
-      KeyConditionExpression: 'recipient_email = :recipient_email AND created > :since',
-      ExpressionAttributeValues: {
-        ':recipient_email': {S: recipientEmail},
-        ':since': {N: since.toString()},
-      },
+      //"recipient_email-created-index"
+      IndexName: role + '_email-created-index',
+      //"recipient_email = :recipient_email AND created > :since"
+      KeyConditionExpression: primary + ' = :' + primary + ' AND created > :since',
+      ExpressionAttributeValues: values,
       Limit: LIMIT,
     }, function(err, data) {
       if (err) {
         reject(err);
         return;
       }
-      data.Items = _.map(data.Items, parse);
+      data.Items = _.map(data.Items || [], parse);
       resolve(data);
     });
   });
-};
+}
+
+exports.queryRecipient = _.partial(queryEmail, 'recipient');
+exports.querySender = _.partial(queryEmail, 'sender');
 
 function unread(recipientEmail, since) {
   return dynamo.queryAll({
