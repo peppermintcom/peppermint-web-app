@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var tv4 = require('tv4');
 var jsonapischema = require('./jsonapischema');
 var spec = require('../resources/messages/post/spec');
-var _ = require('utils/test');
+var _ = require('./utils');
 
 describe('POST /messages', function() {
   var post = _.partial(_.http, 'POST', '/messages');
@@ -36,6 +36,30 @@ describe('POST /messages', function() {
     .then(function(response) {
       expect(response.statusCode).to.equal(200);
       recorderJWT = response.body.data.attributes.token;
+    });
+  });
+
+  describe('audio_url is not a canonical_url', function() {
+    _.fail(400, 'String does not match pattern: ^http://go.peppermint.com', spec, function() {
+      return {
+        body: {
+          data: {
+            type: 'messages',
+            attributes: {
+              sender_email: sender.email,
+              recipient_email: recipient.email,
+              audio_url: 'https://peppermint.com/short',
+            },
+          },
+        },
+        headers: {
+          'X-Api-Key': _.fake.API_KEY,
+          Authorization: 'Bearer ' + jwt,
+          'Content-Type': 'application/vnd.api+json',
+        },
+        method: 'POST',
+        url: '/messages',
+      };
     });
   });
 
