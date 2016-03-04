@@ -247,9 +247,11 @@ exports.resource = function(message) {
     sender_name: message.sender_name,
     recipient_email: message.recipient_email,
     created: timestamp(message.created),
-    duration: message.duration,
   };
 
+  if (message.duration) {
+    attrs.duration = message.duration;
+  }
   if (message.transcription_url) {
     attrs.transcription_url = message.transcription_url;
   }

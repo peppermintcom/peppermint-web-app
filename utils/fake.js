@@ -149,4 +149,11 @@ function messages(config) {
     });
 }
 
-exports.messages = messages;
+exports.messages = function() {
+  var configs = _.toArray(arguments);
+
+  return Promise.all(_.map(configs, messages))
+    .then(function(results) {
+      return _.flatten(results);
+    });
+};

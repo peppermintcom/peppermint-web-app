@@ -7,13 +7,13 @@ module.exports = function(d) {
   return [
     [
       d.getUTCFullYear(),
-      _.padLeft((d.getUTCMonth() + 1).toString(), 2, '0'),
-      _.padLeft(d.getUTCDate().toString(), 2, '0'),
+      _.padStart((d.getUTCMonth() + 1).toString(), 2, '0'),
+      _.padStart(d.getUTCDate().toString(), 2, '0'),
     ].join('-'),
     [
-      _.padLeft(d.getUTCHours().toString(), 2, '0'),
-      _.padLeft(d.getUTCMinutes().toString(), 2, '0'),
-      _.padLeft(d.getUTCSeconds().toString(), 2, '0'),
+      _.padStart(d.getUTCHours().toString(), 2, '0'),
+      _.padStart(d.getUTCMinutes().toString(), 2, '0'),
+      _.padStart(d.getUTCSeconds().toString(), 2, '0'),
     ].join(':')
   ].join(' ');
 };

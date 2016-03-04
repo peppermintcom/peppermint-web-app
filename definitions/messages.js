@@ -13,6 +13,7 @@ var example = exports.example = {
     created: '2015-10-19 09:19:55',
     duration: 6,
     transcription: 'Hello Ann',
+    read: '2015-10-19 09:22:03',
   },
 };
 
@@ -27,13 +28,14 @@ var attributesSchema = {
     duration: {type: 'number'},
     transcription: {type: 'string'},
     transcription_url: {type: 'string'},
+    read: timestamp,
   },
   additionalProperties: false,
 };
 
 exports.schema = _.resourceObjectSchema('messages', attributesSchema);
 exports.requestSchema = _.adapt(_.resourceObjectSchema('messages', _.adapt(attributesSchema, ['transcription_url'], ['audio_url', 'sender_email', 'recipient_email'])), [], ['type', 'attributes']);
-var responseSchema = _.adapt(_.resourceObjectSchema('messages', _.adapt(attributesSchema, ['duration', 'transcription'], ['audio_url', 'sender_email', 'recipient_email', 'sender_name', 'created'])), [], ['id', 'type', 'attributes']);
+var responseSchema = _.adapt(_.resourceObjectSchema('messages', _.adapt(attributesSchema, ['duration', 'transcription', 'read'], ['audio_url', 'sender_email', 'recipient_email', 'sender_name', 'created'])), [], ['id', 'type', 'attributes']);
 
 exports.responseSchema = _.jsonapi(responseSchema);
 

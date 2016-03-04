@@ -17,8 +17,15 @@ exports.parameters = [
     name: 'recipient',
     'in': 'query',
     type: 'string',
-    description: 'account_id of the recipient, should be authenticated by Authorization header',
-    required: true,
+    description: 'account_id of the recipient, which should be authenticated by Authorization header',
+    required: false,
+  },
+  {
+    name: 'sender',
+    'in': 'query',
+    type: 'string',
+    description: 'account_id of the sender, which should be authenticated by Authorization header',
+    required: false,
   },
   {
     name: 'since',
@@ -52,7 +59,7 @@ exports['x-amazon-apigateway-integration'] = {
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {
-    'application/json': '{"api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')", "recipient_id": "$input.params(\'recipient\')", "since": "$util.urlDecode($input.params(\'since\'))"}',
+    'application/json': '{"api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')", "recipient_id": "$input.params(\'recipient\')", "sender_id": "$input.params(\'sender\')", "since": "$util.urlDecode($input.params(\'since\'))"}',
   },
   responses: {
     'default': integrations.jsonAPI.Ok,
