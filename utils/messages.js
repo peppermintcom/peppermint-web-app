@@ -124,11 +124,6 @@ function queryEmail(role, email, since) {
         messages: _.map(data.Items || [], parse),
         cursor: data.LastEvaluatedKey && +data.LastEvaluatedKey.created.N,
       });
-      if (data.LastEvaluatedKey) {
-        request.last = +data.LastEvaluatedKey.created.N;
-      }
-      data.Items = _.map(data.Items || [], parse);
-      resolve(data);
     });
   });
 }

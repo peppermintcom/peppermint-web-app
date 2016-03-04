@@ -4,7 +4,7 @@ var _ = require('./utils');
 
 describe('GET /messages', function() {
   this.timeout(5 * 60 * 1000);
-  var sender = _.fake.user();
+  var sender;
   var recipient;
   var recipientJWT;
   var get;
@@ -28,6 +28,64 @@ describe('GET /messages', function() {
   //delete the fake messages
   after(function() {
     return _.messages.delByAudioURL(_.fake.AUDIO_URL);
+  });
+
+  describe('sender sent 42 messages in the past month', function() {
+    var senderJWT;
+
+    before(function() {
+      return _.fake.account().then(function(account) {
+        sender = account;
+
+        return _.http('POST', '/jwts', null, {
+          Authorization: _.peppermintScheme(null, null, sender.email, sender.password),
+          'X-Api-Key': _.fake.API_KEY,
+        });
+      })
+      .then(function(res) {
+        expect(res.statusCode).to.equal(200);
+        senderJWT = res.body.data.attributes.token;
+      });
+    });
+
+    before(function() {
+      return _.fake.messages({
+        sender: sender,
+        read: 30,
+        unread: 12,
+      })
+      .then(function(data) {
+        messages = data;
+      });
+    });
+
+    it('should return all 42 messages over 2 calls.', function() {
+      return _.http('GET', '/messages?sender=' + sender.account_id + '&since=' + encodeURIComponent('2016-01-01 00:00:00'), null, {
+        'X-Api-Key': _.fake.API_KEY,
+        Authorization: 'Bearer ' + senderJWT,
+      })
+      .then(function(res) {
+        expect(res.statusCode).to.equal(200);
+        expect(res.body).to.have.property('data');
+        expect(res.body.data).to.have.length(40);
+        expect(res.body).to.have.property('links');
+        res.body.data.forEach(function(message) {
+          expect(message.attributes).to.have.property('sender_name', sender.full_name);
+        });
+
+        return _.http('GET', res.body.links.next, null, {
+          'X-Api-Key': _.fake.API_KEY,
+          Authorization: 'Bearer ' + senderJWT,
+        });
+      })
+      .then(function(res) {
+        expect(res.statusCode).to.equal(200);
+        //until millisecond precision is introduced the last item will be
+        //returned too
+        expect(res.body.data).to.have.length(3);
+        expect(res.body).not.to.have.property('links');
+      });
+    });
   });
 
   describe('recipient received 80 messages in 2015 and 2 in 2016', function() {

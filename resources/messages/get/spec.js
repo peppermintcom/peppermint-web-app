@@ -6,7 +6,7 @@ var _ = require('utils');
 
 exports.tags = ['messages', 'inter-app'];
 exports.summary = 'Search messages collection';
-exports.description = 'The Authorization header should authenticate the recipient account. If there is another page of results, there will be a links.next property in the body.';
+exports.description = 'The Authorization header should authenticate the recipient or sender account. If there is another page of results, there will be a links.next property in the body. Either the recipient or sender parameter is required in the querystring, but not both due to limitations of indexes in DynamoDB';
 exports.operationId = 'SearchMessages';
 exports.produces = ['application/vnd.api+json', 'text/plain'];
 
