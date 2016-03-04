@@ -6,21 +6,50 @@ describe('_.messages', function() {
   var recipient = _.fake.user();
   var messages;
 
-  describe('given there are 5 messages (3 unread) for the recipient', function() {
+  describe('given that there are 5 messages (2 unread) for the sender', function() {
     before(function() {
-      return _.fake.messages(recipient, 3, 2)
-        .then(function(_messages) {
-          messages = _messages;
-        });
+      return _.fake.messages({
+        sender: sender,
+        read: 3,
+        unread: 2,
+      })
+      .then(function(_messages) {
+        messages = _messages;
+      });
     });
 
-    describe('query', function() {
+    it('should return a message collection with five parsed items.', function() {
+      return _.messages.querySender(sender.email)
+        .then(function(data) {
+          expect(data.messages).to.have.length(5);
+          expect(data.cursor).to.be.undefined;
+          var readMessages = _.filter(data.messages, function(message) {
+            return !!message.read;
+          });
+          expect(readMessages).to.have.length(3);
+        });
+    });
+  });
+
+  describe('given there are 5 messages (3 unread) for the recipient', function() {
+    before(function() {
+      return _.fake.messages({
+        recipient: recipient,
+        read: 2,
+        unread: 3
+      })
+      .then(function(_messages) {
+        messages = _messages;
+      });
+    });
+
+    describe('queryRecipient', function() {
       it('should return a message collection with five parsed items.', function() {
         return _.messages.queryRecipient(recipient.email.toLowerCase())
           .then(function(data) {
-            expect(data.Items).to.have.length(5);
+            expect(data.messages).to.have.length(5);
             //2 should have read timestamp
-            expect(_.filter(data.Items, function(msg) {
+            expect(_.filter(data.messages, function(msg) {
               return !!msg.read;
             })).to.have.length(2);
           });

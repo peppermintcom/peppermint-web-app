@@ -6,7 +6,7 @@ var _ = require('utils/test');
 
 const begin = '2016-01-01 00:00:00';
 
-describe('lambda:SearchMessages', function() {
+describe.only('lambda:SearchMessages', function() {
   var sender = _.fake.user();
   var recipient;
   var msgs;
@@ -41,47 +41,31 @@ describe('lambda:SearchMessages', function() {
     });
   });
 
-  describe('recipient has 2 read messages from 2015 and 2 unread from 2016', function() {
-    before(function() {
-      msgs = [{
-        recipient_email: recipient.email,
-        sender_email: _.fake.user().email,
-        sender_name: sender.full_name,
-        audio_url: _.fake.AUDIO_URL,
-        created: new Date('2015-12-31T12:59:59').valueOf(),
-        message_id: _.token(22),
-        read: new Date().valueOf(),
-      }, {
-        recipient_email: recipient.email,
-        sender_email: _.fake.user().email,
-        sender_name: sender.full_name,
-        audio_url: _.fake.AUDIO_URL,
-        created: new Date('2015-12-31T12:59:59').valueOf(),
-        message_id: _.token(22),
-        read: new Date().valueOf(),
-      }, {
-        recipient_email: recipient.email,
-        sender_email: _.fake.user().email,
-        sender_name: sender.full_name,
-        audio_url: _.fake.AUDIO_URL,
-        created: new Date('2016-01-01T00:00:01').valueOf(),
-        message_id: _.token(22),
-      }, {
-        recipient_email: recipient.email,
-        sender_email: _.fake.user().email,
-        sender_name: sender.full_name,
-        audio_url: _.fake.AUDIO_URL,
-        created: new Date('2016-01-01T00:00:01').valueOf(),
-        message_id: _.token(22),
-      }];
+  describe('recipient has 2 read messages from 2015 and 1 unread from 2016', function() {
+    var split = new Date('2016-01-01T00:00:00').valueOf();
 
-      return Promise.all(_.map(msgs, function(msg) {
-        return _.messages.put(msg);
-      }));
+    before(function() {
+      return _.fake.messages({
+        recipient: recipient,
+        read: 2,
+        before: split,
+      })
+      .then(function(data) {
+        msgs = data;
+
+        return _.fake.messages({
+          recipient: recipient,
+          unread: 1,
+          after: split,
+        });
+      })
+      .then(function(data) {
+        msgs = msgs.concat(data);
+      });
     });
 
     describe('since=2016-01-01 00:00:00', function() {
-      it('should return two messages from 2016', function(done) {
+      it('should return one message from 2016', function(done) {
         handler({
           api_key: _.fake.API_KEY,
           Authorization: 'Bearer ' + recipient.at,
@@ -89,14 +73,13 @@ describe('lambda:SearchMessages', function() {
           recipient_id: recipient.account_id,
         }, {
           succeed: function(res) {
-            expect(res.data).to.have.length(2);
+            expect(res.data).to.have.length(1);
             _.each(res.data, function(msg) {
               expect(msg).to.have.property('id');
               expect(msg).to.have.property('type', 'messages');
               expect(msg.attributes).to.have.property('recipient_email', recipient.email.toLowerCase());
               expect(msg.attributes).to.have.property('audio_url', _.fake.AUDIO_URL);
-              expect(msg.attributes).to.have.property('created', '2016-01-01 00:00:01');
-              expect(msg.attributes).to.have.property('sender_name', sender.full_name);
+              expect(msg.attributes.sender_name).to.be.ok;
             });
             done();
           },
@@ -126,19 +109,18 @@ describe('lambda:SearchMessages', function() {
           }, {
             succeed: function(res) {
               expect(res).to.have.property('data');
-              expect(res.data).to.have.length(4);
+              expect(res.data).to.have.length(3);
               _.each(res.data, function(msg) {
                 expect(msg).to.have.property('id');
                 expect(msg).to.have.property('type', 'messages');
                 expect(msg).to.have.property('attributes');
                 expect(msg.attributes.transcription).to.be.undefined;
                 expect(msg.attributes.duration).to.be.undefined;
-                expect(msg.attributes).to.have.property('sender_name', sender.full_name);
+                expect(msg.attributes.sender_name).to.be.ok;
               });
               expect(res.data[0].attributes).to.have.property('read');
               expect(res.data[1].attributes).to.have.property('read');
               expect(res.data[2].attributes).not.to.have.property('read');
-              expect(res.data[3].attributes).not.to.have.property('read');
               done();
             },
             fail: function(err) {
@@ -172,14 +154,14 @@ describe('lambda:SearchMessages', function() {
           }, {
             succeed: function(res) {
               expect(res).to.have.property('data');
-              expect(res.data).to.have.length(4);
+              expect(res.data).to.have.length(3);
               _.each(res.data, function(msg) {
                 expect(msg).to.have.property('id');
                 expect(msg).to.have.property('type', 'messages');
                 expect(msg).to.have.property('attributes');
                 expect(msg.attributes).to.have.property('transcription', text);
                 expect(msg.attributes).to.have.property('duration', 6);
-                expect(msg.attributes).to.have.property('sender_name', sender.full_name);
+                expect(msg.attributes.sender_name).to.be.ok;
               });
               done();
             },

@@ -26,12 +26,13 @@ var attributesSchema = {
     created: timestamp,
     duration: {type: 'number'},
     transcription: {type: 'string'},
+    transcription_url: {type: 'string'},
   },
   additionalProperties: false,
 };
 
 exports.schema = _.resourceObjectSchema('messages', attributesSchema);
-exports.requestSchema = _.adapt(_.resourceObjectSchema('messages', _.adapt(attributesSchema, [], ['audio_url', 'sender_email', 'recipient_email'])), [], ['type', 'attributes']);
+exports.requestSchema = _.adapt(_.resourceObjectSchema('messages', _.adapt(attributesSchema, ['transcription_url'], ['audio_url', 'sender_email', 'recipient_email'])), [], ['type', 'attributes']);
 var responseSchema = _.adapt(_.resourceObjectSchema('messages', _.adapt(attributesSchema, ['duration', 'transcription'], ['audio_url', 'sender_email', 'recipient_email', 'sender_name', 'created'])), [], ['id', 'type', 'attributes']);
 
 exports.responseSchema = _.jsonapi(responseSchema);

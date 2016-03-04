@@ -24,6 +24,7 @@ describe('lambda:CreateMessage', function() {
             sender_email: sender.email,
             recipient_email: recipient.email,
             audio_url: _.fake.AUDIO_URL,
+            transcription_url: _.fake.AUDIO_URL,
           },
         },
       };
@@ -369,7 +370,7 @@ describe('lambda:CreateMessage', function() {
           });
 
           before(function() {
-            return _.fake.messages(recipient, 2);
+            return _.fake.messagesTo(recipient, 0, 2);
           });
 
           it('should succeed with a message resource.', function(done) {

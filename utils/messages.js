@@ -80,7 +80,10 @@ exports.expand = function(message) {
   return Promise.all([
     attachDuration(message),
     attachTranscription(message),
-  ]);
+  ])
+  .then(function() {
+    return message;
+  });
 };
 
 /**
@@ -102,7 +105,7 @@ function queryEmail(role, email, since) {
       ':since': {N: since.toString()},
       //:recipient_email: {S: email},
     };
-    values[':' + primary] = {S: email};
+    values[':' + primary] = {S: email.toLowerCase()};
 
     dynamo.query({
       TableName: 'messages',
@@ -116,6 +119,13 @@ function queryEmail(role, email, since) {
       if (err) {
         reject(err);
         return;
+      }
+      resolve({
+        messages: _.map(data.Items || [], parse),
+        cursor: data.LastEvaluatedKey && +data.LastEvaluatedKey.created.N,
+      });
+      if (data.LastEvaluatedKey) {
+        request.last = +data.LastEvaluatedKey.created.N;
       }
       data.Items = _.map(data.Items || [], parse);
       resolve(data);

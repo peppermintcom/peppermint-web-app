@@ -62,14 +62,14 @@ function query(request, reply) {
 
   _.messages.queryRecipient(request.recipient.email, since)
     .then(function(data) {
-      if (data.LastEvaluatedKey) {
-        request.last = +data.LastEvaluatedKey.created.N;
+      if (data.cursor) {
+        request.last = data.cursor;
       }
 
       //add duration and transcription
-      return Promise.all(_.map(data.Items, _.messages.expand))
+      return Promise.all(_.map(data.messages, _.messages.expand))
         .then(function(messages) {
-          request.messages = data.Items;
+          request.messages = messages
           reply.succeed(request);
         });
     })

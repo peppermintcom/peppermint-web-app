@@ -57,7 +57,7 @@ var receiver = exports.receiver = function(_recorder) {
 var user = exports.user = function() {
   return {
     email: _.token(12) + '@mailinator.com',
-    full_name: 'John Doe',
+    full_name: 'Satoshi ' + _.token(8),
     password: 'secret',
   };
 };
@@ -106,39 +106,47 @@ exports.transcription = function(recorderID, id) {
   });
 };
 
-var message = exports.message = function(sender, recipient, isRead) {
-  sender = sender || user();
-  recipient = recipient || user();
+function message(sender, recipient, created, isRead) {
 
   var msg = {
     recipient_email: recipient.email.toLowerCase(),
     sender_email: sender.email.toLowerCase(),
     audio_url: AUDIO_URL,
-    created: Date.now(),
+    created: created,
     message_id: _.token(22),
+    sender_name: sender.full_name,
   };
 
   if (isRead) {
-    msg.read = Date.now();
+    msg.read = _.random(created, Date.now());
   }
 
-  return _.messages.put(msg).then(function() { return msg; });
+  return msg;
 };
 
-exports.messages = function(recipient, unread, read) {
-  var messages;
+var MONTH = 1000 * 60 * 60 * 24 * 30;
 
-  return Promise.all(_.map(_.range(unread), function(i) {
-    return message(null, recipient, false);
-  }))
-  .then(function(_messages) {
-    messages = _messages;
-    
-    return Promise.all(_.map(_.range(read), function(i) {
-      return message(null, recipient, true);
-    }));
-  })
-  .then(function(_messages) {
-    return _messages.concat(messages);
-  });
-};
+function messages(config) {
+  var sender = config.sender || user();
+  var recipient = config.recipient || user();
+  var before = config.before || Date.now();
+  var after = config.after || (before - MONTH);
+  var read = config.read || 0;
+  var unread = config.unread || 0;
+
+  var data = _.flatten([
+    _.map(_.range(read), function(index) {
+      return message(sender, recipient, _.random(after, before), true);
+    }),
+    _.map(_.range(unread), function() {
+      return message(sender, recipient, _.random(after, before), false);
+    }),
+  ]);
+
+  return Promise.all(_.map(data, _.messages.put))
+    .then(function() {
+      return data;
+    });
+}
+
+exports.messages = messages;

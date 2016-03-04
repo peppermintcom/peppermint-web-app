@@ -97,6 +97,7 @@ function lookupRecipientReceivers(request, reply) {
 //create a message item and attach it to the request but do not save it to the
 //database yet.
 function newMessage(request, reply) {
+  delete request.body.data.attributes.transcription_url;
   request.message = _.messages.create(_.assign({sender_name: request.sender.full_name}, request.body.data.attributes));
   reply.succeed(request);
 }

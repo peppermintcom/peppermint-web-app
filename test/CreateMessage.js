@@ -406,6 +406,7 @@ describe('POST /messages', function() {
               sender_email: sender.email,
               recipient_email: recipient.email,
               audio_url: _.fake.AUDIO_URL + 'x',
+              transcription_url: _.fake.AUDIO_URL,
             },
           },
         }, {
