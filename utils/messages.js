@@ -233,6 +233,16 @@ function parse(item) {
   };
 }
 
+/*
+ * When the message is created it will get a handled timestamp if the upload is
+ * completed. Otherwise it will get the handled timestamp when the upload
+ * completes and the postprocessing handler computes the duration of the file.
+ * So if there is no handled timestamp, the upload has not completed.
+ */
+exports.isUploaded = function(message) {
+  return !!message.handled;
+};
+
 exports.resource = function(message) {
   if (!message) return null;
 

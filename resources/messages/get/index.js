@@ -90,7 +90,7 @@ function query(request, reply) {
       }
 
       //add duration and transcription
-      return Promise.all(_.map(data.messages, _.messages.expand))
+      return Promise.all(_.map(_.filter(data.messages, _.messages.isUploaded), _.messages.expand))
         .then(function(messages) {
           request.messages = messages
           reply.succeed(request);

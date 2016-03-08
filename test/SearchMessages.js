@@ -4,7 +4,7 @@ var _ = require('./utils');
 
 describe('GET /messages', function() {
   this.timeout(5 * 60 * 1000);
-  var sender;
+  var sender = _.fake.user();
   var recipient;
   var recipientJWT;
   var get;
@@ -103,6 +103,7 @@ describe('GET /messages', function() {
           audio_url: _.fake.AUDIO_URL,
           created: created + i*1000,
           message_id: _.token(22),
+          handled: Date.now(),
         };
       });
 
@@ -114,6 +115,7 @@ describe('GET /messages', function() {
         audio_url: _.fake.AUDIO_URL,
         created: new Date('2016-01-01T00:00:01').valueOf(),
         message_id: messages2016[0],
+        handled: Date.now(),
       });
       msgs.push({
         recipient_email: recipient.email,
@@ -122,6 +124,7 @@ describe('GET /messages', function() {
         audio_url: _.fake.AUDIO_URL,
         created: new Date('2016-01-01T00:00:02').valueOf(),
         message_id: messages2016[1],
+        handled: Date.now(),
       });
 
       return Promise.all(_.map(msgs, function(msg) {
@@ -214,6 +217,24 @@ describe('GET /messages', function() {
               expect(message.attributes).to.have.property('sender_name', sender.full_name);
             });
           });
+      });
+    });
+
+    describe('one of the messages from 2016 is for an upload that did not complete', function() {
+      before(function() {
+        return _.messages.update(messages2016[0], 'REMOVE handled');
+      });
+
+      it('should return 1 message for 2016.', function() {
+        return _.http('GET', '/messages?recipient=' + recipient.account_id + '&since=' + encodeURIComponent('2016-01-01 00:00:00'), null, {
+          'X-Api-Key': _.fake.API_KEY,
+          Authorization: 'Bearer ' + recipientJWT,
+        })
+        .then(function(res) {
+          expect(res.statusCode).to.equal(200);
+          expect(res.body.data).to.have.length(1);
+          expect(res.body.data[0].id).to.equal(messages2016[1]);
+        });
       });
     });
   });

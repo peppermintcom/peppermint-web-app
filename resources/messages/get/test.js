@@ -112,6 +112,28 @@ describe('lambda:SearchMessages', function() {
         }, {
           succeed: function(result) {
             resultOK(null, sender, null, result);
+            expect(result.data).to.have.length(4);
+            done();
+          },
+          fail: done,
+        });
+      });
+    });
+
+    describe('one of the messages did not complete uploading', function() {
+      before(function() {
+        _.messages.update(messages[0].message_id, 'REMOVE handled');
+      });
+
+      it('should return a collection with three messages.', function(done) {
+        handler({
+          sender_id: sender.account_id,
+          Authorization: 'Bearer ' + sender.at,
+          api_key: _.fake.API_KEY,
+        }, {
+          succeed: function(result) {
+            resultOK(null, sender, null, result);
+            expect(result.data).to.have.length(3);
             done();
           },
           fail: done,

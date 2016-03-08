@@ -115,6 +115,7 @@ function message(sender, recipient, created, isRead) {
     created: created,
     message_id: _.token(22),
     sender_name: sender.full_name,
+    handled: Date.now(),
   };
 
   if (isRead) {
