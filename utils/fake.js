@@ -158,3 +158,22 @@ exports.messages = function() {
       return _.flatten(results);
     });
 };
+
+exports.upload = function() {
+  var upload = {
+    sender_name: user().full_name,
+    sender_email: user().email,
+    pathname: _.token(22) + '/' + _.token(22) + '.m4a',
+    created: Date.now(),
+  };
+
+  return _.dynamo.put('uploads', {
+    sender_name: {S: upload.sender_name},
+    sender_email: {S: upload.sender_email},
+    pathname: {S: upload.pathname},
+    created: {N: upload.created.toString()},
+  })
+  .then(function() {
+    return upload;
+  });
+};

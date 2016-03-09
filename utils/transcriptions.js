@@ -14,16 +14,24 @@ var get = exports.get = function(transcriptionID) {
   .then(parse);
 };
 
-exports.getByAudioURL = function(audioURL) {
+var getByAudioURL = exports.getByAudioURL = function(audioURL) {
   var transcriptionID = audioURLTranscriptionID(audioURL);
 
   return get(transcriptionID);
 };
 
-exports.updateByAudioURL = function(audioURL, expr, values, names) {
+exports.getByPath = function(path) {
+  return getByAudioURL(path);
+};
+
+var updateByAudioURL = exports.updateByAudioURL = function(audioURL, expr, values, names) {
   var key = {transcription_id: {S: audioURLTranscriptionID(audioURL)}};
 
   return dynamo.update('transcriptions', key, expr, values, names);
+};
+
+exports.updateByPath = function(path) {
+  return updateByAudioURL(path, expr, values, names);
 };
 
 /**
@@ -90,3 +98,5 @@ function audioURLTranscriptionID(audioURL) {
 
   return fileParts && fileParts[0];
 }
+
+exports.idFromURL = audioURLTranscriptionID;
