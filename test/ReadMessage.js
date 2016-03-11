@@ -29,7 +29,7 @@ describe('POST /reads', function() {
       recorder = results[2];
 
       return Promise.all([
-        _.fake.message(sender, recipient),
+        _.fake.messages({sender: sender, recipient: recipient, unread: 1}),
         _.http('POST', '/jwts', null, {
           Authorization: _.peppermintScheme(null, null, recipient.email, recipient.password),
           'X-Api-Key': _.fake.API_KEY,
@@ -45,7 +45,7 @@ describe('POST /reads', function() {
       ]);
     })
     .then(function(results) {
-      message = results[0];
+      message = results[0][0];
       recipient.jwt = results[1].body.data.attributes.token;
       sender.jwt = results[2].body.data.attributes.token;
       recorder.jwt = results[3].body.data.attributes.token;
@@ -63,8 +63,8 @@ describe('POST /reads', function() {
   it('should mark the message as read.', function() {
     return post(body(message.message_id), headers())
       .then(function(response) {
-        expect(response.headers).not.to.have.property('content-type');
         expect(response.statusCode).to.equal(204);
+        expect(response.headers).not.to.have.property('content-type');
         expect(response.body).to.be.undefined;
 
         return _.messages.get(message.message_id);

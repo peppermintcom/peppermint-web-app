@@ -244,7 +244,7 @@ describe('POST /messages', function() {
     });
   });
 
-  describe('Authorization header authenticated different account then sender_email', function() {
+  describe('Authorization header authenticated different account than sender_email', function() {
     describe('response', function() {
       var response;
 
