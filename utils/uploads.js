@@ -1,6 +1,6 @@
 var url = require('url');
 var dynamo = require('./dynamo');
-var timestamp = require('./timestamp');
+var timestamp2 = require('./timestamp2');
 
 var INSECURE_ORIGIN = 'http://go.peppermint.com/';
 var SECURE_ORIGIN = 'https://duw3fm6pm35xc.cloudfront.net/';
@@ -64,7 +64,7 @@ function resource(upload) {
     secure_url: SECURE_ORIGIN + upload.pathname,
     sender_email: upload.sender_email,
     sender_name: upload.sender_name,
-    created: timestamp(upload.created),
+    created: timestamp2(upload.created),
     is_complete: !!upload.uploaded,
   };
   if (upload.seconds) {

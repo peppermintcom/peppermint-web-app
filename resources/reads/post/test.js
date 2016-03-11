@@ -20,12 +20,10 @@ describe('lambda:ReadMessage', function() {
   });
 
   before(function() {
-    return Promise.all([
-      _.fake.message(sender, recipient),
-    ])
-    .then(function(results) {
-      message = results[0];
-    });
+    return  _.fake.messages({sender: sender, recipient: recipient, unread: 1})
+      .then(function(results) {
+        message = results[0];
+      });
   });
 
   before(function() {

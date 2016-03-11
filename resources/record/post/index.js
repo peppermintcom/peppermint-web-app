@@ -25,7 +25,7 @@ exports.handler = function(request, reply) {
   var parts = url.parse(request.body.signed_url);
   parts.host = CDN_HOST;
   parts.protocol = 'http';
-  var canonicalKey = _.trimLeft(parts.pathname, '/');
+  var canonicalKey = _.trimStart(parts.pathname, '/');
   var canonical = url.format({
     protocol: 'http',
     host: CDN_HOST,

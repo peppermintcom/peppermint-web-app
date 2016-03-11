@@ -8,7 +8,6 @@ function fail(code, detail, spec, getParams) {
 
   before(function() {
     var params = getParams();
-
     return _.http(params.method, params.url, params.body, params.headers)
       .then(function(res) {
         response = res;
@@ -32,6 +31,47 @@ function fail(code, detail, spec, getParams) {
     }
     expect(response.body).to.deep.equal({errors: [{detail: detail}]});
   });
+}
+
+function result(code, spec, getParams, bodyAssertion, checkBody) {
+  var response;
+
+  before(function() {
+    var params = getParams();
+
+    return _.http(params.method, params.url, params.body, params.headers)
+      .then(function(res) {
+        response = res;
+      });
+  });
+
+  it('should get a ' + code + ' status code.', function() {
+    if (response.statusCode !== code) {
+      _.log(response.body);
+      throw new Error(response.statusCode);
+    }
+  });
+
+  it('should get JSON-API content.', function() {
+    expect(response.headers).to.have.property('content-type', 'application/vnd.api+json');
+    if (!tv4.validate(response.body, jsonapischema)) {
+      throw tv4.error;
+    }
+  });
+
+  it('should get a body formatted according to the spec for ' + code + ' responses.', function() {
+    if (!tv4.validate(response.body, spec.responses[code].schema)) {
+      _.log(response.body);
+      _.log(tv4.error);
+      throw tv4.error;
+    }
+  });
+
+  if (_.isFunction(checkBody)) {
+    it(bodyAssertion, function() {
+      checkBody(response.body);
+    });
+  }
 }
 
 function missingXApiKeyHeader(spec, getParams) {
@@ -77,8 +117,7 @@ function invalidAuthorizationHeader(spec, getParams) {
 exports.missingXApiKeyHeader = missingXApiKeyHeader;
 exports.invalidXApiKeyHeader = invalidXApiKeyHeader;
 
-exports.clientErrors = function(spec, getParams) {
-
+var apiKeyErrors = exports.apiKeyErrors = function(spec, getParams) {
   describe('missing X-Api-Key header', function() {
     missingXApiKeyHeader(spec, getParams);
   });
@@ -86,7 +125,9 @@ exports.clientErrors = function(spec, getParams) {
   describe('invalid X-Api-Key header', function() {
     invalidXApiKeyHeader(spec, getParams);
   });
+};
 
+var authErrors = exports.authErrors = function(spec, getParams) {
   describe('missing Authorization header', function() {
     missingAuthorizationHeader(spec, getParams);
   });
@@ -96,6 +137,12 @@ exports.clientErrors = function(spec, getParams) {
   });
 };
 
+exports.clientErrors = function(spec, getParams) {
+  apiKeyErrors(spec, getParams);
+  authErrors(spec, getParams);
+};
+
 exports.fail = fail;
+exports.result = result;
 
 module.exports = _.assign(_, exports);

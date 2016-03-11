@@ -37,7 +37,7 @@ gulp.task('spike', function() {
   src = 'resources/accounts/verify/post/index.js';
   src = 'resources/reads/post/index.js';
   src = 'resources/messages/post/index.js';
-  src = 'resources/messages/get/index.js';
+  src = 'resources/uploads/get/index.js';
   return gulp.src(src)
     .pipe(lambda());
 });

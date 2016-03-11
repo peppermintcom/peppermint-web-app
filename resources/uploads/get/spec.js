@@ -1,3 +1,4 @@
+var uploads = require('definitions/uploads');
 var headers = require('definitions/headers');
 var responses = require('definitions/responses');
 var integrations = require('definitions/integrations');
@@ -25,6 +26,7 @@ exports.responses = {
       'Content-Type': {type: 'string'},
       'Access-Control-Allow-Origin': {type: 'string'},
     },
+    schema: uploads.collection.schema,
   },
   '400': responses.jsonAPI.BadRequest,
 };
@@ -35,7 +37,7 @@ exports['x-amazon-apigateway-integration'] = {
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {
-    'application/json': '{"api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')", "recipient_id": "$input.params(\'recipient\')", "sender_id": "$input.params(\'sender\')", "since": "$util.urlDecode($input.params(\'since\'))"}',
+    'application/json': '{"api_key": "$input.params(\'X-Api-Key\')", "short_url": "$util.urlDecode($input.params(\'short_url\'))"}',
   },
   responses: {
     'default': integrations.jsonAPI.Ok,
