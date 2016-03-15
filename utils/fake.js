@@ -134,6 +134,7 @@ function messages(config) {
   var after = config.after || (before - MONTH);
   var read = config.read || 0;
   var unread = config.unread || 0;
+  var handled = config.handled || read + unread;
 
   var data = _.flatten([
     _.map(_.range(read), function(index) {

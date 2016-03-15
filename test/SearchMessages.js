@@ -88,14 +88,14 @@ describe('GET /messages', function() {
     });
   });
 
-  describe('recipient received 80 messages in 2015 and 2 in 2016', function() {
+  describe.only('recipient received 80 messages in 2015 and 2 in 2016', function() {
     var messages;
     var messages2016 = [_.token(22), _.token(22)];
 
     before(function() {
       var created = new Date('2015-12-01T12:00:00').valueOf();
 
-      var msgs = _.map(_.range(80), function(i) {
+      messages = _.map(_.range(80), function(i) {
         return {
           recipient_email: recipient.email,
           sender_email: _.fake.user().email,
@@ -108,7 +108,7 @@ describe('GET /messages', function() {
       });
 
       //2016 messages
-      msgs.push({
+      messages.push({
         recipient_email: recipient.email,
         sender_email: _.fake.user().email,
         sender_name: sender.full_name,
@@ -117,7 +117,7 @@ describe('GET /messages', function() {
         message_id: messages2016[0],
         handled: Date.now(),
       });
-      msgs.push({
+      messages.push({
         recipient_email: recipient.email,
         sender_email: _.fake.user().email,
         sender_name: sender.full_name,
@@ -127,7 +127,7 @@ describe('GET /messages', function() {
         handled: Date.now(),
       });
 
-      return Promise.all(_.map(msgs, function(msg) {
+      return Promise.all(_.map(messages, function(msg) {
         return _.messages.put(msg);
       }))
     });
@@ -217,6 +217,33 @@ describe('GET /messages', function() {
               expect(message.attributes).to.have.property('sender_name', sender.full_name);
             });
           });
+      });
+
+      describe('first 5 messages from 2015 have incomplete uploads', function() {
+        before(function() {
+          return Promise.all(messages.slice(0,5).map(function(message) {
+            return _.messages.update(message.message_id, 'REMOVE handled');
+          }));
+        });
+
+        it('should return 75 messages then 2.', function() {
+          var headers = {
+            'X-Api-Key': _.fake.API_KEY,
+            Authorization: 'Bearer ' + recipientJWT,
+          };
+
+          return _.http('GET', '/messages?recipient=' + recipient.account_id, null, headers)
+            .then(function(res) {
+              expect(res.statusCode).to.equal(200);
+              expect(res.body.data).to.have.length(75);
+              return _.http('GET', res.body.links.next, null, headers);
+            })
+            .then(function(res) {
+              expect(res.statusCode).to.equal(200);
+              expect(res.body.data).to.have.length(2);
+              expect(res.body).not.to.have.property('links');
+            });
+        });
       });
     });
 

@@ -88,7 +88,8 @@ exports.expand = function(message) {
 
 /**
  * query messages using either the recipient or sender email index sorted by
- * created time.
+ * created time. After the query is completed it filters out incomplete uploads
+ * - those not having an "uploaded" timestamp.
  * @param {String} role - either "recipient" or "sender"
  * @param {String} email
  * @param {Number} since - only find messages created after this time
@@ -103,7 +104,6 @@ function queryEmail(role, email, since) {
     var primary = role + '_email';
     var values = {
       ':since': {N: since.toString()},
-      //:recipient_email: {S: email},
     };
     values[':' + primary] = {S: email.toLowerCase()};
 
@@ -114,6 +114,7 @@ function queryEmail(role, email, since) {
       //"recipient_email = :recipient_email AND created > :since"
       KeyConditionExpression: primary + ' = :' + primary + ' AND created > :since',
       ExpressionAttributeValues: values,
+      FilterExpression: 'attribute_exists(handled)',
       Limit: LIMIT,
     }, function(err, data) {
       if (err) {
@@ -128,8 +129,25 @@ function queryEmail(role, email, since) {
   });
 }
 
-exports.queryRecipient = _.partial(queryEmail, 'recipient');
-exports.querySender = _.partial(queryEmail, 'sender');
+/**
+ * Treat LIMIT as minimum rather than maximum number of results. If query
+ * returns less than the limit and has LastEvaluatedKey then rerun the query.
+ */
+function fullLimit(role, email, since, state) {
+  state = state || [];
+
+  return queryEmail(role, email, since)
+    .then(function(results) {
+      results.messages = results.messages.concat(state);
+      if (results.cursor && results.messages.length < LIMIT) {
+        return fullLimit(role, email, results.cursor, results.messages.concat(state));
+      }
+      return results;
+    });
+}
+
+exports.queryRecipient = _.partial(fullLimit, 'recipient');
+exports.querySender = _.partial(fullLimit, 'sender');
 
 function unread(recipientEmail, since) {
   return dynamo.queryAll({

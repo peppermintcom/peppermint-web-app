@@ -2,9 +2,15 @@ var expect = require('chai').expect;
 var _ = require('utils/test');
 
 describe('_.messages', function() {
+  this.timeout(60000);
   var sender = _.fake.user();
   var recipient = _.fake.user();
   var messages;
+
+  //delete the fake messages
+  after(function() {
+    return _.messages.delByAudioURL(_.fake.AUDIO_URL);
+  });
 
   describe('given that there are 5 messages (2 unread) for the sender', function() {
     before(function() {
@@ -28,6 +34,31 @@ describe('_.messages', function() {
           });
           expect(readMessages).to.have.length(3);
         });
+    });
+
+    describe('given there are 42 messages for the sender, 1 with an incomplete upload', function() {
+      //If the incomplete upload is in the first result set, the first query
+      //will return 39 messages, which is below the limit. The query will be run
+      //again and the remaining 2 messages will be included in the final result.
+      before(function() {
+        return _.fake.messages({
+          sender: sender,
+          read: 37,
+        })
+        .then(function(_messages) {
+          messages = messages.concat(_messages);
+
+          return _.messages.update(messages[0].message_id, 'REMOVE handled');
+        });
+      });
+
+      it('should return a message collection with 41 parsed items.', function() {
+        return _.messages.querySender(sender.email)
+          .then(function(data) {
+            expect(data.messages).to.have.length(41);
+            expect(data.cursor).to.be.undefined;
+          });
+      });
     });
   });
 
