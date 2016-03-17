@@ -83,4 +83,4 @@ function clean(apiKey) {
   });
 }
 
-main();
+clean();
