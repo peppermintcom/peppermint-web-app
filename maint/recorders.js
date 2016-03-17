@@ -1,86 +1,41 @@
 var csp = require('js-csp');
-var _ = require('utils');
+var _ = require('./utils');
 
-//recursively calls itself until the whole table has been scanned
-function scan(apiKey, out, last) {
-  var params = {
-    Limit: 25,
+function params(apiKey) {
+  var weekAgo = Date.now() - _.WEEK;
+
+  return {
+    Limit: 5,
     TableName: 'recorders',
-    FilterExpression: 'api_key = :api_key',
+    FilterExpression: 'api_key = :api_key AND recorder_ts <= :week_ago',
     ExpressionAttributeValues: {
       ':api_key': {S: apiKey},
+      ':week_ago': {N: weekAgo.toString()},
     },
   };
-
-  if (last) {
-    params.ExclusiveStartKey = last;
-  }
-
-  _.dynamo.scan(params, function(err, data) {
-    if (err) {
-      _.log(err);
-      out.close();
-      return;
-    }
-    if (!data.Items || !data.Items.length) {
-      out.close();
-      return;
-    }
-
-    csp.go(function*() {
-      //respect backpressure from the reader. No more calls to dynamo until the
-      //current set of items has been received.
-      yield csp.go(function*() {
-
-        for (var i = 0; i < data.Items.length; i++) {
-          yield csp.put(out, data.Items[i]);
-        }
-
-        if (data.LastEvaluatedKey) {
-          scan(apiKey, out, data.LastEvaluatedKey);
-          return;
-        }
-      });
-    });
-  });
-}
-
-function discard(item) {
-  var done = csp.chan();
-
-  console.log('deleting ' + item.client_id.S);
-  console.log(item.api_key.S);
-
-  _.dynamo.del('recorders', {
-    client_id: item.client_id,
-  })
-  .then(function() {
-    done.close();
-  })
-  .catch(function(err) {
-    console.log(err);
-  });
-
-  return done;
 }
 
 function clean(apiKey) {
   if (!apiKey) {
     throw new Error('api_key needed');
   }
-  var chan = csp.chan();
-  scan(apiKey, chan);
+  var recorders = _.scan(params(apiKey));
   
   csp.go(function*() {
-    var discarded = 0;
-    var item;
+    var recorder;
 
-    while ((item = yield chan) != csp.CLOSED) {
-      yield discard(item);
-      discarded++;
+    while ((recorder = yield recorders) != csp.CLOSED) {
+      if (recorder.api_key.S !== apiKey) {
+        throw new Error(recorder.api_key.S);
+      }
+      if ((Date.now() - +recorder.recorder_ts.N) < _.WEEK) {
+        throw new Error(recorder.recorder_ts.N);
+      }
+      console.log(recorder);
+      yield _.discard('recorders', {client_id: recorder.client_id});
+      _.log(recorder.recorder_id);
     }
-    console.log('deleted ' + discarded + ' recorder items');
   });
 }
 
-clean();
+clean('abc123');

@@ -15,7 +15,7 @@ function clean() {
         throw new Error(account.registration_ts.N);
       }
       yield _.discard('accounts', {email: account.email});
-      console.log('deleted account for ' + account.email.S);
+      _.log(account.email.S);
     }
   });
 }
