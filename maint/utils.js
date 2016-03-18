@@ -55,6 +55,46 @@ function discard(table, key) {
   return done;
 }
 
+function batchDiscard(table, keys) {
+  var done = csp.chan();
+  var params = {
+    RequestItems: {},
+  };
+
+  params.RequestItems[table] = _.map(keys, function(key) {
+    return {
+      DeleteRequest: {
+        Key: key,
+      },
+    };
+  });
+
+  _.dynamo.batchWriteItem(params, function(err, data) {
+    if (err) {
+      csp.putAsync(done, err);
+    }
+    done.close();
+  });
+
+  return done;
+}
+
+function batch(max, ins) {
+  var out = csp.chan();
+  var batch = [];
+  var item;
+ 
+  while ((batch.length <= max) && (item = csp.poll(ins)) != csp.NO_VALUE) {
+    batch.push(item);
+  }
+
+  return batch;
+}
+
 exports.WEEK = WEEK;
 exports.scan = scan;
 exports.discard = discard;
+exports.batchDiscard = batchDiscard;
+exports.batch = batch;
+
+module.exports = _.assign(exports, _);

@@ -8,14 +8,26 @@ function clean() {
     var account;
 
     while ((account = yield accounts) != csp.CLOSED) {
-      if (!/@mailinator\.com$/.test(account.email.S)) {
-        throw new Error(account.email.S);
-      }
-      if ((Date.now() - +account.registration_ts.N) < _.WEEK) {
-        throw new Error(account.registration_ts.N);
-      }
-      yield _.discard('accounts', {email: account.email});
-      _.log(account.email.S);
+      var batch = _.batch(24, accounts);
+
+      batch.push(account);
+
+      var err = yield _.batchDiscard('accounts', _.map(batch, function(account) {
+        if (!/@mailinator\.com$/.test(account.email.S)) {
+          throw new Error(account.email.S);
+        }
+        if ((Date.now() - +account.registration_ts.N) < _.WEEK) {
+          throw new Error(account.registration_ts.N);
+        }
+        return {email: {S: account.email}};
+      }));
+      if (err) _.log(err);
+
+      batch.
+        .map(function(account) {
+          return account.email.S;
+        })
+        .forEach(_.log);
     }
   });
 }
@@ -26,7 +38,7 @@ function params() {
 
   return {
     TableName: 'accounts',
-    Limit: 10,
+    Limit: 20,
     FilterExpression: 'contains (email, :domain) AND registration_ts <= :week_ago',
     ExpressionAttributeValues: {
       ':domain': {S: '@mailinator.com'},

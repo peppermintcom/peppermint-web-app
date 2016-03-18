@@ -5,7 +5,7 @@ function params(apiKey) {
   var weekAgo = Date.now() - _.WEEK;
 
   return {
-    Limit: 5,
+    Limit: 100,
     TableName: 'recorders',
     FilterExpression: 'api_key = :api_key AND recorder_ts <= :week_ago',
     ExpressionAttributeValues: {
@@ -24,16 +24,31 @@ function clean(apiKey) {
   csp.go(function*() {
     var recorder;
 
+    //wait for an item then poll synchronously for as many as are available in
+    //the channel, up to 25, and batch them together for delete
     while ((recorder = yield recorders) != csp.CLOSED) {
-      if (recorder.api_key.S !== apiKey) {
-        throw new Error(recorder.api_key.S);
-      }
-      if ((Date.now() - +recorder.recorder_ts.N) < _.WEEK) {
-        throw new Error(recorder.recorder_ts.N);
-      }
-      console.log(recorder);
-      yield _.discard('recorders', {client_id: recorder.client_id});
-      _.log(recorder.recorder_id);
+      //we can batch delete up to 25 items so check if up to 24 more are
+      //available and then add the one we just took
+      var batch = _.batch(24, recorders);
+      batch.push(recorder);
+
+      //map the full item to the key with checks that our filters worked
+      var err = yield _.batchDiscard('recorders', _.map(batch, function(recorder) {
+        if (recorder.api_key.S !== apiKey) {
+          throw new Error(recorder.api_key.S);
+        }
+        if ((Date.now() - +recorder.recorder_ts.N) < _.WEEK) {
+          throw new Error(recorder.recorder_ts.N);
+        }
+        return {client_id: {S: recorder.client_id}};
+      }));
+
+      if (err) _.log(err);
+      batch
+        .map(function(recorder) {
+          return recorder.client_id.S + ',' + recorder.recorder_id.S;
+        })
+        .forEach(_.log);
     }
   });
 }
