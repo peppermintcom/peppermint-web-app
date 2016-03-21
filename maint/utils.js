@@ -40,6 +40,7 @@ function scan(params, out) {
   return out;
 }
 
+//Returns a done channel that is closed after the item has been deleted.
 function discard(table, key) {
   var done = csp.chan();
 
@@ -55,6 +56,8 @@ function discard(table, key) {
   return done;
 }
 
+//Returns a done channel that is closed after the batch of items has been
+//deleted.
 function batchDiscard(table, keys) {
   var done = csp.chan();
   var params = {
@@ -79,6 +82,7 @@ function batchDiscard(table, keys) {
   return done;
 }
 
+//Returns an array of up to max messages from channel ins.
 function batch(max, ins) {
   var out = csp.chan();
   var batch = [];
@@ -91,10 +95,77 @@ function batch(max, ins) {
   return batch;
 }
 
+//Returns a channel that drops all messages.
+//@param {Channel} source
+//@param {Boolean} log
+function devnull(source, log) {
+  csp.go(function*() {
+    var x;
+
+    while ((x = yield source) != csp.CLOSED) {
+      if (log) _.log(x);
+    }
+  });
+}
+
+//Returns an object with a pass channel containing all messages that pass the
+//filter and a fail channel with the rest.
+//@param {Channel} source
+//@param {Function -> Channel} test - channel should return a single boolean or
+//error
+//@return {Object} pass, fail, errors - will be closed when source is closed
+function filterAsync(source, test) {
+  var pass = csp.chan();
+  var fail = csp.chan();
+  var errors = csp.chan();
+
+  csp.go(function*() {
+    var x;
+
+    while ((x = yield source) != csp.CLOSED) {
+      var ok = yield test(x);
+
+      if (_.isError(ok)) {
+        yield csp.put(errors, ok);
+        continue;
+      }
+      yield csp.put(ok ? pass : fail, x);
+    }
+    pass.close();
+    fail.close();
+    errors.close();
+  });
+
+  return {
+    pass: pass,
+    fail: fail,
+    errors: errors,
+  };
+}
+
+//log all messages
+function stdout(source) {
+  csp.go(function*() {
+    var x;
+
+    while ((x = yield source) != csp.CLOSED) {
+      _.log(x);
+    }
+  });
+}
+
 exports.WEEK = WEEK;
 exports.scan = scan;
 exports.discard = discard;
 exports.batchDiscard = batchDiscard;
 exports.batch = batch;
+exports.devnull = devnull;
+exports.filterAsync = filterAsync;
+exports.stdout = stdout;
+
+exports.merge = csp.operations.merge;
+exports.pipe = csp.operations.pipe;
+exports.spawn = csp.spawn;
+exports.go = csp.go;
 
 module.exports = _.assign(exports, _);

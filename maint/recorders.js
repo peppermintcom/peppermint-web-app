@@ -53,4 +53,23 @@ function clean(apiKey) {
   });
 }
 
-clean('abc123');
+//Returns a channel with a single boolean or error.
+function existsID(recorderID) {
+  var done = csp.chan();
+
+  _.recorders.getByID(recorderID)
+    .then(function(item) {
+      csp.putAsync(done, item ? true : false);
+    })
+    .catch(function(err) {
+      csp.putAsync(done, err);
+    })
+    .then(function() {
+      done.close();
+    });
+
+  return done;
+}
+
+exports.clean = clean;
+exports.existsID = existsID;

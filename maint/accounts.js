@@ -23,7 +23,7 @@ function clean() {
       }));
       if (err) _.log(err);
 
-      batch.
+      batch
         .map(function(account) {
           return account.email.S;
         })
@@ -47,4 +47,19 @@ function params() {
   };
 }
 
-clean();
+function existsID(accountID) {
+  var done = csp.chan();
+
+  _.accounts.getByID(accountID)
+    .then(function(item) {
+      csp.putAsync(done, item ? true : false);
+    })
+    .catch(function(err) {
+      csp.putAsync(done, err);
+    });
+
+  return done;
+}
+
+exports.existsID = existsID;
+exports.clean = clean;
