@@ -40,7 +40,7 @@ function clean(apiKey) {
         if ((Date.now() - +recorder.recorder_ts.N) < _.WEEK) {
           throw new Error(recorder.recorder_ts.N);
         }
-        return {client_id: {S: recorder.client_id}};
+        return _.pick(recorder, 'client_id');
       }));
 
       if (err) _.log(err);

@@ -8,7 +8,7 @@ discarded.
 Discard all @mailinator.com accounts more than a week old.
 
 ### Messages
-Discard a message if the audio is gone or recipient is gone or sender is gone.
+Discard a message if the upload is gone.
 
 ### Receivers
 Discard if the recorder or account is gone.

@@ -82,9 +82,32 @@ function batchDiscard(table, keys) {
   return done;
 }
 
+//Batches items on the source channel in groups of 25 then deletes them from the
+//table. Returnes an errors channel that is closed when the source channel is
+//closed.
+//@param {String} tableName
+//@param {Function} key - maps the full item to the key
+//@param {Channel} Source
+function batchAndDiscard(tableName, key, source) {
+  var batches = batcher(25, source);
+  var errors = csp.chan();
+
+  csp.go(function*() {
+    var batch;
+
+    while ((batch = yield batches) != csp.CLOSED) {
+      var err = yield batchDiscard(tableName, _.map(batch, key));
+
+      if (err) yield _.put(errors, err);
+    }
+    errors.close();
+  });
+
+  return errors;
+}
+
 //Returns an array of up to max messages from channel ins.
 function batch(max, ins) {
-  var out = csp.chan();
   var batch = [];
   var item;
  
@@ -95,7 +118,31 @@ function batch(max, ins) {
   return batch;
 }
 
-//Returns a channel that drops all messages.
+//Returns a new channel with messages batched in arrays up to length max.
+function batcher(max, source) {
+  var out = csp.chan();
+  var batch = [];
+
+  csp.go(function*() {
+    var x;
+
+    while ((x = yield source) != csp.CLOSED) {
+      batch.push(x);
+
+      if (batch.length == max) {
+        yield csp.put(out, batch);
+        batch = [];
+      }
+    }
+    if (batch.length) {
+      yield csp.put(out, batch);
+    }
+  });
+
+  return out;
+}
+
+//Drops all messages on a channel, optionally logging them.
 //@param {Channel} source
 //@param {Boolean} log
 function devnull(source, log) {
@@ -163,9 +210,14 @@ exports.devnull = devnull;
 exports.filterAsync = filterAsync;
 exports.stdout = stdout;
 
+/*
 exports.merge = csp.operations.merge;
 exports.pipe = csp.operations.pipe;
 exports.spawn = csp.spawn;
 exports.go = csp.go;
+exports.chan = csp.chan;
+exports.take = csp.take;
+exports.put = csp.put;
+*/
 
-module.exports = _.assign(exports, _);
+module.exports = _.assign(exports, csp, csp.operations, _);
