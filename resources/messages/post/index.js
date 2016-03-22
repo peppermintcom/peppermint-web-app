@@ -77,7 +77,7 @@ function lookupRecipientReceivers(request, reply) {
   _.receivers.recorders(request.recipient.account_id)
     .then(function(recorders) {
       var receivers = _.filter(recorders, function(r) {
-        return !!r.gcm_registration_token;
+        return !!(r && r.gcm_registration_token);
       });
       if (!receivers.length) {
         reply.fail({

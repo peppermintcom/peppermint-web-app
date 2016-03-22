@@ -161,7 +161,7 @@ function getReceivers(message) {
       }
       //only save recorders with a gcm_registration_token
       recorders = _.filter(recorders, function(recorder) {
-        return recorder.gcm_registration_token;
+        return (recorder && recorder.gcm_registration_token);
       });
       if (!recorders.length) {
         return saveMessageResult(message.message_id, _.messages.drop_reason.NO_GCM_REGISTRATION_TOKEN);

@@ -25,6 +25,9 @@ exports.accounts = function(recorderID) {
       return accounts.getByID(record.account_id);
     }));
   })
+  .then(function(accounts) {
+    return _.compact(accounts);
+  });
 };
 
 //lookup all recorders lined to an account
@@ -49,6 +52,9 @@ exports.recorders = function(accountID) {
     return Promise.all(records.map(function(record) {
       return recorders.getByID(record.recorder_id);
     }));
+  })
+  .then(function(recorders) {
+    return _.compact(recorders);
   });
 };
 
