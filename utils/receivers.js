@@ -1,6 +1,7 @@
 var dynamo = require('./dynamo');
 var accounts = require('./accounts');
 var recorders = require('./recorders');
+var _ = require('lodash');
 
 //lookup all accounts linked to a recorder
 exports.accounts = function(recorderID) {
