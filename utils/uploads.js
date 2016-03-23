@@ -53,8 +53,63 @@ function parse(item) {
     uploaded: item.uploaded && parseInt(item.uploaded.N, 10),
     seconds: item.seconds && parseInt(item.seconds.N, 10),
     postprocessed: item.postprocessed && +item.postprocessed.N,
-    api_key: item.api_key && item.api_key.S,
   };
+}
+
+function format(upload) {
+  var params =  {
+    pathname: {S: upload.pathname},
+    created: {N: upload.created.valueOf().toString()},
+  };
+
+  if (upload.sender_email) {
+    params.sender_email = {S: upload.sender_email};
+  }
+  if (upload.sender_name) {
+    params.sender_name = {S: upload.sender_name};
+  }
+  if (upload.uploaded) {
+    params.uploaded = {N: upload.uploaded.valueOf().toString()};
+  }
+  if (upload.seconds) {
+    params.seconds = {N: upload.seconds.toString()};
+  }
+  if (upload.postprocessed) {
+    params.postprocessed = {N: upload.postprocessed.valueOf().toString()};
+  }
+
+  return params;
+}
+
+function encodeCSV(upload) {
+  return [
+    upload.pathname,
+    upload.created.valueOf().toString(),
+    upload.sender_email || '',
+    upload.sender_name || '',
+    (upload.uploaded && upload.uploaded.valueOf().toString()) || '',
+    (upload.seconds && upload.seconds.toString()) || '',
+    (upload.postprocessed && upload.postprocessed.valueOf().toString()) || ''
+  ].join(',');
+}
+
+function decodeCSV(row) {
+  var parts = row.split(',');
+
+  var upload = {
+    pathname: parts[0],
+    created: new Date(+parts[1]),
+  };
+
+  if (parts[2]) {
+    upload.sender_email = parts[2];
+  }
+  if (parts[3]) {
+    upload.sender_name = parts[3];
+  }
+  if (parts[4]) {
+    upload.sender_name = parts[4];
+  }
 }
 
 function resource(upload) {
