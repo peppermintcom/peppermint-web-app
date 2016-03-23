@@ -1,4 +1,4 @@
-var s3 new AWS.S3();
+var s3 = new AWS.S3();
 var _ = require('./utils');
 
 //wrapper around s3.deleteObjects that returns a channel that it closes when

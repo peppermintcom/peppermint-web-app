@@ -1,3 +1,5 @@
+*.txt
+spike.js
 #lambda env vars
 utils/conf.json
 utils/apps.js

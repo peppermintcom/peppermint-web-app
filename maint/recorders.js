@@ -15,42 +15,28 @@ function params(apiKey) {
   };
 }
 
+var discard = _.partial(_.batchAndDiscard, 'recorders', _.partialRight(_.pick, 'client_id'));
+
+function source() {
+  return _.scan({
+    Limit: 100,
+    TableName: 'recorders',
+  });
+}
+
 function clean(apiKey) {
   if (!apiKey) {
     throw new Error('api_key needed');
   }
-  var recorders = _.scan(params(apiKey));
-  
-  csp.go(function*() {
-    var recorder;
+  var removed = discard(_.scan(params(apiKey)));
 
-    //wait for an item then poll synchronously for as many as are available in
-    //the channel, up to 25, and batch them together for delete
-    while ((recorder = yield recorders) != csp.CLOSED) {
-      //we can batch delete up to 25 items so check if up to 24 more are
-      //available and then add the one we just took
-      var batch = _.batch(24, recorders);
-      batch.push(recorder);
+  _.stdout(removed.errors);
+  _.stdout(csp.operations.mapFrom(ids, removed.ok));
+}
 
-      //map the full item to the key with checks that our filters worked
-      var err = yield _.batchDiscard('recorders', _.map(batch, function(recorder) {
-        if (recorder.api_key.S !== apiKey) {
-          throw new Error(recorder.api_key.S);
-        }
-        if ((Date.now() - +recorder.recorder_ts.N) < _.WEEK) {
-          throw new Error(recorder.recorder_ts.N);
-        }
-        return _.pick(recorder, 'client_id');
-      }));
-
-      if (err) _.log(err);
-      batch
-        .map(function(recorder) {
-          return recorder.client_id.S + ',' + recorder.recorder_id.S;
-        })
-        .forEach(_.log);
-    }
-  });
+//returns <client_id>,<recorder_id> string
+function ids(recorder) {
+  return recorder.client_id.S + ',' + recorder.recorder_id.S;
 }
 
 //Returns a channel with a single boolean or error.
@@ -71,5 +57,38 @@ function existsID(recorderID) {
   return done;
 }
 
+//True iff dev api key and more than a week old.
+function isGarbage(recorder) {
+  return recorder.api_key.S === 'abc123' && _.isWeekOld(+recorder.recorder_ts.N);
+}
+
+function encodeCSV(recorder) {
+  return [
+    recorder.client_id.S,
+    recorder.recorder_id.S,
+    recorder.api_key.S,
+    recorder.recorder_ts.N
+  ].join(',');
+}
+
+function decodeCSV(string) {
+  var parts = string.split(',');
+
+  return {
+    client_id: {S: parts[0]},
+    recorder_id: {S: parts[1]},
+    api_key: {S: parts[2]},
+    recorder_ts: {N: parts[3]},
+  };
+}
+
+exports.source = source;
 exports.clean = clean;
 exports.existsID = existsID;
+exports.ids = ids;
+exports.isGarbage = isGarbage;
+exports.encodeCSV = encodeCSV;
+exports.decodeCSV = decodeCSV;
+exports.discard = discard;
+
+module.exports = _.assign({}, _.recorders, exports);

@@ -108,3 +108,18 @@ function parseRecorderItem(recorder) {
     gcm_registration_token: recorder.gcm_registration_token && recorder.gcm_registration_token.S,
   };
 }
+
+function isConsistent(recorder) {
+  return !!(recorder.client_id &&
+    recorder.client_id.S &&
+    recorder.api_key &&
+    recorder.api_key.S &&
+    recorder.recorder_ts &&
+    recorder.recorder_ts.N &&
+    recorder.recorder_id &&
+    recorder.recorder_id.S &&
+    recorder.recorder_key &&
+    recorder.recorder_key.S);
+}
+
+exports.isConsistent = isConsistent;

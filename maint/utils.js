@@ -1,3 +1,4 @@
+var fs = require('fs');
 var csp = require('js-csp');
 var _ = require('utils');
 
@@ -91,6 +92,7 @@ function batchDiscard(table, keys) {
 function batchAndDiscard(tableName, key, source) {
   var batches = batcher(25, source);
   var errors = csp.chan();
+  var ok = csp.chan();
 
   csp.go(function*() {
     var batch;
@@ -98,12 +100,21 @@ function batchAndDiscard(tableName, key, source) {
     while ((batch = yield batches) != csp.CLOSED) {
       var err = yield batchDiscard(tableName, _.map(batch, key));
 
-      if (err) yield _.put(errors, err);
+      if (err) yield csp.put(errors, err);
+      else {
+        for (var i = 0; i < batch.length; i++) {
+          yield csp.put(ok, batch[i]);
+        }
+      }
     }
     errors.close();
+    ok.close();
   });
 
-  return errors;
+  return {
+    ok: ok,
+    errors: errors,
+  };
 }
 
 //Returns an array of up to max messages from channel ins.
@@ -190,15 +201,61 @@ function filterAsync(source, test) {
   };
 }
 
-//log all messages
+//map a channel
+function mapChan(f, chan) {
+  var out = csp.chan();
+
+  csp.go(function*() {
+    var x;
+
+    while ((x = yield chan) != csp.CLOSED) {
+      yield csp.put(out, f(x));
+    }
+    out.close();
+  });
+
+  return out;
+}
+
+//log all messages to stdout
 function stdout(source) {
   csp.go(function*() {
     var x;
 
     while ((x = yield source) != csp.CLOSED) {
-      _.log(x);
+      console.log(x);
     }
   });
+}
+
+//log all message to stderr
+function stderr(source) {
+  csp.go(function*() {
+    var err;
+
+    while ((err = yield source) != csp.CLOSED) {
+      console.error(util.inspect(err, {depth: null}));
+    }
+  });
+}
+
+//writes each message to a line in the file
+function fileSink(name, source) {
+  csp.go(function*() {
+    var err;
+
+    while ((x = yield source) != csp.CLOSED) {
+      fs.appendFile(name, x.toString() + '\n', function(err, done) {
+        if (err) console.log(err);
+      });
+    }
+  });
+}
+
+function isWeekOld(when) {
+  var weekAgo = Date.now() - _.WEEK;
+
+  return when <= weekAgo;
 }
 
 exports.WEEK = WEEK;
@@ -206,18 +263,13 @@ exports.scan = scan;
 exports.discard = discard;
 exports.batchDiscard = batchDiscard;
 exports.batch = batch;
+exports.batchAndDiscard = batchAndDiscard;
 exports.devnull = devnull;
 exports.filterAsync = filterAsync;
+exports.mapChan = mapChan;
 exports.stdout = stdout;
+exports.stderr = stderr;
+exports.isWeekOld = isWeekOld;
+exports.fileSink = fileSink;
 
-/*
-exports.merge = csp.operations.merge;
-exports.pipe = csp.operations.pipe;
-exports.spawn = csp.spawn;
-exports.go = csp.go;
-exports.chan = csp.chan;
-exports.take = csp.take;
-exports.put = csp.put;
-*/
-
-module.exports = _.assign(exports, csp, csp.operations, _);
+module.exports = _.assign({}, _, exports);
