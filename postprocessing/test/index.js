@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var handler = require('../').handler;
 var _ = require('utils/test');
 
-const KEY = 'HYAgptKg2IUZclZ3HDrfDP/hr5cclxmJqs7QSj97XgtLD.mp3';
+const KEY = _.fake.UPLOAD_KEY;
 const AUDIO_URL = 'http://go.peppermint.com/' + KEY;
 const SIZE = 22032;
 const TIMEOUT = 30000;
@@ -204,8 +204,8 @@ describe('lambda:Postprocess', function() {
       });
     });
 
-    it('should set the duration to 6 in the database.', function() {
-      expect(upload).to.have.property('seconds', 6);
+    it('should set the duration to 4 in the database.', function() {
+      expect(upload).to.have.property('seconds', 4);
     });
 
     it('should stamp the processed time in the database.', function() {
@@ -244,7 +244,7 @@ describe('lambda:Postprocess', function() {
       return _.messages.get(messageToDon.message_id).then(function(message) {
         expect(message.handled).to.be.within(Date.now() - 2*TIMEOUT, Date.now());
         expect(message).to.have.property('handled_by', _.messages.handlers.POSTPROCESSING);
-        expect(message).to.have.property('outcome', 'GCM success count: 2');
+        expect(message).to.have.property('outcome', 'GCM success count: 1');
       });
     });
 
@@ -264,14 +264,14 @@ describe('lambda:Postprocess', function() {
       });
     });
 
-    it('should have sent a total of 4 messages to GCM.', function() {
+    it('should have sent a total of 3 messages to GCM.', function() {
       //Sam: 0
       //Jen: 0
       //Ray: 0
-      //Don: 2 - because each iOS gets 2 separate messages
+      //Don: 1
       //Sue: 1
       //Bob: 1
-      expect(_.gcm.sends).to.have.length(4);
+      expect(_.gcm.sends).to.have.length(3);
     });
   });
 });

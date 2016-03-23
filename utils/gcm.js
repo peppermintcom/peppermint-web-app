@@ -36,13 +36,10 @@ var send = exports.send = function(message) {
  */
 
 function formatter(recorder) {
-  if (apps.isAndroid(recorder.api_key)) {
-    return android;
-  } else if (recorder.api_key === 'ios-dev') {
-    return iOSDev;
-  } else {
+  if (apps.isiOS(recorder.api_key)) {
     return iOS;
   }
+  return android;
 }
 
 function format(receivers, message) {
@@ -99,15 +96,6 @@ function data(message) {
 }
 
 function iOS(message, to) {
-  return Promise.resolve([{
-    to: to,
-    priority: 'high',
-    content_available: true,
-    data: data(message),
-  }]);
-}
-
-function iOSDev(message, to) {
   return messages.recentUnreadCount(message.recipient_email, message.message_id)
     .then(function(count) {
       return [{
@@ -122,20 +110,6 @@ function iOSDev(message, to) {
           sender_name: message.sender_name,
           sender_email: message.sender_email,
           created: timestamp(message.created),
-        },
-      },
-      {
-        to: to,
-        priority: 'high',
-        data: {
-          recipient_email: message.recipient_email,
-          audio_url: message.audio_url,
-          sender_name: message.sender_name,
-          sender_email: message.sender_email,
-          created: timestamp(message.created),
-          duration : message.duration,
-          message_id : message.message_id,
-          transcription: message.transcription,
         },
       }];
     });

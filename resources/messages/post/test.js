@@ -392,8 +392,8 @@ describe('lambda:CreateMessage', function() {
             });
           });
 
-          it('should send 3 messages to GCM.', function() {
-            expect(_.gcm.sends).to.have.length(3);
+          it('should send 2 messages to GCM.', function() {
+            expect(_.gcm.sends).to.have.length(2);
           });
 
           it('message to Android should not have notification or content_available fields.', function() {
@@ -404,7 +404,7 @@ describe('lambda:CreateMessage', function() {
             msgOK(msg, r1Token, sender.full_name, response, duration);
           });
 
-          it('should send a notification message and a data message to iOS', function() {
+          it('should send a notification message to iOS', function() {
             var msgN = _.find(_.gcm.sends, function(msg) {
               return (msg.to === r2Token) && msg.notification;
             });
@@ -412,9 +412,7 @@ describe('lambda:CreateMessage', function() {
               return (msg.to === r2Token) && msg.data;
             });
             expect(msgN).to.be.ok;
-            expect(msgD).to.be.ok;
-            expect(msgN).not.to.equal(msgD);
-            msgOK(msgD, r2Token, sender.full_name, response, duration);
+            expect(msgD).not.to.be.ok;
             msgOKiOSNotification(msgN, sender.full_name);
             expect(msgN.notification).to.have.property('badge', '3');
           });
