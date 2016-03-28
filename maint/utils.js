@@ -242,7 +242,7 @@ function stderr(source) {
 //writes each message to a line in the file
 function fileSink(name, source) {
   csp.go(function*() {
-    var err;
+    var x;
 
     while ((x = yield source) != csp.CLOSED) {
       fs.appendFile(name, x.toString() + '\n', function(err, done) {

@@ -22,7 +22,7 @@ Discard if the upload is gone.
 ### Uploads
 Discard if the audio_url is gone and it was initialized more than an hour ago.
 OR
-Discard if the recorder that produced it is gone and it is more than a week old.
+Discard if the recorder that produced it is gone.
 
 ### Audio File on S3
 Discard anything without an upload record.

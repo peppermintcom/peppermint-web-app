@@ -80,11 +80,13 @@ function format(upload) {
 
   return params;
 }
+exports.parse = parse;
+exports.format = format;
 
 function encodeCSV(upload) {
   return [
     upload.pathname,
-    upload.created.valueOf().toString(),
+    (upload.created && upload.created.valueOf().toString()) || '',
     upload.sender_email || '',
     upload.sender_name || '',
     (upload.uploaded && upload.uploaded.valueOf().toString()) || '',
@@ -111,6 +113,18 @@ function decodeCSV(row) {
     upload.sender_name = parts[4];
   }
 }
+
+exports.csv = {
+  encode: encodeCSV,
+  decode: decodeCSV,
+};
+
+function recorderID(uploadItem) {
+  var pathname = uploadItem.pathname.S;
+
+  return pathname.split('/')[0];
+}
+exports.recorderID = recorderID;
 
 function resource(upload) {
   if (!upload) return null;

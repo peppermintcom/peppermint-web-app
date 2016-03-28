@@ -13,6 +13,29 @@ function clean() {
   //_.stdout(_.mapFrom(pathname, removed.ok));
 }
 
+//mutates the existentRecorderIDs and nonexistentRecorderIDs arguments
+function isGarbage(existentRecorderIDs, nonexistentRecorderIDs, upload) {
+  var recorderID = _.uploads.recorderID(upload);
+
+  if (existentRecorderIDs[recorderID]) {
+    return Promise.resolve(false);
+  }
+  if (nonexistentRecorderIDs[recorderID]) {
+    return Promise.resolve(true);
+  }
+
+  return _.recorders.getByID(recorderID)
+    .then(function(recorder) {
+      if (recorder) {
+        existentRecorderIDs[recorderID] = true;
+        return false;
+      }
+      nonexistentRecorderIDs[recorderID] = true;
+      return true;
+    });
+}
+exports.isGarbage = isGarbage;
+
 //Returns a channel with all uploads at least a week old that are not related to
 //an existing recorder.
 function garbage() {
@@ -37,7 +60,7 @@ function weekOld() {
 
   return _.scan({
     TableName: 'uploads',
-    Limit: 100,
+    Limit: 10,
     FilterExpression: 'created <= :week_ago',
     ExpressionAttributeValues: {
       ':week_ago': {N: weekAgo.toString()},
@@ -72,6 +95,14 @@ function key(upload) {
   return upload.pathname;
 }
 
+function source() {
+  return _.scan({
+    TableName: 'uploads',
+    Limit: 10,
+  });
+}
+
+exports.source = source;
 exports.clean = clean;
 exports.garbage = garbage;
 exports.weekOld = weekOld;
