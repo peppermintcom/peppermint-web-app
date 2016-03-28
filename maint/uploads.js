@@ -98,7 +98,7 @@ function key(upload) {
 function source() {
   return _.scan({
     TableName: 'uploads',
-    Limit: 10,
+    Limit: 100,
   });
 }
 

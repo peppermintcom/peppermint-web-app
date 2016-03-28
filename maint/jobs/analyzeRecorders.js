@@ -43,9 +43,9 @@ csp.go(function*() {
   console.log('total: ' + (garbageN + soundN + inconsistentN));
 });
 
-_.file(INCONSISTENT, _.mapChan(clientID, inconsistent));
-_.file(GARBAGE, _.mapChan(recorders.ids, garbage));
-_.file(SOUND, _.mapChan(csv, sound));
+_.fileSink(INCONSISTENT, _.mapChan(clientID, inconsistent));
+_.fileSink(GARBAGE, _.mapChan(recorders.ids, garbage));
+_.fileSink(SOUND, _.mapChan(csv, sound));
 
 function csv(recorder) {
   return [
