@@ -112,6 +112,8 @@ function decodeCSV(row) {
   if (parts[4]) {
     upload.sender_name = parts[4];
   }
+
+  return upload;
 }
 
 exports.csv = {

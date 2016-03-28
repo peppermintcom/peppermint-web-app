@@ -252,6 +252,52 @@ function fileSink(name, source) {
   });
 }
 
+//converts a readable to a channel with backpressure
+function fileSourceRaw(name) {
+  var out = csp.chan();
+  var stream = fs.createReadStream(name);
+
+  stream.on('readable', function() {
+    csp.go(function*() {
+      var chunk;
+
+      while ((chunk = stream.read()) != null) {
+        yield csp.put(out, chunk);
+      }
+    });
+  });
+  stream.on('end', function() {
+    out.close();
+  });
+
+  return out;
+}
+
+//reads lines from a file to a channel; empty lines are dropped
+function fileSource(name) {
+  var source = fileSourceRaw(name);
+  var out = csp.chan();
+
+  csp.go(function*() {
+    var state = '';
+    var chunk;
+
+    while ((chunk = yield source) != csp.CLOSED) {
+      var lines = (state + chunk.toString()).split('\n');
+      state = lines.pop();
+      for (var i = 0; i < lines.length; i++) {
+        yield csp.put(out, lines[i]);
+      }
+    }
+    if (state) {
+      yield csp.put(out, state);
+    }
+    out.close();
+  });
+
+  return out;
+}
+
 function isWeekOld(when) {
   var weekAgo = Date.now() - _.WEEK;
 
@@ -271,5 +317,6 @@ exports.stdout = stdout;
 exports.stderr = stderr;
 exports.isWeekOld = isWeekOld;
 exports.fileSink = fileSink;
+exports.fileSource = fileSource;
 
 module.exports = _.assign({}, _, exports);
