@@ -256,17 +256,30 @@ function fileSink(name, source) {
 function fileSourceRaw(name) {
   var out = csp.chan();
   var stream = fs.createReadStream(name);
+  var isEnded = false;
+  var ready = csp.chan();
 
-  stream.on('readable', function() {
-    csp.go(function*() {
-      var chunk;
-
-      while ((chunk = stream.read()) != null) {
-        yield csp.put(out, chunk);
-      }
-    });
-  });
   stream.on('end', function() {
+    isEnded = true;
+  });
+
+  //only put a value into the ready channel if the worker is blocked waiting for the readable event
+  stream.on('readable', function() {
+    csp.offer(ready, true);
+  });
+
+  csp.go(function*() {
+    var chunk;
+
+    while (true) {
+      chunk = stream.read();
+      if (chunk === null) {
+        if (isEnded) break;
+        else yield ready;
+        continue;
+      }
+      yield csp.put(out, chunk);
+    }
     out.close();
   });
 
