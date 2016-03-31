@@ -100,7 +100,7 @@ function decodeCSV(row) {
 
   var upload = {
     pathname: parts[0],
-    created: new Date(+parts[1]),
+    created: +parts[1],
   };
 
   if (parts[2]) {
@@ -110,7 +110,13 @@ function decodeCSV(row) {
     upload.sender_name = parts[3];
   }
   if (parts[4]) {
-    upload.sender_name = parts[4];
+    upload.uploaded = +parts[4];
+  }
+  if (parts[5]) {
+    upload.seconds = +parts[5];
+  }
+  if (parts[6]) {
+    upload.postprocessed = +parts[6];
   }
 
   return upload;
