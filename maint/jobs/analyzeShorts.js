@@ -1,5 +1,6 @@
 var csp = require('js-csp');
-var _ = require('../utils');
+var _ = require('./utils');
+var shortURLs = require('../shortURLs');
 var parse = _.partial(_.mapChan, _.uploads.csv.decode);
 
 var existentUploads = parse(_.fileSource('sound-uploads-2016-03-28T0355.txt'));
@@ -11,9 +12,12 @@ var sound = csp.chan();
 var garbage = csp.chan();
 
 csp.go(function*() {
-  var existentPathnames = yield reduce(existentUploads);
-  var nonexistentPathnames = yield reduce(nonexistentUploads);
-  var isGarbage = _.partial(_.shortURLs.isGarbage, existentPathnames, nonexistentPathnames);
+  var nonexistentPathnames = {};
+  var existentPathnames = {};
+  var isGarbage = _.partial(shortURLs.isGarbage, existentPathnames, nonexistentPathnames);
+
+  yield reduce(nonexistentPathnames, nonexistentUploads);
+  yield reduce(existentPathnames, existentUploads);
 
   var shorts = _.scan({
     TableName: 'short-urls',
@@ -22,32 +26,37 @@ csp.go(function*() {
 
 
   var shortItem;
+  var count = 0;
 
   while ((shortItem = yield shorts) != csp.CLOSED) {
+    if (!_.shortURLs.isConsistent(shortItem)) {
+      console.log(shortItem);
+      continue;
+    }
     var toss = yield isGarbage(shortItem.pathname.S);
 
-    if (yield isGarbage(shortItem.pathname.S) {
+    if (toss) {
       yield csp.put(garbage, shortItem);
     } else {
       yield csp.put(sound, shortItem);
     }
+    count++;
+    if (count % 10000 === 0) console.log(count);
   }
 });
 
 _.fileSink(filenames.garbage, _.mapChan(_.shortURLs.csv.encode, _.mapChan(_.shortURLs.parse, garbage)));
 _.fileSink(filenames.sound, _.mapChan(_.shortURLs.csv.encode, _.mapChan(_.shortURLs.parse, sound)));
 
-function reduce(source) {
+function reduce(obj, source) {
   var done = csp.chan();
-  var obj = {};
 
   csp.go(function*() {
     var u;
 
     while ((u = yield source) != csp.CLOSED) {
-      obj[u.pathname] = true;
+      if (u && u.pathname) obj[u.pathname] = true;
     }
-    csp.putAsync(done, obj);
     done.close();
   });
 

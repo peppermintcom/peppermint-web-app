@@ -22,7 +22,7 @@ function mapKey(pathnames) {
   var keys = _.chan();
   var errors = _.chan();
 
-  _.go(function*() {
+  csp.go(function*() {
     var pathname;
 
     while ((pathname = yield pathname) != _.CLOSED) {
@@ -58,27 +58,32 @@ function discardPathnames(pathnames) {
 function isGarbage(existentPathnames, nonexistentPathnames, pathname) {
   var done = csp.chan();
 
-  if (existentPathnames[pathname]) {
-    csp.putAsync(done, false);
-    done.close();
-  }
-  if (nonexistentPathnames[pathname]) {
-    csp.putAsync(done, true);
-    done.close();
-  }
-
-  _.uploads.get(pathname)
-    .then(function(upload) {
-      if (upload) {
-        existentPathnames[pathname] = true;
-        csp.putAsync(done, false);
-      } else {
-        csp.putAsync(done, true);
-        nonexistentPathnames[pathname] = true;
-      }
+  csp.go(function*() {
+    if (existentPathnames[pathname]) {
+      yield csp.put(done, false);
       done.close();
-    });
+    }
+    if (nonexistentPathnames[pathname]) {
+      yield csp.put(done, true);
+      done.close();
+    }
 
+    _.uploads.get(pathname)
+      .then(function(upload) {
+        if (upload) {
+          existentPathnames[pathname] = true;
+          csp.putAsync(done, false);
+        } else {
+          nonexistentPathnames[pathname] = true;
+          csp.putAsync(done, true);
+        }
+        done.close();
+      })
+      .catch(function(err) {
+        console.log(err);
+      });
+  });
+ 
   return done;
 }
 

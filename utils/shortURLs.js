@@ -1,3 +1,5 @@
+var _ = require('lodash');
+
 exports.parse = function(shortItem) {
   return {
     key: shortItem.key.S,

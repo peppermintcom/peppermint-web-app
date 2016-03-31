@@ -278,6 +278,7 @@ function fileSourceRaw(name) {
 
   stream.on('end', function() {
     isEnded = true;
+    csp.offer(ready, true);
   });
 
   //only put a value into the ready channel if the worker is blocked waiting for the readable event
