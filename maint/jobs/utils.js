@@ -11,6 +11,7 @@ function filenames(tablename) {
   var namer = filename(tablename, start.substring(0, start.indexOf(':')));
 
   return {
+    incomplete: namer('incomplete'),
     inconsistent: namer('inconsistent'),
     garbage: namer('garbage'),
     sound: namer('sound'),

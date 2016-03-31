@@ -7,6 +7,8 @@ var notUploaded = csp.operations.filterFrom(function(upload) {
   return !upload.uploaded;
 }, uploads);
 
+var incomplete = csp.chan();
+
 csp.go(function*() {
   var upload;
 
@@ -18,7 +20,7 @@ csp.go(function*() {
       continue;
     }
     if (!ok) {
-      //
+      yield csp.put(incomplete, _.uploads.csv.encode(upload));
       continue;
     }
     if (ok) {
@@ -26,6 +28,8 @@ csp.go(function*() {
     }
   }
 });
+
+_.fileSink(_.filenames('uploads').incomplete, incomplete);
 
 function isOnS3(upload) {
   var done = csp.chan();
@@ -51,7 +55,7 @@ function isOnS3(upload) {
 }
 
 function addUploadedTimestamp(upload) {
-  var when = new Date('2015-01-01T00:00:01');
+  var when = new Date(upload.created || '2015-01-01T00:00:01');
   var done = csp.chan();
 
   _.uploads.update(upload.pathname, 'SET uploaded = :when', {
