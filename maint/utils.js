@@ -57,6 +57,28 @@ function discard(table, key) {
   return done;
 }
 
+//Calls itself with exponential backoff until all items have been processed
+function batchWrite(params, done, delay) {
+  delay = delay || 0;
+  setTimeout(function() {
+    _.dynamo.batchWriteItem(params, function(err, data) {
+      if (err) {
+        csp.putAsync(done, err);
+        done.close();
+        return;
+      }
+      if (data && data.UnprocessedItems) {
+        //ensure there is at least one table with an unprocessed item and data.UnprocessedItems is not just an empty object
+        for (var t in data.UnprocessedItems) {
+          batchWrite({RequestItems: data.UnprocessedItems}, done, (delay * 2) || 1000);
+          return;
+        }
+      }
+      done.close();
+    });
+  }, delay);
+}
+
 //Returns a done channel that is closed after the batch of items has been
 //deleted.
 function batchDiscard(table, keys) {
@@ -73,12 +95,7 @@ function batchDiscard(table, keys) {
     };
   });
 
-  _.dynamo.batchWriteItem(params, function(err, data) {
-    if (err) {
-      csp.putAsync(done, err);
-    }
-    done.close();
-  });
+  batchWrite(params, done);
 
   return done;
 }
