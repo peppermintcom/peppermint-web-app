@@ -1,9 +1,11 @@
 var csp = require('js-csp');
 var aws = require('aws-sdk');
 var s3 = new aws.S3({apiVersion: '2006-03-01'});
+var files = require('../files');
 var _ = require('./utils');
 
-var WORKERS = 20;
+//optimal for m3.medium in us-west-2
+var WORKERS = 8;
 
 var source = _.fileSource('sound-uploads-2016-03-28T0355.txt');
 var uploads = _.mapChan(_.uploads.csv.decode, source);
@@ -13,17 +15,18 @@ var notUploaded = csp.operations.filterFrom(function(upload) {
 
 //not on S3
 var incomplete = csp.chan();
+//on S3 but no uploaded timestamp
 var inconsistent = csp.chan();
 
 for (var i = 0; i < WORKERS; i++) {
-  csp.go(process);
+  csp.go(work);
 }
 
-function* process() {
+function* work() {
   var upload;
 
   while ((upload = yield notUploaded) != csp.CLOSED) {
-    var ok = yield isOnS3(upload);
+    var ok = yield files.exists(upload.pathname);
 
     if (_.isError(ok)) {
       console.log(ok);
@@ -40,32 +43,9 @@ function* process() {
   }
 }
 
-var filenames = _.filenames('uploaded');
+var filenames = _.filenames('upload');
 _.fileSink(filenames.incomplete, incomplete);
 _.fileSink(filenames.inconsistent, inconsistent);
-
-function isOnS3(upload) {
-  var done = csp.chan();
-
-  request({
-    url: 'http://go.peppermint.com/' + upload.pathname,
-    method: 'HEAD',
-  }, function(err, res) {
-    if (err) {
-      csp.putAsync(done, err);
-      done.close();
-      return;
-    }
-    if (res.statusCode === 200) {
-      csp.putAsync(done, true);
-    } else {
-      csp.putAsync(done, false);
-    }
-    done.close();
-  });
-
-  return done;
-}
 
 function addUploadedTimestamp(upload) {
   var when = new Date(upload.created || '2015-01-01T00:00:01');

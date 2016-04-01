@@ -53,17 +53,13 @@ function exists(pathname) {
     if (err && err.code === 'NotFound') {
       csp.putAsync(done, false);
       done.close();
-      console.log('false');
       return;
     }
     if (err) {
       csp.putAsync(done, err);
       done.close();
-      console.log('err');
-      console.log(err);
       return;
     }
-    console.log('true');
     csp.putAsync(done, true);
     done.close();
   });
