@@ -1,4 +1,6 @@
+var AWS  = require('aws-sdk');
 var s3 = new AWS.S3();
+var csp = require('js-csp');
 var _ = require('./utils');
 
 //wrapper around s3.deleteObjects that returns a channel that it closes when
@@ -40,3 +42,33 @@ function discard(source) {
 
   return errors;
 }
+
+function exists(pathname) {
+  var done = csp.chan();
+
+  s3.headObject({
+    Bucket: 'peppermint-cdn',
+    Key: pathname,
+  }, function(err, data) {
+    if (err && err.code === 'NotFound') {
+      csp.putAsync(done, false);
+      done.close();
+      console.log('false');
+      return;
+    }
+    if (err) {
+      csp.putAsync(done, err);
+      done.close();
+      console.log('err');
+      console.log(err);
+      return;
+    }
+    console.log('true');
+    csp.putAsync(done, true);
+    done.close();
+  });
+
+  return done;
+}
+
+exports.exists = exists;

@@ -1,14 +1,13 @@
 var csp = require('js-csp');
-var request = require('request');
+var aws = require('aws-sdk');
+var s3 = new aws.S3({apiVersion: '2006-03-01'});
 var _ = require('./utils');
+
+var WORKERS = 20;
 
 var source = _.fileSource('sound-uploads-2016-03-28T0355.txt');
 var uploads = _.mapChan(_.uploads.csv.decode, source);
 var notUploaded = csp.operations.filterFrom(function(upload) {
-if (upload.uploaded) {
-console.log('dropping');
-console.log(upload);
-}
   return !upload.uploaded;
 }, uploads);
 
@@ -16,7 +15,11 @@ console.log(upload);
 var incomplete = csp.chan();
 var inconsistent = csp.chan();
 
-csp.go(function*() {
+for (var i = 0; i < WORKERS; i++) {
+  csp.go(process);
+}
+
+function* process() {
   var upload;
 
   while ((upload = yield notUploaded) != csp.CLOSED) {
@@ -35,7 +38,7 @@ csp.go(function*() {
       //yield addUploadedTimestamp(upload);
     }
   }
-});
+}
 
 var filenames = _.filenames('uploaded');
 _.fileSink(filenames.incomplete, incomplete);
