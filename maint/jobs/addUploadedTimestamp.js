@@ -1,13 +1,20 @@
 var csp = require('js-csp');
+var request = require('request');
 var _ = require('./utils');
 
 var source = _.fileSource('sound-uploads-2016-03-28T0355.txt');
 var uploads = _.mapChan(_.uploads.csv.decode, source);
 var notUploaded = csp.operations.filterFrom(function(upload) {
+if (upload.uploaded) {
+console.log('dropping');
+console.log(upload);
+}
   return !upload.uploaded;
 }, uploads);
 
+//not on S3
 var incomplete = csp.chan();
+var inconsistent = csp.chan();
 
 csp.go(function*() {
   var upload;
@@ -24,12 +31,15 @@ csp.go(function*() {
       continue;
     }
     if (ok) {
-      yield addUploadedTimestamp(upload);
+       yield csp.put(inconsistent, _.uploads.csv.encode(upload));
+      //yield addUploadedTimestamp(upload);
     }
   }
 });
 
-_.fileSink(_.filenames('uploads').incomplete, incomplete);
+var filenames = _.filenames('uploaded');
+_.fileSink(filenames.incomplete, incomplete);
+_.fileSink(filenames.inconsistent, inconsistent);
 
 function isOnS3(upload) {
   var done = csp.chan();
