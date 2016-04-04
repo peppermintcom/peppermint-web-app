@@ -154,7 +154,7 @@ function unread(recipientEmail, since) {
     TableName: 'messages',
     IndexName: 'recipient_email-created-index',
     KeyConditionExpression: 'recipient_email = :recipient_email AND created > :since',
-    FilterExpression: 'attribute_not_exists(#read)',
+    FilterExpression: 'attribute_not_exists(#read) AND attribute_exists(handled)',
     ExpressionAttributeValues: {
       ':recipient_email': {S: recipientEmail},
       ':since': {N: since.toString()},

@@ -204,8 +204,8 @@ describe('lambda:Postprocess', function() {
       });
     });
 
-    it('should set the duration to 4 in the database.', function() {
-      expect(upload).to.have.property('seconds', 4);
+    it('should set the duration to 3 in the database.', function() {
+      expect(upload).to.have.property('seconds', 3);
     });
 
     it('should stamp the processed time in the database.', function() {

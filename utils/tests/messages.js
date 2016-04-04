@@ -105,6 +105,32 @@ describe('_.messages', function() {
             });
         });
 
+        //unhandled messages are invisible and should not appear in query
+        //results
+        describe('1 message has not been handled.', function() {
+          var messageID;
+
+          before(function() {
+            var unreadMessage = _.find(messages, function(message) {
+              return !message.read;
+            });
+            messageID = unreadMessage.message_id;
+            return _.messages.update(messageID, 'REMOVE handled');
+          });
+
+          after(function() {
+            return _.messages.update(messageID, 'SET handled = :when', {
+              ':when': {N: Date.now().toString()},
+            });
+          });
+
+          it('should return 2.', function() {
+            return _.messages.recentUnreadCount(recipient.email.toLowerCase())
+              .then(function(count) {
+                expect(count).to.equal(2);
+              });
+          });
+        });
       });
 
       describe('messageID of message not in result set', function() {

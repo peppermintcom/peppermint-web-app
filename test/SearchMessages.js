@@ -88,7 +88,7 @@ describe('GET /messages', function() {
     });
   });
 
-  describe.only('recipient received 80 messages in 2015 and 2 in 2016', function() {
+  describe('recipient received 80 messages in 2015 and 2 in 2016', function() {
     var messages;
     var messages2016 = [_.token(22), _.token(22)];
 
