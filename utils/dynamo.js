@@ -9,14 +9,14 @@ if (process.env.NODE_ENV === 'development') {
 var dynamo = new aws.DynamoDB({
     apiVersion: '2012-08-10',
     region: 'us-west-2',
-      httpOptions: {
-        agent: new https.Agent({
-          rejectUnauthorized: true,
-          keepAlive: true,
-          secureProtocol: 'TLSv1_method',
-          ciphers: 'ALL',
-        }),
-      },
+    httpOptions: {
+      agent: new https.Agent({
+        rejectUnauthorized: true,
+        keepAlive: true,
+        secureProtocol: 'TLSv1_method',
+        ciphers: 'ALL',
+      }),
+    },
 });
 
 /**

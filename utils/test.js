@@ -5,7 +5,6 @@ var _ = require('./index');
 
 const API_URL = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1';
 
-var exports = _.assign(exports, _);
 
 exports.API_URL = API_URL;
 
@@ -194,3 +193,5 @@ exports.auth = function (recorderUser, recorderPass, accountUser, accountPass) {
     return response.body.data.attributes.token;
   });
 };
+
+module.exports = _.assign({}, _, exports);

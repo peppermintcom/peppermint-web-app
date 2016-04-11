@@ -217,7 +217,7 @@ describe('lambda:SearchMessages', function() {
       });
 
       describe('with duration and transcription available', function() {
-        text = _.token(8);
+        var text = _.token(8);
 
         before(function() {
           return Promise.all([
