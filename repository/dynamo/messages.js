@@ -16,7 +16,7 @@ type MessageItem = {
   read?: N;
 };
 
-import {ErrNotFound, makeRecorder, makeUpload, makeMessage} from '../domain'
+import domain from '../domain'
 import url from 'url'
 import dynamo from './client'
 import token from '../../utils/randomtoken'
@@ -60,10 +60,10 @@ function formatEmailQuery(params: QueryMessagesByEmail): DynamoQueryRequest {
 function parse(item: MessageItem): Message {
   var parts = _.decodePathname(item.audio_url.S);
 
-  var r: Recorder = makeRecorder({
+  var r: Recorder = domain.makeRecorder({
     recorder_id: parts.recorder_id,
   })
-  var u: Upload = makeUpload({
+  var u: Upload = domain.makeUpload({
     upload_id: parts.id,
     recorder: r,
   });
@@ -79,7 +79,7 @@ function parse(item: MessageItem): Message {
     email: item.recipient_email.S,
   }
 
-  return makeMessage({
+  return domain.makeMessage({
     message_id: item.message_id.S,
     created: +item.created.N,
     sender: sender,
@@ -157,7 +157,7 @@ function read(id: string): Promise<Message> {
         return;
       }
       if (!data || !data.Item) {
-        reject(ErrNotFound);
+        reject(domain.ErrNotFound);
         return;
       }
       resolve(parse(data.Item));

@@ -1,5 +1,6 @@
 import type {Account} from '../domain'
 
+import domain from '../domain'
 import dynamo from './client'
 
 export type AccountItem = {
@@ -40,7 +41,7 @@ function read(email: string): Promise<Account> {
         return;
       }
       if (!data || !data.Item) {
-        reject(ErrNotFound);
+        reject(domain.ErrNotFound);
         return;
       }
       resolve(parse(data.Item));

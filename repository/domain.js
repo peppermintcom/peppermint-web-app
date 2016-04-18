@@ -205,7 +205,7 @@ function makeAccount(a: Account): Account {
   return a;
 }
 
-module.exports = {
+export default {
   ErrNotFound,
   newUpload,
   makeUpload,
@@ -217,4 +217,4 @@ module.exports = {
   makeTranscription,
   newMessage,
   makeMessage,
-};
+}

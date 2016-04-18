@@ -1,7 +1,7 @@
 //@flow
 import {expect} from 'chai'
-import {newUpload} from '../../domain'
-import {save, read} from '../uploads'
+import domain from '../../domain'
+import uploads from '../uploads'
 import fixtures from './fixtures'
 
 describe('dynamo uploads', function() {
@@ -12,13 +12,13 @@ describe('dynamo uploads', function() {
         fixtures.account(),
       ])
       .then(function(results) {
-        var upload = newUpload({
+        var upload = domain.newUpload({
           recorder: results[0],
           creator: results[1],
           content_type: 'audio/mp4',
         });
 
-        return save(upload)
+        return uploads.save(upload)
           .then(function(_u) {
             expect(_u).to.equal(upload);
           });
@@ -31,7 +31,7 @@ describe('dynamo uploads', function() {
       it('should restore the Upload from dynamo.', function() {
         return fixtures.upload()
           .then(function(upload) {
-            return read(upload.pathname())
+            return uploads.read(upload.pathname())
               .then(function(_u) {
                 expectEqual(_u, upload);
                 expectEqual(upload, _u);
@@ -51,10 +51,10 @@ describe('dynamo uploads', function() {
             upload.uploaded = Date.now();
             upload.postprocessed = Date.now();
 
-            return save(upload);
+            return uploads.save(upload);
           })
           .then(function(upload) {
-            return read(upload.pathname())
+            return uploads.read(upload.pathname())
               .then(function(_u) {
                 expectEqual(_u, upload);
                 expectEqual(upload, _u);

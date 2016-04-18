@@ -2,9 +2,9 @@
 import type {Upload, Recorder, Transcription} from './domain'
 
 import url from 'url'
+import domain from './domain'
 import uploads from './dynamo/uploads'
 import transcriptions from './dynamo/transcriptions'
-import {ErrNotFound} from './domain'
 
 
 //read gets an upload and its transcription, if any, from dynamo. These are
@@ -14,7 +14,7 @@ function read(pathname: string): Promise<Upload> {
   return Promise.all([
       uploads.read(pathname),
       transcriptions.read(transcriptionID(pathname)).catch(function(err) {
-        if (err === ErrNotFound) {
+        if (err === domain.ErrNotFound) {
           return null;
         }
       }),
