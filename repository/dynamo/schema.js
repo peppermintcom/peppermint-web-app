@@ -1,3 +1,114 @@
+var recorders = {
+  AttributeDefinitions: [
+    {
+      AttributeName: 'client_id',
+      AttributeType: 'S',
+    },
+    {
+      AttributeName: 'recorder_id',
+      AttributeType: 'S',
+    },
+  ],
+  KeySchema: [
+    {
+      AttributeName: 'client_id',
+      KeyType: 'HASH',
+    },
+  ],
+  TableName: 'recorders',
+  ProvisionedThroughput: {
+    ReadCapacityUnits: 10,
+    WriteCapacityUnits: 10,
+  },
+  GlobalSecondaryIndexes: [
+    {
+      IndexName: 'recorder_id-index',
+      KeySchema: [
+        {
+          AttributeName: 'recorder_id',
+          KeyType: 'HASH',
+        },
+      ],
+      Projection: {
+        ProjectionType: 'ALL',
+      },
+      ProvisionedThroughput: {
+        ReadCapacityUnits: 10,
+        WriteCapacityUnits: 10,
+      },
+    },
+  ],
+};
+ 
+var uploads = {
+  AttributeDefinitions: [
+    {
+      AttributeName: 'pathname',
+      AttributeType: 'S',
+    },
+  ],
+  KeySchema: [
+    {
+      AttributeName: 'pathname',
+      KeyType: 'HASH',
+    },
+  ],
+  TableName: 'uploads',
+  ProvisionedThroughput: {
+    ReadCapacityUnits: 10,
+    WriteCapacityUnits: 10,
+  },
+};
+
+var accounts = {
+  TableName: 'accounts',
+  AttributeDefinitions: [{
+    AttributeName: 'email',
+    AttributeType: 'S',
+  }, {
+    AttributeName: 'account_id',
+    AttributeType: 'S',
+  }],
+  KeySchema: [{
+    AttributeName: 'email',
+    KeyType: 'HASH',
+  }],
+  ProvisionedThroughput: {
+    ReadCapacityUnits: 10,
+    WriteCapacityUnits: 10,
+  },
+  GlobalSecondaryIndexes: [{
+    IndexName: 'account_id-index',
+    KeySchema: [{
+      AttributeName: 'account_id',
+      KeyType: 'HASH',
+    }],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 10,
+      WriteCapacityUnits: 10,
+    },
+    Projection: {
+      ProjectionType: 'ALL',
+    },
+  }],
+};
+
+var transcriptions = {
+  TableName: 'transcriptions',
+  AttributeDefinitions: [{
+    AttributeName: 'transcription_id',
+    AttributeType: 'S',
+  }],
+  ProvisionedThroughput: {
+    ReadCapacityUnits: 10,
+    WriteCapacityUnits: 10,
+  },
+  KeySchema: [{
+    AttributeName: 'transcription_id',
+    KeyType: 'HASH',
+  }],
+};
+
 var messages = {
   AttributeDefinitions: [
     {
@@ -93,5 +204,9 @@ var messages = {
 };
 
 module.exports = {
+  recorders: recorders,
+  uploads: uploads,
+  accounts: accounts,
+  transcriptions: transcriptions,
   messages: messages,
 };

@@ -1,6 +1,7 @@
 // @flow
-import type {Query, QueryRequest, QueryResult, N, S} from './types'
-import type {Message} from '../domain'
+import type {Query, DynamoQueryRequest, N, S} from './types'
+import type {Recorder, Account, Message, Upload} from '../domain'
+import type {QueryResult, QueryMessagesByEmail} from '../types'
 
 type MessageItem = {
   message_id: S;
@@ -15,9 +16,11 @@ type MessageItem = {
   read?: N;
 };
 
-var dynamo = require('./client');
-var token = require('utils/randomtoken');
-var _ = require('./utils');
+import {ErrNotFound, makeRecorder, makeUpload, makeMessage} from '../domain'
+import url from 'url'
+import dynamo from './client'
+import token from '../../utils/randomtoken'
+import _ from './utils'
 
 const LIMIT = 40;
 
@@ -33,15 +36,10 @@ let query = queryEmail;
 //handled timestamp, which is added by the postprocessing lambda function after
 //the putObject event fires.
 //type FormatRequest
-type EmailQuery = {
-  email: string;
-  role: 'sender' | 'recipient';
-  offset?: string;
-}
-function formatEmailQuery(params: EmailQuery): QueryRequest {
+function formatEmailQuery(params: QueryMessagesByEmail): DynamoQueryRequest {
   //"sender_email" | "recipient_email"
   var primary: string = params.role + '_email';
-  var r: QueryRequest = {
+  var r: DynamoQueryRequest = {
     TableName: 'messages',
     //"recipient_email-created-index" | "sender_email-created-index"
     IndexName: primary + '-created-index',
@@ -60,44 +58,58 @@ function formatEmailQuery(params: EmailQuery): QueryRequest {
 }
 
 function parse(item: MessageItem): Message {
-  var m: Message = {
-    message_id: item.message_id.S,
-    audio_url: item.audio_url.S,
-    created: +item.created.N,
-    recipient_email: item.recipient_email.S,
-    sender_email: item.sender_email.S,
-  };
+  var parts = _.decodePathname(item.audio_url.S);
 
+  var r: Recorder = makeRecorder({
+    recorder_id: parts.recorder_id,
+  })
+  var u: Upload = makeUpload({
+    upload_id: parts.id,
+    recorder: r,
+  });
+
+  var sender: Account = {
+    email: item.sender_email.S,
+  }
   if (item.sender_name) {
-    m.sender_name = item.sender_name.S;
-  }
-  if (item.handled) {
-    m.handled = +item.handled.N;
-  }
-  if (item.handled_by) {
-    m.handled_by = item.handled_by.S;
-  }
-  if (item.outcome) {
-    m.outcome = item.outcome.S;
-  }
-  if (item.read) {
-    m.read = +item.read.N;
+    sender.full_name = item.sender_name.S;
   }
 
-  return m;
+  var recipient: Account = {
+    email: item.recipient_email.S,
+  }
+
+  return makeMessage({
+    message_id: item.message_id.S,
+    created: +item.created.N,
+    sender: sender,
+    recipient: recipient,
+    upload: u,
+    handled: item.handled ? +item.handled.N : null,
+    handled_by: item.handled_by ? item.handled_by.S : null,
+    outcome: item.outcome ? item.outcome.S : null,
+    read: item.read ? +item.read.N : null,
+  });
 }
 
 function format(message: Message): MessageItem {
+  var audioURL = 'http://go.peppermint.com/' + message.upload.pathname();
+  if (!message.recipient.email) {
+    throw new Error('cannot save message without recipient email');
+  }
+  if (!message.sender.email) {
+    throw new Error('cannot save message without sender email');
+  }
   var item: MessageItem = {
     message_id: {S: message.message_id},
-    audio_url: {S: message.audio_url},
-    sender_email: {S: message.sender_email.toLowerCase()},
-    recipient_email: {S: message.recipient_email.toLowerCase()},
+    audio_url: {S: audioURL},
+    sender_email: {S: message.sender.email},
+    recipient_email: {S: message.recipient.email},
     created: {N: message.created.toString()},
   };
 
-  if (message.sender_name) {
-    item.sender_name = {S: message.sender_name};
+  if (message.sender.full_name) {
+    item.sender_name = {S: message.sender.full_name};
   }
   if (message.handled) {
     item.handled = {N: message.handled.toString()};
@@ -115,22 +127,6 @@ function format(message: Message): MessageItem {
   return item;
 }
 
-//factory returns a new object with created and message_id properties added and
-//with the sender_email and recipient_email lowercased;
-type attrs = {
-  audio_url: string;
-  recipient_email: string;
-  sender_email: string;
-  sender_name?: string;
-};
-function factory(m: attrs): Message {
-  return Object.assign({}, m, {
-    created: Date.now(),
-    message_id: token(22),
-    sender_email: m.sender_email.toLowerCase(),
-    recipient_email: m.recipient_email.toLowerCase(),
-  });
-}
 
 function save(message: Message): Promise<Message> {
   return new Promise(function(resolve, reject) {
@@ -156,8 +152,12 @@ function read(id: string): Promise<Message> {
         message_id: {S: id},
       },
     }, function(err, data) {
-      if (err || !data || !data.Item) {
+      if (err) {
         reject(err);
+        return;
+      }
+      if (!data || !data.Item) {
+        reject(ErrNotFound);
         return;
       }
       resolve(parse(data.Item));
@@ -165,4 +165,4 @@ function read(id: string): Promise<Message> {
   });
 }
 
-module.exports = {factory, save, read, query}
+module.exports = {save, read, query}

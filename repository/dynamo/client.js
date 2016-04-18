@@ -3,7 +3,6 @@ var options = {apiVersion: '2012-08-10'};
 
 if (process.env.NODE_ENV === 'development') {
   //dynamodb-local
-  aws.config.credentials = new aws.SharedIniFileCredentials({profile: 'peppermint'});
   //we don't have a real database in us-east-1
   options.region = 'us-east-1';
   options.endpoint = 'http://localhost:8000';

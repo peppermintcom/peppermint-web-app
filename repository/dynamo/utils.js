@@ -1,8 +1,10 @@
 // @flow
 import type {Entity} from '../domain'
-import type {QueryRequest, QueryResult, Query, ParseEntity, FormatRequest} from './types'
+import type {QueryResult} from '../types'
+import type {Query, ParseEntity, FormatRequest} from './types'
 
 import dynamo from './client'
+import _ from '../utils'
 
 //queryResult parses the data object returned in the callback to dynamo.query.
 function queryResult(parseEntity: Function, data: Object): QueryResult {
@@ -57,4 +59,4 @@ function decode64Obj(s: string): Object {
   return JSON.parse(Buffer(decodeURIComponent(s), 'base64').toString('utf8'));
 }
 
-module.exports = {queryResult, queryer, accmQuery, encode64Obj, decode64Obj}
+module.exports = Object.assign({}, _, {queryResult, queryer, accmQuery, encode64Obj, decode64Obj});
