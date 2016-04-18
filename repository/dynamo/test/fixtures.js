@@ -20,12 +20,12 @@ function recorder(): Promise<Recorder> {
   return recorders.save(r);
 }
 
-function account(): Promise<Account> {
+function account(verification_source?: string): Promise<Account> {
   return accounts.save(domain.newAccount({
     email: token(12) + '@mailinator.com',
     full_name: 'Satoshi ' + token(8),
     pass_hash: 'secret',
-    verification_source: null,
+    verification_source: verification_source || null,
   }));
 };
 

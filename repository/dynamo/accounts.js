@@ -27,7 +27,7 @@ function save(a: Account): Promise<Account> {
   });
 }
 
-function read(a: Account): Promise<Account> {
+function read(email: string): Promise<Account> {
   return new Promise(function(resolve, reject) {
     dynamo.getItem({
       TableName: 'accounts',
@@ -43,7 +43,7 @@ function read(a: Account): Promise<Account> {
         reject(ErrNotFound);
         return;
       }
-      resolve(parse(data.item));
+      resolve(parse(data.Item));
     });
   });
 }
@@ -74,7 +74,7 @@ function parse(item: AccountItem): Account {
     full_name: item.full_name.S,
     pass_hash: item.password.S,
     registered: +item.registration_ts.N,
-    verified: item.verification_ts ? +item.verification_ts : null,
+    verified: item.verification_ts ? +item.verification_ts.N : null,
     verification_source: item.verification_ip ? item.verification_ip.S : null,
   };
 }

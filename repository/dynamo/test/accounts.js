@@ -2,6 +2,7 @@
 import {expect} from 'chai'
 import {newAccount} from '../../domain'
 import {save, read} from '../accounts'
+import fixtures from './fixtures'
 
 describe('accounts', function() {
   describe('save', function() {
@@ -16,6 +17,18 @@ describe('accounts', function() {
       return save(a)
         .then(function(_a) {
           expect(_a).to.equal(a);
+        });
+    });
+  });
+
+  describe('read', function() {
+    it('should restore a saved Account from dynamo.', function() {
+      return fixtures.account('127.0.0.1')
+        .then(function(account) {
+          return read(account.email)
+            .then(function(_a) {
+              expect(_a).to.deep.equal(account);
+            });
         });
     });
   });
