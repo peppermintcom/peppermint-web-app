@@ -1,6 +1,6 @@
 // @flow
 import type {Entity} from '../domain'
-import type {QueryResult} from '../types'
+import type {QueryConfig, QueryResult} from '../types'
 import type {Query, ParseEntity, FormatRequest} from './types'
 
 import dynamo from './client'
@@ -11,17 +11,17 @@ function queryResult(parseEntity: Function, data: Object): QueryResult {
   var r: QueryResult = {
     entities: ((data && data.Items) || []).map(parseEntity),
   };
-  var next = data && data.LastEvaluatedKey;
+  var position = data && data.LastEvaluatedKey;
 
-  return next ? Object.assign(r, { next }) : r;
+  return position ? Object.assign(r, { position }) : r;
 }
 
 //queryer returns a function that runs a query against dynamo in a Promise and
 //parses the response.
 function queryer(format: FormatRequest, parse: ParseEntity): Query {
-  return function(params: Object): Promise<QueryResult> {
+  return function(params: Object, options: QueryConfig): Promise<QueryResult> {
     return new Promise(function(resolve, reject) {
-      dynamo.query(format(params), function(err, data) {
+      dynamo.query(format(params, options), function(err, data) {
         if (err || (data == null)) {
           reject(err);
           return;
@@ -39,7 +39,7 @@ function accmQuery(query: Query, min: number, params: Object, memo?: Entity[]): 
       if (typeof memo === 'undefined') {
         memo = [];
       }
-      if (qr.next && qr.entities.length < min) {
+      if (qr.position && qr.entities.length < min) {
         return accmQuery(query, min, params, memo.concat(qr.entities));
       }
       qr.entities = memo.concat(qr.entities);
@@ -48,7 +48,7 @@ function accmQuery(query: Query, min: number, params: Object, memo?: Entity[]): 
 }
 
 //encode64Obj returns the base64 encoding of a JSON.stringified object. It can be
-//used as a default next encoder for LastEvalutedKey.
+//used as a default position encoder for LastEvalutedKey.
 function encode64Obj(o: Object): string {
   return encodeURIComponent(Buffer(JSON.stringify(o)).toString('base64'));
 }

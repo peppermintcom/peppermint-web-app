@@ -1,7 +1,7 @@
 // @flow
 import type {Query, DynamoQueryRequest, N, S} from './types'
 import type {Recorder, Account, Message, Upload} from '../domain'
-import type {QueryResult, QueryMessagesByEmail} from '../types'
+import type {QueryResult, QueryConfig, QueryMessagesByEmail} from '../types'
 
 type MessageItem = {
   message_id: S;
@@ -24,8 +24,8 @@ import _ from './utils'
 
 const LIMIT = 40;
 
-let encodeNext = _.encode64Obj;
-let decodeNext = _.decode64Obj;
+let encodePosition = _.encode64Obj;
+let decodePosition = _.decode64Obj;
 
 let queryEmail: Query = _.queryer(formatEmailQuery, parse);
 //may be expanded to support dynamic dispatch in the future
@@ -35,8 +35,7 @@ let query = queryEmail;
 //Filters out messages that have not finished uploading by checking for the
 //handled timestamp, which is added by the postprocessing lambda function after
 //the putObject event fires.
-//type FormatRequest
-function formatEmailQuery(params: QueryMessagesByEmail): DynamoQueryRequest {
+function formatEmailQuery(params: QueryMessagesByEmail, options: QueryConfig): DynamoQueryRequest {
   //"sender_email" | "recipient_email"
   var primary: string = params.role + '_email';
   var r: DynamoQueryRequest = {
@@ -47,11 +46,11 @@ function formatEmailQuery(params: QueryMessagesByEmail): DynamoQueryRequest {
     KeyConditionExpression: primary + ' = :' + primary,
     ExpressionAttributeValues: { [':' + primary]: {S: params.email.toLowerCase()} },
     FilterExpression: 'attribute_exists(handled)',
-    Limit: LIMIT,
+    Limit: options.limit,
   };
 
-  if (params.offset) {
-    r.ExclusiveStartKey = decodeNext(params.offset);
+  if (options.position) {
+    r.ExclusiveStartKey = decodePosition(options.position);
   }
 
   return r;
@@ -65,6 +64,7 @@ function parse(item: MessageItem): Message {
   })
   var u: Upload = domain.makeUpload({
     upload_id: parts.id,
+    content_type: parts.content_type,
     recorder: r,
   });
 

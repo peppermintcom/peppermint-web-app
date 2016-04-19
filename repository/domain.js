@@ -2,7 +2,9 @@
 import token from '../utils/randomtoken'
 import _ from './utils'
 
-var ErrNotFound = new Error('entity not found');
+var ErrNotFound = new Error('Entity not found.');
+var ErrAPIKey = new Error('Unknown API key.');
+var ErrConflict = new Error('Conflict with existing entity.');
 
 //milliseoncds since the epoch
 export type Timestamp = number;
@@ -21,11 +23,10 @@ export type Recorder = {
 
 export type RecorderParts = {
   api_key: string;
-  client_id?: string;
+  client_id: string;
   recorder_key_hash: string;
-  description?: string;
+  description: ?string;
 }
-
 //newRecorder adds a unique recorder_id, a registered timestamp, and a client_id
 //if missing.
 function newRecorder(r: RecorderParts): Recorder {
@@ -207,6 +208,8 @@ function makeAccount(a: Account): Account {
 
 export default {
   ErrNotFound,
+  ErrAPIKey,
+  ErrConflict,
   newUpload,
   makeUpload,
   newRecorder,

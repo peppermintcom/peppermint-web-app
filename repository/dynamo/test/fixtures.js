@@ -18,7 +18,10 @@ function account(verification_source?: string): Promise<Account> {
 };
 
 function upload(r?: Recorder, c?: Account): Promise<Upload> {
-  return uploads.save(fake.upload(r, c));
+  return (r ? Promise.resolve(r) : recorder())
+  .then(function(recorder) {
+    return uploads.save(fake.upload(recorder, c))
+  })
 }
 
 type MessageConfig = {
@@ -29,7 +32,20 @@ type MessageConfig = {
   read: boolean;
 }
 function message(options: MessageConfig): Promise<Message> {
-  return messages.save(fake.message(options));
+  return Promise.all([
+    options.upload ?  Promise.resolve(options.upload) : upload(),
+    options.sender ?  Promise.resolve(options.sender) : account(),
+    options.recipient ?  Promise.resolve(options.recipient) : account(),
+  ])
+  .then(function(res) {
+    return messages.save(fake.message({
+      upload: res[0],
+      sender: res[1],
+      recipient: res[2],
+      handled: options.handled,
+      read: options.read,
+    }))
+  })
 }
 
 export default {recorder, account, upload, message}

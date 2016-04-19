@@ -64,6 +64,109 @@ describe('dynamo messages repository', function() {
       });
     });
   });
+
+  describe('query', function() {
+    describe('bob sent ann 1 message yesterday', function() {
+      var bob, ann, message;
+
+      before(function() {
+        return Promise.all([
+          fixtures.account(),
+          fixtures.account(),
+        ])
+        .then(function(results) {
+          bob = results[0];
+          ann = results[1];
+        });
+      });
+
+      before(function() {
+        return fixtures.message({
+          sender: bob,
+          recipient: ann,
+          handled: true,
+          read: false,
+        })
+        .then(function(_message) {
+          message = _message;
+        });
+      });
+
+      describe('query bob qua sender past week', function() {
+        it('should return the message.', function() {
+          return messages.query({
+            email: bob.email,
+            role: 'sender',
+            order: 'reverse',
+            start_time: Date.now() - (1000 * 60 * 60 * 24 * 7),
+            end_time: Date.now(),
+          }, {
+            limit: 10,
+          })
+          .then(function(result) {
+            expect(result).not.to.have.property('position');
+            expect(result).to.have.property('entities');
+            expect(result.entities).to.have.length(1);
+            expectEqual(result.entities[0], message);
+          });
+        });
+      });
+
+      describe('query ann qua recipient past week', function() {
+        it('should return the message.', function() {
+          return messages.query({
+            email: ann.email,
+            role: 'recipient',
+            order: 'reverse',
+            start_time: Date.now() - (1000 * 60 * 60 * 24 * 7),
+            end_time: Date.now(),
+          }, {
+            limit: 10,
+          })
+          .then(function(result) {
+            expect(result).not.to.have.property('position')
+            expect(result).to.have.property('entities')
+            expect(result.entities).to.have.length(1)
+            expectEqual(result.entities[0], message)
+          });
+        });
+      });
+
+      describe('query bob qua recipient past week', function() {
+        it('should return an empty set.', function() {
+          return messages.query({
+            email: bob.email,
+            role: 'recipient',
+            order: 'reverse',
+            start_time: Date.now() - (1000 * 60 * 60 * 24 * 7),
+            end_time: Date.now(),
+          }, {
+            limit: 10
+          })
+          .then(function(result) {
+            expect(result).to.deep.equal({entities: []})
+          })
+        })
+      })
+
+      describe('query ann qua recipient past week', function() {
+        it('should return an empty set.', function() {
+          return messages.query({
+            email: ann.email,
+            role: 'sender',
+            order: 'reverse',
+            start_time: Date.now() - (1000 * 60 * 60 * 24 * 7),
+            end_time: Date.now(),
+          }, {
+            limit: 10,
+          })
+          .then(function(result) {
+            expect(result).to.deep.equal({entities: []})
+          })
+        })
+      })
+    });
+  });
 });
 
 function expectEqual(m1, m2) {
@@ -71,6 +174,7 @@ function expectEqual(m1, m2) {
   expect(m1).to.have.property('created', m2.created);
   expect(JSON.stringify(m1.upload)).to.equal(JSON.stringify({
     upload_id: m2.upload.upload_id,
+    content_type: m2.upload.content_type,
     recorder: {
       recorder_id: m2.upload.recorder.recorder_id,
     },

@@ -1,17 +1,13 @@
 //@flow
 import {expect} from 'chai'
-import fake from '../../../utils/fake'
-import domain from '../../domain'
+import fake from '../../fake'
 import recorders from '../recorders'
 import fixtures from './fixtures'
 
 describe('dynamo recorders', function() {
   describe('save', function() {
     it('should save a Recorder.', function() {
-      var recorder = domain.newRecorder({
-        api_key: fake.API_KEY,
-        recorder_key_hash: 'secret',
-      });
+      var recorder = fake.recorder();
 
       return recorders.save(recorder)
         .then(function(_r) {

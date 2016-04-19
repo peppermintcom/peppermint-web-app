@@ -1,4 +1,5 @@
 import type {Account} from '../domain'
+import type {SaveConfig} from '../types'
 
 import domain from '../domain'
 import dynamo from './client'
@@ -13,13 +14,22 @@ export type AccountItem = {
   verification_ip?: S;
 }
 
-function save(a: Account): Promise<Account> {
+function save(a: Account, options?: SaveConfig): Promise<Account> {
   return new Promise(function(resolve, reject) {
-    dynamo.putItem({
+    let params = {
       TableName: 'accounts',
       Item: format(a),
-    }, function(err) {
+    }
+
+    if (options && options.checkConflict) {
+      params.ConditionExpression = 'attribute_not_exists(email)'
+    }
+    dynamo.putItem(params, function(err) {
       if (err) {
+        if (err.code === 'ConditionalCheckFailedException') {
+          reject(domain.ErrConflict);
+          return;
+        }
         reject(err);
         return;
       }
@@ -33,7 +43,7 @@ function read(email: string): Promise<Account> {
     dynamo.getItem({
       TableName: 'accounts',
       Key: {
-        email: {S: email},
+        email: {S: email.toLowerCase()},
       }
     }, function(err, data) {
       if (err) {

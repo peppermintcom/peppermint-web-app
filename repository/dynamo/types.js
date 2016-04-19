@@ -1,6 +1,6 @@
 // @flow
 import type {Entity} from '../domain'
-import type {QueryResult} from '../types'
+import type {QueryConfig, QueryResult} from '../types'
 
 //string, number, boolean in dynamoDB
 export type S = {S: string};
@@ -18,7 +18,7 @@ export type DynamoQueryRequest = {
   Limit: number;
   ExclusiveStartKey?: Object;
 }
-export type Query = (params: Object)=>Promise<QueryResult>
+export type Query = (params: Object, options: QueryConfig)=>Promise<QueryResult>
 
 export type ParseEntity = (item: Object) => Entity
 export type FormatRequest = (params: Object) => DynamoQueryRequest

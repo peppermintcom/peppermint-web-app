@@ -1,7 +1,8 @@
 import type {Recorder} from '../domain'
+import type {SaveConfig} from '../types'
 import type {S, N} from './types'
 
-import {ErrNotFound} from '../domain'
+import domain from '../domain'
 import dynamo from './client'
 
 type RecorderItem = {
@@ -14,13 +15,23 @@ type RecorderItem = {
   gcm_registration_token?: S;
 }
 
-function save(r: Recorder): Promise<Recorder> {
+function save(r: Recorder, options?: SaveConfig): Promise<Recorder> {
   return new Promise(function(resolve, reject) {
-    dynamo.putItem({
+    let params: Object = {
       TableName: 'recorders',
       Item: format(r),
-    }, function(err) {
+    }
+
+    if (options && options.checkConflict) {
+      params.ConditionExpression = 'attribute_not_exists(client_id)'
+    }
+
+    dynamo.putItem(params, function(err) {
       if (err) {
+        if (err.code === 'ConditionalCheckFailedException') {
+          reject(domain.ErrConflict);
+          return;
+        }
         reject(err);
         return;
       }
@@ -42,7 +53,7 @@ function read(clientID: string): Promise<Recorder> {
         return;
       }
       if (!data || !data.Item) {
-        reject(ErrNotFound);
+        reject(domain.ErrNotFound);
         return;
       }
       resolve(parse(data.Item));

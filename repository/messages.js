@@ -1,40 +1,20 @@
 //@flow
 import type {Account, Message} from './domain'
-import type {QueryMessagesByEmail, QueryResult} from './types'
+import type {QueryMessagesByEmail, QueryConfig, QueryResult} from './types'
 
-import token from 'utils/randomtoken'
-import messages from './dynamo/messages'
+import dynamo from './dynamo/messages'
 import uploads from './uploads'
 
-
-//querySender fetches messages sent by an email and includes the
-//upload/transcription with each returned message.
-function querySender(a: Account, next?: string): Promise<QueryResult> {
-  let q: QueryMessagesByEmail = {
-    email: a.email,
-    role: 'sender',
-    offset: next,
-  };
-
-  return messages.query(q)
+function query(params: QueryMessagesByEmail, options: QueryConfig): Promise<QueryResult> {
+  return dynamo.query(params, options)
+  .then(function(qr) {
+    return Promise.all(qr.entities.map(attachUpload))
     .then(function(messages) {
-      return Promise.all(messages.map(attachUpload));
-    });
-}
+      qr.entities = messages;
 
-//querySender fetches messages received by an email and includes the
-//upload/transcription with each returned message.
-function queryRecipient(a: Account, next?: string): Promise<QueryResult> {
-  let q: QueryMessagesByEmail = {
-    email: a.email,
-    role: 'recipient',
-    offset: next,
-  };
-
-  return messages.query(q)
-    .then(function(messages) {
-      return Promise.all(messages.map(attachUpload));
-    });
+      return qr;
+    })
+  })
 }
 
 //attachUpload looks up the upload related to a message and adds it to the
@@ -48,12 +28,11 @@ function attachUpload(m: Message): Promise<Message> {
       m.upload = upload;
 
       return m;
-    });
+    })
 }
 
-module.exports = {
-  save: messages.save,
-  read: messages.read,
-  querySender: querySender,
-  queryRecipient: queryRecipient,
-};
+export default {
+  query,
+  read: dynamo.read,
+  save: dynamo.save,
+}

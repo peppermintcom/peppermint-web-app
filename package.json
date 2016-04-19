@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "flow check && mocha -t 10000 --bail --compilers js:babel-register --recursive utils/ resources/ postprocessing/ repository/",
+    "test": "flow check && mocha -t 10000 --bail --compilers js:babel-register --recursive utils/ resources/ postprocessing/ repository/ procedures/",
     "integration-tests": "mocha -t 20000 --bail test/",
     "start": "gulp serve",
     "swagger": "gulp swagger"

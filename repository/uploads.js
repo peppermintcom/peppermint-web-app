@@ -17,6 +17,7 @@ function read(pathname: string): Promise<Upload> {
         if (err === domain.ErrNotFound) {
           return null;
         }
+        throw err
       }),
     ])
     .then(function(results) {

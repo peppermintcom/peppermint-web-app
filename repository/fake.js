@@ -5,9 +5,16 @@ import fake from '../utils/fake'
 import token from '../utils/randomtoken'
 import domain from './domain'
 
+const API_KEY = 'abc123'
+
+let name = (): string => 'Satoshi ' + token(8)
+let email = (): string => token(8) + '@mailinator.com'
+let secret = (): string => token(12)
+
 function recorder(): Recorder {
   return domain.newRecorder({
     api_key: fake.API_KEY,
+    client_id: token(22),
     description: 'test fixture',
     recorder_key_hash: 'secret',
   });
@@ -15,9 +22,9 @@ function recorder(): Recorder {
 
 function account(verification_source?: string): Account {
   return domain.newAccount({
-    email: token(12) + '@mailinator.com',
-    full_name: 'Satoshi ' + token(8),
-    pass_hash: 'secret',
+    email: email(),
+    full_name: name(),
+    pass_hash: secret(),
     verification_source: verification_source || null,
   });
 };
@@ -56,4 +63,4 @@ function message(options: MessageConfig): Message {
   return message;
 }
 
-export default {recorder, account, upload, message}
+export default {API_KEY, name, email, secret, recorder, account, upload, message}

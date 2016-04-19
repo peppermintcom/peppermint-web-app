@@ -10,8 +10,8 @@ type TranscriptionItem = {
   audio_url: S;
 }
 
-var dynamo = require('./client');
-var ErrNotFound = require('../domain').ErrNotFound;
+import dynamo from './client'
+import domain from '../domain'
 
 //save puts the transcription in dynamo and resolves to the unmodified input.
 function save(transcription: Transcription): Promise<Transcription> {
@@ -42,7 +42,7 @@ function read(id: string): Promise<Transcription> {
         return;
       }
       if (!data || !data.Item) {
-        reject(ErrNotFound);
+        reject(domain.ErrNotFound);
         return;
       }
       resolve(parse(data.Item));
@@ -76,4 +76,10 @@ function parse(item: TranscriptionItem): Transcription {
     text: item.text && item.text.S,
     created: +item.timestamp.N,
   };
+}
+
+export default {
+  read,
+  save,
+  discard,
 }
