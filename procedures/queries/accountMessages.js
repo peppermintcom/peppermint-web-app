@@ -1,3 +1,8 @@
+/*
+ * This operation can search an email qua sender, qua recipient, or both. When
+ * searching by a role (sender or recipient) it accepts a postion offset
+ * parameter.
+ */
 import type {QueryResult} from '../../repository/types'
 
 import messages from '../../repository/messages'

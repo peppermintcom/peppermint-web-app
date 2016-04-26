@@ -424,6 +424,7 @@ describe('lambda:CreateMessage', function() {
       var r1Token = _.token(64);
       var r2Token = _.token(64);
       var gcmResponse;
+      var response;
 
       before(function() {
         _.gcm.good(r1Token);

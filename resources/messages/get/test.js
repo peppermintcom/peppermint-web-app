@@ -7,7 +7,7 @@ var _ = require('utils/test');
 var WEEK = 1000 * 60 * 60 * 24 * 7;
 const begin = '2016-01-01 00:00:00';
 
-describe('lambda:SearchMessages', function() {
+describe.skip('lambda:SearchMessages', function() {
   var sender;
   var recipient;
   var msgs;

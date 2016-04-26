@@ -13,7 +13,7 @@ describe('query account messages', function() {
       return Promise.all([
         fixtures.account(),
         fixtures.account(),
-        fixtures.account,
+        fixtures.account(),
       ])
       .then(function(accounts) {
         bob = accounts[0][0]
@@ -39,14 +39,15 @@ describe('query account messages', function() {
         })
       ])
     })
-      
+ 
     describe('query bob', function() {
       it('should return 1 message in the sender result set and 1 message in the recipient result set.', function() {
         return accountMessages({
           email: bob.email,
-          start_time: Date.now() - (1000 * 60 * 60 * 24 * 7),
+          start_time: Date.now() - (1000 * 60 * 60 * 24 * 30),
           end_time: Date.now(),
           limit: 10,
+          order: 'reverse',
         })
         .then(function(result) {
           expect(result.sender.entities).to.have.length(1)
