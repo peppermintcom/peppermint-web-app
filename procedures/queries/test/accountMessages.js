@@ -40,7 +40,7 @@ describe('query account messages', function() {
       ])
     })
       
-    describe.only('query bob', function() {
+    describe('query bob', function() {
       it('should return 1 message in the sender result set and 1 message in the recipient result set.', function() {
         return accountMessages({
           email: bob.email,

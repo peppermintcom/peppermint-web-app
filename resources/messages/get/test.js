@@ -1,7 +1,7 @@
 var expect = require('chai').expect;
 var tv4 = require('tv4');
 var spec = require('./spec');
-var handler = require('./').handler;
+var handler = require('../../../lambda/bundle').GetMessages;
 var _ = require('utils/test');
 
 var WEEK = 1000 * 60 * 60 * 24 * 7;

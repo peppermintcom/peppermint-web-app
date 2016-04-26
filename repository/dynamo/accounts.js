@@ -59,6 +59,34 @@ function read(email: string): Promise<Account> {
   });
 }
 
+function readByID(accountID: string): Promise<Account> {
+  return new Promise(function(resolve, reject) {
+    dynamo.query({
+      TableName: 'accounts',
+      IndexName: 'account_id-index',
+      KeyConditionExpression: 'account_id = :account_id',
+      ExpressionAttributeValues: {
+        ':account_id': {S: accountID},
+      },
+    }, function(err, data) {
+      if (err) {
+        reject(err)
+        return
+      }
+      if (data.Count === 0) {
+        reject(domain.ErrNotFound)
+        return
+      }
+      if (data.Count > 1) {
+        var msg = 'account lookup by id "' + accountID + '" returned multiple accounts'
+        reject(new Error(msg))
+        return
+      }
+      resolve(parse(data.Items[0]))
+    })
+  })
+}
+
 function format(a: Account): AccountItem {
   var item: AccountItem = {
     email: {S: a.email},
@@ -90,4 +118,4 @@ function parse(item: AccountItem): Account {
   };
 }
 
-module.exports = {save, read};
+module.exports = {save, read, readByID};

@@ -1,24 +1,24 @@
 // @flow
 import type {Entity} from '../domain'
 import type {QueryConfig, QueryResult} from '../types'
-import type {Query, ParseEntity, FormatRequest} from './types'
+import type {Query, ParseEntity, FormatRequest, EncodePosition} from './types'
 
 import dynamo from './client'
 import _ from '../utils'
 
 //queryResult parses the data object returned in the callback to dynamo.query.
-function queryResult(parseEntity: Function, data: Object): QueryResult {
+function queryResult(parseEntity: Function, encodePosition: Function, data: Object): QueryResult {
   var r: QueryResult = {
     entities: ((data && data.Items) || []).map(parseEntity),
   };
   var position = data && data.LastEvaluatedKey;
 
-  return position ? Object.assign(r, { position }) : r;
+  return position ? Object.assign(r, {position: encodePosition(position)}) : r;
 }
 
 //queryer returns a function that runs a query against dynamo in a Promise and
 //parses the response.
-function queryer(format: FormatRequest, parse: ParseEntity): Query {
+function queryer(format: FormatRequest, parse: ParseEntity, encode: EncodePosition): Query {
   return function(params: Object, options: QueryConfig): Promise<QueryResult> {
     return new Promise(function(resolve, reject) {
       dynamo.query(format(params, options), function(err, data) {
@@ -26,7 +26,7 @@ function queryer(format: FormatRequest, parse: ParseEntity): Query {
           reject(err);
           return;
         }
-        resolve(queryResult(parse, data));
+        resolve(queryResult(parse, encode, data));
       });
     });
   }

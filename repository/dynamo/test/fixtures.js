@@ -28,6 +28,7 @@ type MessageConfig = {
   upload?: Upload;
   sender?: Account;
   recipient?: Account;
+  created?: number;
   handled: boolean;
   read: boolean;
 }
@@ -38,13 +39,17 @@ function message(options: MessageConfig): Promise<Message> {
     options.recipient ?  Promise.resolve(options.recipient) : account(),
   ])
   .then(function(res) {
-    return messages.save(fake.message({
+    let msg = fake.message({
       upload: res[0],
       sender: res[1],
       recipient: res[2],
       handled: options.handled,
       read: options.read,
-    }))
+    })
+
+    msg.created = options.created || msg.created
+
+    return messages.save(msg)
   })
 }
 

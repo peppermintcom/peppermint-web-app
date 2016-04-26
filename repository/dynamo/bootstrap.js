@@ -1,7 +1,8 @@
 var schema = require('./schema');
 var dynamo = require('./client');
+var conf = require('../../utils/conf')
 
-if (process.env.NODE_ENV === 'production') {
+if (conf.NODE_ENV !== 'development') {
   throw new Error('this would have deleted the production database');
 }
 

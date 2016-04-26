@@ -5,6 +5,7 @@ import fake from '../../repository/fake'
 import fixtures from '../../repository/dynamo/test/fixtures'
 import registerRecorder from '../commands/registerRecorder'
 import registerAccount from '../commands/registerAccount'
+import _jwt from '../../utils/jwt'
 
 function recorder(): Promise<[Recorder, string]> {
   return registerRecorder({
@@ -31,9 +32,12 @@ function account(): Promise<[Account, string]> {
   })
 }
 
+//creates a given number of messages over the past month
 function messages(options: Object): Promise<Message[]> {
   let count = Math.max(options.handled_count, options.read_count)
   let configs = []
+  const MONTH = 1000 * 60 * 60 * 24 * 30
+  let start = Date.now() - MONTH
 
   for (let i = 0; i < count; i++) {
     configs.push(fixtures.message({
@@ -41,14 +45,23 @@ function messages(options: Object): Promise<Message[]> {
       recipient: options.recipient,
       handled: i < options.handled_count,
       read: i < options.read_count,
+      created: Date.now() - Math.round((Math.random() * MONTH)),
     }))
   }
 
   return Promise.all(configs)
 }
 
+//wrap jwt.creds to provide a single point of update for running tests in
+//different environments
+function jwt(accountID?: string, recorderID?: string): string {
+  return _jwt.creds(accountID, recorderID)
+}
+
 export default {
+  API_KEY: 'abc123',
   recorder,
   account,
   messages,
+  jwt,
 }

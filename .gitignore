@@ -1,5 +1,7 @@
 *.txt
 spike.js
+lambda/bundle.js
+lambda/lambda.zip
 #lambda env vars
 utils/conf.json
 utils/apps.js

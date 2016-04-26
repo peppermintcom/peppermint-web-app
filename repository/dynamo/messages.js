@@ -22,12 +22,10 @@ import dynamo from './client'
 import token from '../../utils/randomtoken'
 import _ from './utils'
 
-const LIMIT = 40;
-
 let encodePosition = _.encode64Obj;
 let decodePosition = _.decode64Obj;
 
-let queryEmail: Query = _.queryer(formatEmailQuery, parse);
+let queryEmail: Query = _.queryer(formatEmailQuery, parse, encodePosition);
 //may be expanded to support dynamic dispatch in the future
 let query = queryEmail;
 
@@ -43,8 +41,12 @@ function formatEmailQuery(params: QueryMessagesByEmail, options: QueryConfig): D
     //"recipient_email-created-index" | "sender_email-created-index"
     IndexName: primary + '-created-index',
     //e.g. "recipient_email = :recipient_email" | "sender_email = :sender_email"
-    KeyConditionExpression: primary + ' = :' + primary,
-    ExpressionAttributeValues: { [':' + primary]: {S: params.email.toLowerCase()} },
+    KeyConditionExpression: primary + ' = :' + primary + ' AND created BETWEEN :start_time AND :end_time',
+    ExpressionAttributeValues: {
+      [':' + primary]: {S: params.email.toLowerCase()},
+      ':start_time': {N: params.start_time.toString()},
+      ':end_time': {N: params.end_time.toString()},
+    },
     FilterExpression: 'attribute_exists(handled)',
     Limit: options.limit,
   };

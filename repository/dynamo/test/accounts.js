@@ -32,4 +32,16 @@ describe('accounts', function() {
         });
     });
   });
+
+  describe('readByID', function() {
+    it('should restore a saved Account from dyanmo.', function() {
+      return fixtures.account('google')
+        .then(function(account) {
+          return accounts.readByID(account.account_id)
+            .then(function(_a) {
+              expect(_a).to.deep.equal(account)
+            })
+        })
+    })
+  })
 });

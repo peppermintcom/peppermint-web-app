@@ -37,5 +37,6 @@ function upsert (a: Account): Promise<Account> {
 export default {
   upsert,
   read: dynamo.read,
+  readByID: dynamo.readByID,
   save: dynamo.save,
 }

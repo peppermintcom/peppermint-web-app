@@ -1,6 +1,7 @@
 // @flow
 import token from '../utils/randomtoken'
 import _ from './utils'
+import timestamp from '../utils/timestamp'
 
 var ErrNotFound = new Error('Entity not found.');
 var ErrAPIKey = new Error('Unknown API key.');
@@ -142,7 +143,42 @@ export type Message = {
   handled_by: ?string;
   outcome: ?string;
   read: ?Timestamp;
+  audioURL: Function;
+  resource: Function;
 }
+
+let messageProto = {
+  audioURL: function() {
+    return 'http://go.peppermint.com/' + this.upload.pathname();
+  },
+  resource: function() {
+    let attrs: Object = {
+      audio_url: this.audioURL(),
+      sender_email: this.sender.email,
+      sender_name: this.sender.full_name,
+      recipient_email: this.recipient.email,
+      created: timestamp(this.created),
+    }
+
+    if (this.upload.duration) {
+      attrs.duration = this.upload.duration
+    }
+
+    if (this.transcription) {
+      attrs.transcription = this.transcription.text
+    }
+
+    if (this.read) {
+      attrs.read = timestamp(this.read)
+    }
+
+    return {
+      type: 'messages',
+      id: this.message_id,
+      attributes: attrs,
+    }
+  }
+};
 
 export type MessageParts = {
   upload: Upload;
@@ -152,21 +188,23 @@ export type MessageParts = {
 
 //newMessage adds message_id and created properties and returns a Message.
 function newMessage(m: MessageParts): Message {
-  return {
-    upload: m.upload,
-    message_id: token(22),
-    created: Date.now(),
-    recipient: m.recipient,
-    sender: m.sender,
-    handled: null,
-    handled_by: null,
-    outcome: null,
-    read: null,
-  };
+  let message: Object = Object.create(messageProto)
+
+  message.message_id = token(22)
+  message.upload = m.upload
+  message.created = Date.now()
+  message.recipient = m.recipient
+  message.sender = m.sender
+  message.handled = null
+  message.handled_by = null
+  message.outcome = null
+  message.read = null
+
+  return message
 }
 
-function makeMessage(m: Message): Message {
-  return m;
+function makeMessage(m: Object): Message {
+  return Object.assign(Object.create(messageProto), m);
 }
 
 export type Account = {

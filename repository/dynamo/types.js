@@ -22,3 +22,4 @@ export type Query = (params: Object, options: QueryConfig)=>Promise<QueryResult>
 
 export type ParseEntity = (item: Object) => Entity
 export type FormatRequest = (params: Object) => DynamoQueryRequest
+export type EncodePosition = (last: {[name:string]: DynamoValue}) => string
