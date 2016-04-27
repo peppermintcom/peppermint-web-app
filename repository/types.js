@@ -18,3 +18,8 @@ export type QueryMessagesByEmail = {
   start_time: number;
   end_time: number;
 }
+
+export type QueryMessagesUnread = {
+  recipient_email: string;
+  last_message_id: string;
+}
