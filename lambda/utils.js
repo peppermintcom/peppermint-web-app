@@ -4,9 +4,15 @@ import apps from '../utils/apps'
 import jwt from '../utils/jwt'
 
 //status 400
-let ErrAPIKey = new Error('Invalid API Key')
+let ErrAPIKey: Object = new Error('400')
+ErrAPIKey.detail = 'Invalid API Key'
+
 //status 401
-let ErrAuthorizationHeader = new Error('Authorization header should be formatted: Bearer <JWT>')
+let ErrAuthorizationHeader: Object = new Error('401')
+ErrAuthorizationHeader.detail = 'Authorization header should be formatted: Bearer <JWT>'
+
+let ErrAuth: Object = new Error('401')
+ErrAuth.detail = 'Error: Signature verification failed'
 
 type handler = {
   fn: Function;
@@ -48,39 +54,14 @@ function use(actions: action[]): Function {
       cb(null, state.response);
     })
     .catch(function(err) {
-      //TODO error processing
+      if (err.detail) {
+        //JSON-API error objects
+        err.name = JSON.stringify({detail: err.detail})
+      } else {
+        //unexpected error
+        console.log(err)
+      }
       cb(err);
-      /*
-      //known Peppermint errors
-      if (err.status) {
-        var e = new Error(err.status);
-
-        e.name = JSON.stringify(_.pick(err, 'detail', 'title', 'code'));
-        reply.fail(e);
-        return;
-      }
-      //other errors can be passed on if they have a message property
-      if (err.message) {
-
-        //format name as jsonapi error if plain string
-        try {
-          JSON.parse(err.name);
-        } catch(e) {
-          //err.name is not already a JSON stringified error object with a
-          //detail property so make it one
-          err.name = JSON.stringify({detail: err.name});
-        }
-
-        reply.fail(err);
-        return;
-      }
-      //errors without a message property will be mapped to the default
-      //(OK) acction by Gateway, so add something that will be picked up
-      //by an error integration in Lambda error regex.
-      console.log('unknown error:');
-      console.log(util.inspect(err, {depth: null}));
-      reply.fail(new Error('Internal Server Error'));
-      */
     });
   };
 }
@@ -129,8 +110,7 @@ function authenticate(state: Object): Promise<identity> {
     let parsed = jwt.verify(parts[1]);
 
     if (parsed.err) {
-      //status 401
-      reject(new Error(parsed.err.toString()));
+      reject(ErrAuth)
       return
     }
 

@@ -5,7 +5,6 @@ var _ = require('./index');
 
 const API_URL = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1';
 
-
 exports.API_URL = API_URL;
 
 exports.fake = require('./fake');

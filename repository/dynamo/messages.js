@@ -49,6 +49,7 @@ function formatEmailQuery(params: QueryMessagesByEmail, options: QueryConfig): D
     },
     FilterExpression: 'attribute_exists(handled)',
     Limit: options.limit,
+    ScanIndexForward: params.order !== 'reverse',
   };
 
   if (options.position) {

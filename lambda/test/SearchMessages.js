@@ -5,11 +5,12 @@ import * as spec from '../../resources/messages/get/spec'
 import fixtures from '../../procedures/test/fixtures'
 import {SearchMessages} from '../bundle'
 import timestamp from '../../utils/timestamp'
+import parseTime from '../../utils/parseTime'
 
 var WEEK = 1000 * 60 * 60 * 24 * 7;
 const begin = '2016-01-01 00:00:00';
 
-describe('lambda:SearchMessages2', function() {
+describe('lambda:GetMessages', function() {
   describe('no messages have been sent', function() {
     let bob = null;
 
@@ -114,38 +115,61 @@ describe('lambda:SearchMessages2', function() {
           if (!tv4.validate(res, spec.responses['200'].schema)) {
             return done(tv4.error)
           }
+          //check chronological order
+          expect(parseTime(res.data[0].attributes.created)).to.be.below(
+                parseTime(res.data[99].attributes.created))
           done()
         })
       })
 
-      describe('with limit of 25', function() {
-        it('should return 25 messages and a "next" link.', function(done) {
+      describe('in reverse order', function(done) {
+        it('should return the same messages from oldest to newest.', function(done) {
           SearchMessages({
             api_key: fixtures.API_KEY,
             Authorization: bob.Authorization,
             sender_id: bob.account_id,
-            limit: 25,
+            order: 'reverse',
+          }, null, function(err, res) {
+            //check reverse order
+            expect(parseTime(res.data[0].attributes.created)).to.be.above(
+                  parseTime(res.data[99].attributes.created))
+            done()
+          })
+        })
+      })
+
+      describe('with limit of 75', function() {
+        it('should return 75 messages and a "next" link.', function(done) {
+          SearchMessages({
+            api_key: fixtures.API_KEY,
+            Authorization: bob.Authorization,
+            sender_id: bob.account_id,
+            limit: '75',
+            order: 'reverse',
           }, null, function(err, res) {
             if (err) return done(err)
-            expect(res.data).to.have.length(25)
             if (!tv4.validate(res, spec.responses['200'].schema)) {
               return done(tv4.error)
             }
-            expect(res.data).to.have.length(25)
+            expect(res.data).to.have.length(75)
             expect(res).to.have.property('links')
             expect(res.links).to.have.property('next')
 
             let parts = url.parse(res.links.next, true)
+            expect(parts.query.sender).to.equal(bob.account_id)
+            expect(parts.query).to.have.property('limit', '75')
+            expect(parts.query).to.have.property('order', 'reverse')
 
             SearchMessages({
               api_key: fixtures.API_KEY,
               Authorization: bob.Authorization,
-              sender_id: bob.account_id,
+              sender_id: parts.query.sender,
               limit: 100,
               position: parts.query.position,
+              order: parts.query.order,
             }, null, function(err, res) {
               if (err) return done(err)
-              expect(res.data).to.have.length(75)
+              expect(res.data).to.have.length(25)
               if (!tv4.validate(res, spec.responses['200'].schema)) {
                 return done(tv4.error)
               }

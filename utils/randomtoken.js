@@ -4,6 +4,6 @@ var randomstring = require('randomstring');
 module.exports = function(length) {
   return randomstring.generate({
     length: length || 32,
-    charset: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_',
+    charset: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
   });
 };

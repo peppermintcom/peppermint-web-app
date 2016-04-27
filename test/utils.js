@@ -75,7 +75,7 @@ function result(code, spec, getParams, bodyAssertion, checkBody) {
 }
 
 function missingXApiKeyHeader(spec, getParams) {
-  fail(400, 'invalid API Key', spec, function() {
+  fail(400, 'Invalid API Key', spec, function() {
     var params = _.cloneDeep(getParams());
 
     delete params.headers['X-Api-Key'];
@@ -85,7 +85,7 @@ function missingXApiKeyHeader(spec, getParams) {
 }
 
 function invalidXApiKeyHeader(spec, getParams) {
-  fail(400, 'invalid API Key', spec, function() {
+  fail(400, 'Invalid API Key', spec, function() {
     var params = _.cloneDeep(getParams());
 
     params.headers['X-Api-Key'] = 'xxxxxx';
