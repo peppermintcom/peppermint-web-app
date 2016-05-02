@@ -26,8 +26,7 @@ let encodePosition = _.encode64Obj;
 let decodePosition = _.decode64Obj;
 
 let queryEmail: Query = _.queryer(formatEmailQuery, parse, encodePosition);
-//may be expanded to support dynamic dispatch in the future
-let query = queryEmail;
+let queryUnread: Query = _.queryer(formatUnreadQuery, parse, encodePosition);
 
 //Query messages with a given email involved as either sender or recipient.
 //Filters out messages that have not finished uploading by checking for the
@@ -57,6 +56,42 @@ function formatEmailQuery(params: QueryMessagesByEmail, options: QueryConfig): D
   }
 
   return r;
+}
+
+//return all unread messages over a given time period
+function formatUnreadQuery(params: QueryUnreadMessages, options: QueryConfig): DynamoQueryReques {
+  let r: DynamoQueryRequest = {
+    TableName: 'messages',
+    IndexName: 'recipient_email-created-index',
+    KeyConditionExpression: 'recipient_email = :recipient_email AND created > :since',
+    FilterExpression: 'attribute_not_exists(#read) AND attribute_exists(handled)',
+    ExpressionAttributeValues: {
+      ':recipient_email:': {S: params.recipient_email},
+      ':since': {N: params.since.toString()},
+    },
+    ExpressionAttributeNames: {
+      '#read': 'read',
+    },
+  }
+
+  return r
+}
+
+function markAllRead(messages: Message[], when: number): Promise<void> {
+  var CONDITION = 'attribute_exists(message_id) AND attribute_not_exists(#read) AND recipient_email = :recipient_email';
+  function stamp(request, reply) {
+    var messageID = request.body.data.id;
+
+    _.messages.update(messageID, 'SET #read = :now', {
+        ':now': {N: Date.now().toString()},
+        ':recipient_email': {S: request.caller.email},
+      }, {
+        '#read': 'read',
+      }, CONDITION)
+      .then(function() {
+        reply.succeed();
+      })
+  }
 }
 
 function parse(item: MessageItem): Message {
@@ -168,4 +203,4 @@ function read(id: string): Promise<Message> {
   });
 }
 
-module.exports = {save, read, query}
+module.exports = {save, read, queryEmail, queryUnread}

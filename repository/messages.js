@@ -1,12 +1,12 @@
 //@flow
 import type {Account, Message} from './domain'
-import type {QueryMessagesByEmail, QueryConfig, QueryResult} from './types'
+import type {QueryMessagesUnread, QueryMessagesByEmail, QueryConfig, QueryResult} from './types'
 
 import dynamo from './dynamo/messages'
 import uploads from './uploads'
 
 function query(params: QueryMessagesByEmail, options: QueryConfig): Promise<QueryResult> {
-  return dynamo.query(params, options)
+  return dynamo.queryEmail(params, options)
   .then(function(qr) {
     return Promise.all(qr.entities.map(attachUpload))
     .then(function(messages) {
@@ -33,6 +33,7 @@ function attachUpload(m: Message): Promise<Message> {
 
 export default {
   query,
+  unread: dynamo.queryUnread,
   read: dynamo.read,
   save: dynamo.save,
 }

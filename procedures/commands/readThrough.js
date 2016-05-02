@@ -1,10 +1,10 @@
 //@flow
 //Mark all messages up to a given message as read.
 //
-//1. repository.unreadMessages by recipient
-//2. update each with read timestamp if less than read message
-//
-//1. repository.
+//1. Keep a pointer on the account record. Move the pointer.
+//2. unreadMessages gets everything after the pointer
+//3. Read moves the pointer.
+//4. Mark all messages with read timestamp
 
 export type Request = {
   message_id: string;
