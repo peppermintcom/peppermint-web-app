@@ -1,8 +1,8 @@
-import type {Recorder} from '../domain'
+import type {Recorder} from '../../domain'
 import type {SaveConfig} from '../types'
 import type {S, N} from './types'
 
-import domain from '../domain'
+import domain from '../../domain'
 import dynamo from './client'
 
 type RecorderItem = {
@@ -61,6 +61,68 @@ function read(clientID: string): Promise<Recorder> {
   });
 }
 
+function readByID(recorderID: string): Promise<Recorder> {
+  return new Promise(function(resolve, reject) {
+    dynamo.query({
+      TableName: 'recorders',
+      IndexName: 'recorder_id-index',
+      KeyConditionExpression: 'recorder_id = :recorder_id',
+      ExpressionAttributeValues: {
+        ':recorder_id': {S: recorderID},
+      },
+    }, function(err, data) {
+      if (err) {
+        reject(err)
+        return
+      }
+      if (data.Count === 0) {
+        reject(domain.ErrNotFound)
+        return
+      }
+      if (data.Count > 1) {
+        var msg = 'recorder lookup by id "' + recorderID + '" returned multiple recorders'
+
+        reject(new Error(msg))
+        return
+      }
+      resolve(parse(data.Items[0]))
+    })
+  })
+}
+
+function updateGCMToken(clientID: string, newToken: string): Promise<void> {
+  return new Promise(function(resolve, reject) {
+    if (newToken) {
+      dynamo.updateItem({
+        TableName: 'recorders',
+        Key: {client_id: {S: clientID}},
+        UpdateExpression: 'SET gcm_registration_token = :token',
+        ExpressionAttributeValues: {
+          ':token': {S: newToken},
+        },
+      }, function(err) {
+        if (err) {
+          reject(err)
+          return
+        }
+        resolve()
+      })
+    } else {
+      dynamo.updateItem({
+        TableName: 'recorders',
+        Key: {client_id: {S: clientID}},
+        UpdateExpression: 'REMOVE gcm_registration_token',
+      }, function(err) {
+        if (err) {
+          reject(err)
+          return
+        }
+        resolve()
+      })
+    }
+  })
+}
+
 function format(r: Recorder): RecorderItem {
   if (!r.client_id) {
     throw new Error('client_id is required when saving a recorder');
@@ -105,4 +167,4 @@ function parse(item: RecorderItem): Recorder {
   };
 }
 
-module.exports = {save, read};
+module.exports = {save, read, readByID, updateGCMToken};

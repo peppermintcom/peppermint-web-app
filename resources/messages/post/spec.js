@@ -2,7 +2,7 @@ var defs = require('definitions');
 var headers = require('definitions/headers');
 var responses = require('definitions/responses');
 var integrations = require('definitions/integrations');
-var _ = require('utils');
+var _ = require('lodash');
 
 exports.tags = ['messages', 'inter-app'];
 exports.summary = 'Send a message to an app.';

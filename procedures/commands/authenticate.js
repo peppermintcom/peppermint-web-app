@@ -1,5 +1,5 @@
 //@flow
-import type {Recorder, Account} from '../../repository/domain'
+import type {Recorder, Account} from '../../domain'
 
 import recorders from '../../repository/recorders'
 import accounts from '../../repository/accounts'

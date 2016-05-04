@@ -1,8 +1,10 @@
 //@flow
-import type {Account} from './domain'
+import type {Account, Recorder} from '../domain'
 
-import domain from './domain'
+import domain from '../domain'
 import dynamo from './dynamo/accounts'
+import receivers from './dynamo/receivers'
+import recorders from './dynamo/recorders'
 
 //upsert inserts the account if it does not exist. If the account does exist but
 //is unverified and the argument account is verified, save the verification data
@@ -34,9 +36,38 @@ function upsert (a: Account): Promise<Account> {
     });
 }
 
+//Fetch the recorders related to an account by the receiver relationship.
+function getRecorders(accountID: string): Promise<Recorder[]> {
+  return receivers.recorder_ids(accountID)
+    .then(function(recorderIDs) {
+      return Promise.all(recorderIDs.map((recorderID) => (
+        recorders.readByID(recorderID)
+      )))
+    })
+    .then(function(recorders) {
+      return recorders.filter(function(recorder) {
+        return !!recorder
+      })
+    })
+}
+
+//Filter the account recorders by those with gcm_registration_token - capable of
+//receiving push notifications.
+function getReceivers(accountID: string): Promise<Recorder[]> {
+  return getRecorders(accountID)
+    .then(function(recorders) {
+      return recorders.filter(function(recorder) {
+        return !!recorder.gcm_registration_token
+      })
+    })
+}
+
 export default {
   upsert,
   read: dynamo.read,
   readByID: dynamo.readByID,
   save: dynamo.save,
+  recorders: getRecorders,
+  receivers: getReceivers,
+  link: receivers.save,
 }

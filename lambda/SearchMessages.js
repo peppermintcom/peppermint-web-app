@@ -1,6 +1,6 @@
 //@flow
+import type {Account} from '../domain'
 import type {QueryResult} from '../repository/types'
-import type {Account} from '../repository/domain'
 
 import url from 'url'
 import accountMessages from '../procedures/queries/accountMessages'
@@ -37,7 +37,13 @@ export default _.use([
   [
     {key: 'response', fn: respond},
   ],
-])
+], function(err, req, state) {
+  if (err) {
+    _.log(err)
+  }
+  _.log(state)
+  return Promise.resolve()
+})
 
 function role(state: Object): Promise<'recipient' | 'sender'> {
   return new Promise(function(resolve, reject) {

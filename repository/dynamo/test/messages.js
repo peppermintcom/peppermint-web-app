@@ -1,5 +1,5 @@
 //@flow
-import type {Message} from '../../domain'
+import type {Message} from '../../../domain'
 import type {QueryResult} from '../../types'
 
 import {expect} from 'chai'

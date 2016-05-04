@@ -1,4 +1,4 @@
-import type {Entity} from './domain'
+import type {Entity} from '../domain'
 
 export type SaveConfig = {
   checkConflict?: boolean;

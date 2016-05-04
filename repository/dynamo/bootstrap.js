@@ -13,6 +13,12 @@ module.exports = function() {
     });
   });
 
+  dynamo.deleteTable({TableName: 'receivers'}, function() {
+    dynamo.createTable(schema.receivers, function(err) {
+      if (err) console.log(err);
+    });
+  });
+
   dynamo.deleteTable({TableName: 'uploads'}, function() {
     dynamo.createTable(schema.uploads, function(err) {
       if (err) console.log(err);

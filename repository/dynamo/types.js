@@ -1,5 +1,5 @@
 // @flow
-import type {Entity} from '../domain'
+import type {Entity} from '../../domain'
 import type {QueryConfig, QueryResult} from '../types'
 
 //string, number, boolean in dynamoDB

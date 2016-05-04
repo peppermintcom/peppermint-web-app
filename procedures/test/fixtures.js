@@ -1,13 +1,16 @@
 //@flow
-import type {Recorder, Account, Message} from '../../repository/domain'
+import type {Recorder, Account, Message} from '../../domain'
 
-import fake from '../../repository/fake'
+import fake from '../../domain/fake'
 import fixtures from '../../repository/dynamo/test/fixtures'
 import registerRecorder from '../commands/registerRecorder'
 import registerAccount from '../commands/registerAccount'
+import accounts from '../../repository/accounts'
+import recorders from '../../repository/recorders'
 import _jwt from '../../utils/jwt'
+import _token from '../../utils/randomtoken'
 
-function recorder(): Promise<[Recorder, string]> {
+function recorder(config: Object): Promise<[Recorder, string]> {
   return registerRecorder({
     api_key: fake.API_KEY,
     client_id: null,
@@ -60,6 +63,7 @@ function jwt(accountID?: string, recorderID?: string): string {
 
 export default {
   API_KEY: 'abc123',
+  upload: fixtures.upload,
   recorder,
   account,
   messages,

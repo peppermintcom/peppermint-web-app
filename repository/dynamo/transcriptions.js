@@ -11,7 +11,7 @@ type TranscriptionItem = {
 }
 
 import dynamo from './client'
-import domain from '../domain'
+import domain from '../../domain'
 
 //save puts the transcription in dynamo and resolves to the unmodified input.
 function save(transcription: Transcription): Promise<Transcription> {

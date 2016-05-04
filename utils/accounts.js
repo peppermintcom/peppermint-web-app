@@ -44,7 +44,7 @@ exports.verifyEmail = function(email, name) {
       resolve();
     }, function(err) {
       console.log(err);
-      reject('Mandrill: ' + err);
+      reject('Mandrill: ' + err.toString());
     });
   });
 };

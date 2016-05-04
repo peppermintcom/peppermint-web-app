@@ -1,5 +1,5 @@
 //@flow
-import type {Account, Message} from './domain'
+import type {Account, Message} from '../domain'
 import type {QueryMessagesByEmail, QueryConfig, QueryResult} from './types'
 
 import dynamo from './dynamo/messages'

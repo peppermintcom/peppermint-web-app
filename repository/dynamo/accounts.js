@@ -1,7 +1,7 @@
-import type {Account} from '../domain'
+import type {Account} from '../../domain'
 import type {SaveConfig} from '../types'
 
-import domain from '../domain'
+import domain from '../../domain'
 import dynamo from './client'
 
 export type AccountItem = {
