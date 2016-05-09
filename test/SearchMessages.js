@@ -162,7 +162,7 @@ describe('GET /messages', function() {
       });
     });
 
-    describe.only('?recipient=:id&since=2017-01-01 00:00:00', function() {
+    describe('?recipient=:id&since=2017-01-01 00:00:00', function() {
       it('should return no messages.', function() {
         return _.http('GET', '/messages?limit=40&recipient=' + recipient.account_id + '&since=' + encodeURIComponent('2017-01-01 00:00:00'), null, {
           'X-Api-Key': _.fake.API_KEY,
