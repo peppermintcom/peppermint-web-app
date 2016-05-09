@@ -10,7 +10,7 @@
     "start": "gulp serve",
     "swagger": "gulp swagger",
     "webpack": "webpack",
-    "deploy-lambda": "webpack && zip -rFS lambda/lambda.zip lambda/bundle.js utils/conf.js utils/conf.json && aws s3 --profile peppermint mv lambda/lambda.zip s3://peppermint-lambda/lambda.zip"
+    "deploy-lambda": "webpack && zip -rFS lambda/lambda.zip lambda/bundle.js utils/conf.js utils/conf.json && aws s3 --profile peppermint mv lambda/lambda.zip s3://peppermint-lambda/lambda.zip && echo https://s3-us-west-2.amazonaws.com/peppermint-lambda/lambda.zip"
   },
   "repository": {
     "type": "git",
