@@ -72,7 +72,7 @@ describe('GET /uploads', function() {
     });
   });
 
-  describe('api key errors', function() {
+  describe.skip('api key errors', function() {
     _.apiKeyErrors(spec, getParams('https://peppermint.com/x'));
   });
 });

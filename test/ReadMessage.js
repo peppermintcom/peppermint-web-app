@@ -76,7 +76,7 @@ describe('POST /reads', function() {
       });
   });
 
-  describe('common client errors', function() {
+  describe.skip('common client errors', function() {
     _.clientErrors(spec, function() {
       return {
         method: 'POST',

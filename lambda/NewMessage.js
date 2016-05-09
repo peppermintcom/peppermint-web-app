@@ -63,6 +63,9 @@ function lookupAccounts(state: Object): Promise<{sender: Account, recipient: Acc
     
     return accounts
   })
+  .catch(function(err) {
+    throw _.errNotFound('Recipient cannot receive messages via Peppermint')
+  })
 }
 
 //Check that the authenticated user account_id is the sender. Uses "identity"
@@ -91,8 +94,16 @@ function lookupRecipientReceivers(state: Object): Promise<Recorder[]> {
 
 //Fetch the upload for the duration, postprocessed timestamp, and transcription.
 function lookupUpload(state: Object): Promise<Upload> {
-  let parts = domainUtils.decodePathname(state.body.data.attributes.audio_url)
-  return uploads.read(domainUtils.encodePathname(parts))
+  try {
+    let parts = domainUtils.decodePathname(state.body.data.attributes.audio_url)
+
+    return uploads.read(domainUtils.encodePathname(parts))
+      .catch(function(err) {
+        throw _.errInvalid('No upload found at audio_url')
+      })
+  } catch(e) {
+    throw _.errInvalid('No upload found at audio_url')
+  }
 }
 
 //Call the message factory.

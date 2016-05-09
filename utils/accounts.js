@@ -1,6 +1,8 @@
 var fs = require('fs');
+var util = require('util');
 var path = require('path');
 var smtp = require('./email');
+var ses = require('./ses');
 var dynamo = require('./dynamo');
 var timestamp = require('./timestamp');
 var token = require('./randomtoken');
@@ -14,22 +16,12 @@ exports.verifyEmail = function(email, name) {
   //expires in 15 minutes
   var token = jwt.encode(email, 15 * 60);
 
-  return new Promise(function(resolve, reject) {
-    smtp.send({
-      text: 'https://peppermint.com/verify-email?at=' + token,
-      from: 'Peppermint <noreply@peppermint.com>',
-      subject: 'Reset your password.',
-      to: email,
-      attachment: [
-        {data: verifyTmpl({name: name, token: token}), alternative: true},
-      ],
-    }, function(err) {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve();
-    });
+  return ses({
+    from: 'Peppermint <noreply@peppermint.com>',
+    to: email,
+    html: verifyTmpl({name: name, token: token}),
+    subject: 'Verify Your Account',
+    text: 'https://peppermint.com/verify-email?at=' + token,
   });
 };
 

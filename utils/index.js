@@ -2,7 +2,7 @@ require('es6-promise').polyfill();
 var util = require('util');
 var conf = require('./conf.js');
 var _ = require('lodash');
-var bcrypt = require('bcrypt');
+var bcrypt = require('bcryptjs');
 var errors = require('./errors');
 var jwt = require('./jwt');
 var token = require('./randomtoken');

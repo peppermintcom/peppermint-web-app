@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "flow && webpack && npm test",
-    "test": "mocha -t 10000 --bail --compilers js:babel-register --recursive utils/ resources/ postprocessing/ repository/ procedures/ lambda/",
+    "test": "mocha -t 10000 --bail --recursive resources/",
     "integration-tests": "mocha -t 20000 --bail test/",
     "start": "gulp serve",
     "swagger": "gulp swagger",
@@ -47,6 +47,7 @@
   "dependencies": {
     "bcp47": "^1.1.2",
     "bcrypt": "^0.8.5",
+    "bcryptjs": "^2.3.0",
     "emailjs": "^1.0.1",
     "es6-promise": "^3.0.2",
     "jwt-simple": "^0.3.1",

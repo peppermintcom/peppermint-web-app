@@ -143,6 +143,7 @@ function format(r: Recorder): RecorderItem {
     api_key: {S: r.api_key},
     recorder_key: {S: r.recorder_key_hash},
     registered: {N: r.registered.toString()},
+    recorder_ts: {N: r.registered.toString()},
   };
 
   if (r.description) {
@@ -156,12 +157,14 @@ function format(r: Recorder): RecorderItem {
 }
 
 function parse(item: RecorderItem): Recorder {
+  var registered = item.registered ? item.registered.N : item.recorder_ts.N;
+
   return {
     recorder_id: item.recorder_id.S,
     client_id: item.client_id.S,
     api_key: item.api_key.S,
     recorder_key_hash: item.recorder_key.S,
-    registered: +item.registered.N,
+    registered: +registered,
     description: item.description ? item.description.S : null,
     gcm_registration_token: item.gcm_registration_token ? item.gcm_registration_token.S : null,
   };
