@@ -1,7 +1,6 @@
 var fs = require('fs');
 var path = require('path');
 var smtp = require('./email');
-var mandrill = require('./mandrill');
 var dynamo = require('./dynamo');
 var timestamp = require('./timestamp');
 var token = require('./randomtoken');
