@@ -8,43 +8,28 @@ var token = require('./randomtoken');
 var jwt = require('./jwt');
 var http = require('./http');
 var _ = require('lodash');
+var verifyTmpl = _.template(fs.readFileSync(path.join(__dirname, 'templates/verify.html'), 'utf8'));
 var resetTmpl = _.template(fs.readFileSync(path.join(__dirname, 'templates/recover.html'), 'utf8'));
 
 exports.verifyEmail = function(email, name) {
-  return new Promise(function(resolve, reject) {
-    //expires in 15 minutes
-    var token = jwt.encode(email, 15 * 60);
+  //expires in 15 minutes
+  var token = jwt.encode(email, 15 * 60);
 
-    mandrill.messages.sendTemplate({
-      template_name: 'confirm-account',
-      template_content: [],
-      message: {
-        to: [
-          {email: email, name: name},
-        ],
-        track_clicks: false,
-        track_opens: false,
-        merge_language: 'handlebars',
-        global_merge_vars: [
-          {
-            name: 'name',
-            content: name,
-          },
-          {
-            name: 'token',
-            content: token,
-          }
-        ],
-      },
-    }, function(result) {
-      if (!result[0] || result[0].reject_reason) {
-        reject(result[0] && result[0].reject_reason);
+  return new Promise(function(resolve, reject) {
+    smtp.send({
+      text: 'https://peppermint.com/verify-email?at=' + token,
+      from: 'Peppermint <noreply@peppermint.com>',
+      subject: 'Reset your password.',
+      to: email,
+      attachment: [
+        {data: verifyTmpl({name: name, token: token}), alternative: true},
+      ],
+    }, function(err) {
+      if (err) {
+        reject(err);
         return;
       }
       resolve();
-    }, function(err) {
-      console.log(err);
-      reject('Mandrill: ' + err.toString());
     });
   });
 };
