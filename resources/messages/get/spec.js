@@ -86,7 +86,7 @@ exports['x-amazon-apigateway-integration'] = {
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {
-    'application/json': '{"api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')", "recipient_id": "$input.params(\'recipient\')", "sender_id": "$input.params(\'sender\')", "until": "$util.urlDecode($input.params(\'until\'))", "since": "$util.urlDecode($input.params(\'since\'))", "position": "$input.params(\'position\')", "order": "$input.params(\'order\')", "limit": "$input.params(\'limit\')"}',
+    'application/json': '{"api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')", "recipient_id": "$input.params(\'recipient\')", "sender_id": "$input.params(\'sender\')", "until": "$util.urlDecode($input.params(\'until\'))", "since": "$util.urlDecode($input.params(\'since\'))", "position": "$util.urlDecode($input.params(\'position\'))", "order": "$input.params(\'order\')", "limit": "$input.params(\'limit\')"}',
   },
   responses: {
     'default': integrations.jsonAPI.Ok,

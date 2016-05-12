@@ -41,7 +41,10 @@ function getRecorders(accountID: string): Promise<Recorder[]> {
   return receivers.recorder_ids(accountID)
     .then(function(recorderIDs) {
       return Promise.all(recorderIDs.map((recorderID) => (
-        recorders.readByID(recorderID)
+        recorders.readByID(recorderID).catch(function(err) {
+          //ignore no-entity error
+          return null
+        })
       )))
     })
     .then(function(recorders) {

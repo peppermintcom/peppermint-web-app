@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "flow && webpack && npm test",
-    "test": "mocha -t 10000 --bail --recursive resources/",
+    "test": "mocha -t 10000 --bail --compilers js:babel-register --recursive utils/ resources/ postprocessing/ repository/ procedures/ lambda/test/",
     "integration-tests": "mocha -t 20000 --bail test/",
     "start": "gulp serve",
     "swagger": "gulp swagger",
@@ -45,6 +45,7 @@
     "webpack": "https://github.com/webpack/webpack"
   },
   "dependencies": {
+    "babel-polyfill": "^6.8.0",
     "bcp47": "^1.1.2",
     "bcrypt": "^0.8.5",
     "bcryptjs": "^2.3.0",

@@ -20,8 +20,18 @@ function queryResult(parseEntity: Function, encodePosition: Function, data: Obje
 //parses the response.
 function queryer(format: FormatRequest, parse: ParseEntity, encode: EncodePosition): Query {
   return function(params: Object, options: QueryConfig): Promise<QueryResult> {
+    let dynamoParams
+
+    try {
+      dynamoParams = format(params, options)
+    } catch (e) {
+      let err: Object = new Error('400')
+      err.detail = 'Invalid'
+      return Promise.reject(err)
+    }
+
     return new Promise(function(resolve, reject) {
-      dynamo.query(format(params, options), function(err, data) {
+      dynamo.query(dynamoParams, function(err, data) {
         if (err || (data == null)) {
           reject(err);
           return;

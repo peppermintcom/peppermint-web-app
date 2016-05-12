@@ -18,7 +18,9 @@ module.exports = {
   ],
   module: {
     //suppress "define cannot be used indirect" error
-    noParse: /node_modules\/json-schema\/lib\/validate/,
+    noParse: [
+      /node_modules\/json-schema\/lib\/validate/,
+    ],
     loaders: [
       {
         test: /\.json$/,
