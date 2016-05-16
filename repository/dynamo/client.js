@@ -22,6 +22,9 @@ if (conf.NODE_ENV === 'development') {
       ciphers: 'ALL',
     }),
   };
+  if (!process.env.LAMBDA_TASK_ROOT) {
+    options.credentials = new aws.SharedIniFileCredentials({profile: 'peppermint'});
+  }
 } else {
   throw new Error('NODE_ENV not set to "development" or "production"');
 }
