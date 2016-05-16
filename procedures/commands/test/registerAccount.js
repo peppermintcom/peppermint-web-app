@@ -1,7 +1,7 @@
 //@flow
 import {expect} from 'chai'
 import fixtures from '../../../repository/dynamo/test/fixtures'
-import fake from '../../../repository/fake'
+import fake from '../../../domain/fake'
 import registerAccount, {Errors} from '../registerAccount'
 
 describe('registerAccount command', function() {

@@ -1,7 +1,7 @@
-import type {Account} from '../domain'
+import type {Account} from '../../domain'
 import type {SaveConfig} from '../types'
 
-import domain from '../domain'
+import domain from '../../domain'
 import dynamo from './client'
 
 export type AccountItem = {
@@ -111,7 +111,7 @@ function parse(item: AccountItem): Account {
     email: item.email.S,
     account_id: item.account_id.S,
     full_name: item.full_name.S,
-    pass_hash: item.password.S,
+    pass_hash: item.password ? item.password.S: null,
     registered: +item.registration_ts.N,
     verified: item.verification_ts ? +item.verification_ts.N : null,
     verification_source: item.verification_ip ? item.verification_ip.S : null,

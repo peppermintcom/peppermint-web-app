@@ -1,4 +1,3 @@
-var _ = require('utils');
 var timestamp = require('./timestamp');
 var uuid = require('./uuid');
 

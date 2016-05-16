@@ -6,13 +6,6 @@ var gcm = require('./gcm');
 var sends = exports.sends = [];
 var gcmStore = exports.store = {};
 
-//fail quickly if stubs find their way into production
-if (conf.NODE_ENV === 'production') {
-  throw new Error('GCM stubs in production');
-}
-
-exports.sync = gcm.sync;
-
 exports.good = function(registrationToken) {
   var result = {
     multicast_id: Math.floor(Math.random() * 100000000),

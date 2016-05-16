@@ -14,10 +14,6 @@ var send = exports.send = function(message) {
   return http.postJSON('https://gcm-http.googleapis.com/gcm/send', message, {
     Authorization: 'key=' + conf.PEPPERMINT_GCM_API_KEY,
   }).then(function(res) {
-    console.log('GCM Response:');
-    console.log(res.statusCode);
-    console.log(res.headers);
-    console.log(res.body);
     if (res.statusCode != 200) {
       return notices.gcmWeird(res.body, res.statusCode)
         .then(function() {
@@ -82,6 +78,32 @@ exports.deliver = function (receivers, message) {
     });
 };
 
+//Format the message for delivery to each receiver. Send to GCM. Update database
+//to clear or replace invalid gcm registration ids. Return all the data.
+exports.deliver2 = function (receivers, message) {
+  return format(receivers, message)
+    .then(function(messages) {
+      //messages is an array of {recorder, message} objects
+      return Promise.all(_.map(messages, function(message) {
+        return send2(message.message);
+      }))
+      .then(function(results) {
+        //results is an array of {body, statusCode, header} responses from GCM API
+        return Promise.all(_.map(results, function(result, i) {
+          return sync([messages[i].recorder], result.body);
+        }))
+        .then(function(changes) {
+          return results.map(function(result, i) {
+            return Object.assign(result, {
+              sync: changes[i],
+              payload: messages[i],
+            });
+          });
+        });
+      });
+    });
+};
+
 function data(message) {
   return {
     audio_url: message.audio_url,
@@ -122,31 +144,36 @@ function android(message, to) {
     data: data(message),
   }]);
 }
-//update database for invalid tokens
+
+//update database for invalid tokens. Returns the changes applied. The results
+//argument is the response body received from the GCM API.
 var sync = exports.sync = function(recorders, results) {
   if (results.failure || results.canonical_ids) {
     return Promise.all(_.map(results.results, function(r, i) {
       if (r.message_id && r.registration_id) {
         return changeToken(recorders[i], r.registration_id);
       }
-      if (r.error) {
-        if (/InvalidRegistration|NotRegistered/.test(r.error)) {
-          return deleteToken(recorders[i]);
-        }
-        return notices.gcmWeird(r.error);
+      if (r.error && /InvalidRegistration|NotRegistered/.test(r.error)) {
+        return deleteToken(recorders[i]);
       }
-      return Promise.resolve();
+      return Promise.resolve(null);
     }));
   }
-  return Promise.resolve();
+  return Promise.resolve(null);
 };
 
 function deleteToken(recorder) {
-  return recorders.update(recorder.client_id, 'REMOVE gcm_registration_token');
+  return recorders.update(recorder.client_id, 'REMOVE gcm_registration_token')
+    .then(function() {
+      return 'DELETE TOKEN';
+    });
 };
 
 function changeToken(recorder, newToken) {
   return recorders.update(recorder.client_id, 'SET gcm_registration_token = :token', {
     ':token': {S: newToken},
-  });
+  })
+  .then(function() {
+    return 'CHANGE TOKEN';
+  })
 }

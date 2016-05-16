@@ -102,8 +102,6 @@ describe('POST /jwts', function() {
       it('should respond with jsonapi content.', function() {
         expect(response.headers).to.have.property('content-type', 'application/vnd.api+json');
         if (!tv4.validate(response.body, jsonapischema)) {
-          console.log(util.inspect(tv4.error, {depth: null}));
-          console.log(util.inspect(response.body));
           throw tv4.error;
         }
       });

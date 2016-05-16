@@ -1,7 +1,7 @@
 //@flow
 import {expect} from 'chai'
 import fixtures from '../dynamo/test/fixtures'
-import domain from '../domain'
+import domain from '../../domain'
 import timestamp from '../../utils/timestamp'
 
 describe('message entity', function() {

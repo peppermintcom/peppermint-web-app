@@ -1,7 +1,7 @@
 //@flow
-import type {Recorder} from '../../repository/domain'
+import type {Recorder} from '../../domain'
 
-import domain from '../../repository/domain'
+import domain from '../../domain'
 import token from '../../utils/randomtoken'
 import recorders from '../../repository/recorders'
 import _ from '../../utils'

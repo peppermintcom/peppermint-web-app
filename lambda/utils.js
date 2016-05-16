@@ -1,7 +1,10 @@
 //@flow
+import util from 'util'
 import lodash from 'lodash'
+import tv4 from 'tv4'
 import apps from '../utils/apps'
 import jwt from '../utils/jwt'
+import bodySchema from '../utils/bodySchema'
 
 //status 400
 let ErrAPIKey: Object = new Error('400')
@@ -46,22 +49,30 @@ async function run(state: Object, actions: action[]): Promise<Object> {
 //Adapt a batch of Promise routines to the format expected by new Lambda Node.js
 //programming environment. One of the handlers must define a "response" property
 //on the state, which will be returned to the caller.
-function use(actions: action[]): Function {
+function use(actions: action[], done: Function): Function {
   return function (req: Object, context: Object, cb: Function) {
-    run(req, actions)
+    let state = lodash.cloneDeep(req)
+
+    run(state, actions)
     .then(function(state) {
-      //state === req because run mutates req
-      cb(null, state.response);
+      return done(null, req, state)
+      .then(function() {
+        cb(null, state.response)
+      }, function() {
+        cb(null, state.response)
+      })
     })
     .catch(function(err) {
       if (err.detail) {
         //JSON-API error objects
         err.name = JSON.stringify({detail: err.detail})
-      } else {
-        //unexpected error
-        console.log(err)
       }
-      cb(err);
+      return done(err, req, state)
+      .then(function() {
+        cb(err)
+      }, function() {
+        cb(err)
+      })
     });
   };
 }
@@ -88,10 +99,31 @@ function validateAPIKey(state: Object): Promise<null> {
   })
 }
 
+//Checks for JSON-API content type.
+function validateContentType(state: Object): Promise<null> {
+  if (state['Content-Type'] !== 'application/vnd.api+json') {
+    let err: Object = new Error('415')
+
+    err.detail = 'Use "application/vnd.api+json"';
+    return Promise.reject(err)
+  }
+  return Promise.resolve(null)
+}
+
+//Returns a task runner to check state.body against a JSON schema.
+function bodyValidator(spec: Object): Function {
+  let schema = bodySchema(spec.parameters)
+
+  return function(state: Object): Promise<null> {
+    if (!tv4.validate(state.body, schema)) {
+      return Promise.reject(errInvalid(tv4.error.message))
+    }
+    return Promise.resolve(null)
+  }
+}
+
 /**
  * Checks and parses the JWT from an Authorization Bearer header.
- * Adds a "JWT" property to the request if authentication is ok.
- * @param {Authorization} string
  */
 type identity = {
   account_id?: string;
@@ -118,8 +150,42 @@ function authenticate(state: Object): Promise<identity> {
   });
 };
 
+let err = (message: string, detail: string): Object => {
+  let err: Object = new Error(message)
+
+  err.detail = detail
+  return err
+}
+
+let errInvalid = (detail: string): Object => {
+  return err('400', detail)
+}
+
+let errAuth = (detail: string): Object => {
+  return err('401', detail)
+}
+
+let errForbidden = (detail: string): Object => {
+  return err('403', detail)
+}
+
+let errNotFound = (detail: string): Object => {
+  return err('404', detail)
+}
+
+let log = (x: any): void => {
+  console.log(util.inspect(x, {depth: null}));
+}
+
 export default {
   use,
   validateAPIKey,
+  validateContentType,
+  bodyValidator,
   authenticate,
+  errInvalid,
+  errAuth,
+  errForbidden,
+  errNotFound,
+  log,
 }

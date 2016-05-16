@@ -1,9 +1,9 @@
 //@flow
-import type {Upload, Recorder, Message, Account} from './domain'
+import type {Upload, Recorder, Message, Account} from './index.js'
 
 import fake from '../utils/fake'
 import token from '../utils/randomtoken'
-import domain from './domain'
+import domain from './index.js'
 
 const API_KEY = 'abc123'
 

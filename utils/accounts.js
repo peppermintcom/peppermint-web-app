@@ -1,51 +1,27 @@
 var fs = require('fs');
+var util = require('util');
 var path = require('path');
 var smtp = require('./email');
-var mandrill = require('./mandrill');
+var ses = require('./ses');
 var dynamo = require('./dynamo');
 var timestamp = require('./timestamp');
 var token = require('./randomtoken');
 var jwt = require('./jwt');
 var http = require('./http');
 var _ = require('lodash');
+var verifyTmpl = _.template(fs.readFileSync(path.join(__dirname, 'templates/verify.html'), 'utf8'));
 var resetTmpl = _.template(fs.readFileSync(path.join(__dirname, 'templates/recover.html'), 'utf8'));
 
 exports.verifyEmail = function(email, name) {
-  return new Promise(function(resolve, reject) {
-    //expires in 15 minutes
-    var token = jwt.encode(email, 15 * 60);
+  //expires in 15 minutes
+  var token = jwt.encode(email, 15 * 60);
 
-    mandrill.messages.sendTemplate({
-      template_name: 'confirm-account',
-      template_content: [],
-      message: {
-        to: [
-          {email: email, name: name},
-        ],
-        track_clicks: false,
-        track_opens: false,
-        merge_language: 'handlebars',
-        global_merge_vars: [
-          {
-            name: 'name',
-            content: name,
-          },
-          {
-            name: 'token',
-            content: token,
-          }
-        ],
-      },
-    }, function(result) {
-      if (!result[0] || result[0].reject_reason) {
-        reject(result[0] && result[0].reject_reason);
-        return;
-      }
-      resolve();
-    }, function(err) {
-      console.log(err);
-      reject('Mandrill: ' + err);
-    });
+  return ses({
+    from: 'Peppermint <noreply@peppermint.com>',
+    to: email,
+    html: verifyTmpl({name: name, token: token}),
+    subject: 'Verify Your Account',
+    text: 'https://peppermint.com/verify-email?at=' + token,
   });
 };
 

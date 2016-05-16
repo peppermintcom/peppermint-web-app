@@ -1,8 +1,8 @@
 //@flow
-import type {Upload, Recorder, Transcription} from './domain'
+import type {Upload, Recorder, Transcription} from '../domain'
 
 import url from 'url'
-import domain from './domain'
+import domain from '../domain'
 import uploads from './dynamo/uploads'
 import transcriptions from './dynamo/transcriptions'
 
@@ -44,4 +44,7 @@ function transcriptionID(pathname: string): string {
   return fileParts[0];
 }
 
-module.exports = {read};
+module.exports = {
+  read,
+  save: uploads.save
+};

@@ -144,7 +144,7 @@ describe('POST /messages', function() {
 
       it('should format body according to spec.', function() {
         expect(response.body).to.deep.equal({
-          errors: [{detail: 'invalid API Key'}]
+          errors: [{detail: 'Invalid API Key'}]
         });
         if (!tv4.validate(response.body, spec.responses['400'].schema)) {
           throw tv4.error;
@@ -422,7 +422,7 @@ describe('POST /messages', function() {
     it('should respond with a 400 error.', function() {
       expect(response.statusCode).to.equal(400);
       expect(response.body).to.deep.equal({
-        errors: [{detail: 'No upload found at the audio_url'}],
+        errors: [{detail: 'No upload found at audio_url'}],
       });
       expect(response.headers).to.have.property('content-type', 'application/vnd.api+json');
       if (!tv4.validate(response.body, spec.responses['400'].schema)) {

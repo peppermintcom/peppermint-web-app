@@ -21,7 +21,6 @@ describe('lambda:RecoverAccount', function() {
       }, {
         fail: function(err) {done(new Error(err));},
         succeed: function(r) {
-          //mandrill API is too slow to check for email here
           done();
         },
       });

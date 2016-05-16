@@ -1,6 +1,6 @@
 // @flow
 import type {Query, DynamoQueryRequest, N, S} from './types'
-import type {Recorder, Account, Message, Upload} from '../domain'
+import type {Recorder, Account, Message, Upload} from '../../domain'
 import type {QueryResult, QueryConfig, QueryMessagesByEmail} from '../types'
 
 type MessageItem = {
@@ -16,7 +16,7 @@ type MessageItem = {
   read?: N;
 };
 
-import domain from '../domain'
+import domain from '../../domain'
 import url from 'url'
 import dynamo from './client'
 import token from '../../utils/randomtoken'

@@ -1,7 +1,7 @@
 //@flow
-import type {Account} from '../../repository/domain'
+import type {Account} from '../../domain'
 
-import domain from '../../repository/domain'
+import domain from '../../domain'
 import accounts from '../../repository/accounts'
 import _ from '../../utils'
 
