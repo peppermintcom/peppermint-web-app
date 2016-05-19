@@ -14,8 +14,8 @@ function recorder(): Promise<Recorder> {
   return recorders.save(fake.recorder());
 }
 
-function account(verification_source?: string): Promise<Account> {
-  return accounts.save(fake.account(verification_source));
+function account(verification_source?: string, highwater?: number): Promise<Account> {
+  return accounts.save(fake.account(verification_source, highwater));
 };
 
 function upload(r?: Recorder, c?: Account): Promise<Upload> {

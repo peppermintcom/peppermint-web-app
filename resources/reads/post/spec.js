@@ -2,12 +2,11 @@ var defs = require('definitions');
 var headers = require('definitions/headers');
 var responses = require('definitions/responses');
 var integrations = require('definitions/integrations');
-var _ = require('utils');
 
 exports.tags = ['reads', 'inter-app'];
 exports.summary = 'Mark a message as read.';
 exports.description = 'Caller should be authenticated as recipient of the message.';
-exports.operationId = 'ReadMessage';
+exports.operationId = 'ReadThrough';
 exports.consumes = ['application/vnd.api+json'];
 
 exports.parameters = [
@@ -53,7 +52,7 @@ exports.responses = {
 
 exports['x-amazon-apigateway-integration'] = {
   type: 'aws',
-  uri : 'arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:819923996052:function:ReadMessage/invocations',
+  uri : 'arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:819923996052:function:ReadThrough/invocations',
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {

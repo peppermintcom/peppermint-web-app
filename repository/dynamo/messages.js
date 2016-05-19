@@ -1,7 +1,7 @@
 // @flow
 import type {Query, DynamoQueryRequest, N, S} from './types'
 import type {Recorder, Account, Message, Upload} from '../../domain'
-import type {QueryResult, QueryConfig, QueryMessagesByEmail} from '../types'
+import type {QueryResult, QueryConfig, QueryMessagesByEmail, QueryMessagesUnread} from '../types'
 
 type MessageItem = {
   message_id: S;
@@ -59,39 +59,57 @@ function formatEmailQuery(params: QueryMessagesByEmail, options: QueryConfig): D
 }
 
 //return all unread messages over a given time period
-function formatUnreadQuery(params: QueryUnreadMessages, options: QueryConfig): DynamoQueryReques {
+function formatUnreadQuery(params: QueryMessagesUnread, options: QueryConfig): DynamoQueryRequest {
   let r: DynamoQueryRequest = {
     TableName: 'messages',
     IndexName: 'recipient_email-created-index',
     KeyConditionExpression: 'recipient_email = :recipient_email AND created > :since',
     FilterExpression: 'attribute_not_exists(#read) AND attribute_exists(handled)',
     ExpressionAttributeValues: {
-      ':recipient_email:': {S: params.recipient_email},
-      ':since': {N: params.since.toString()},
+      ':recipient_email': {S: params.recipient_email.toLowerCase()},
+      ':since': {N: params.start_time.toString()},
     },
     ExpressionAttributeNames: {
       '#read': 'read',
     },
+    Limit: 200,
+    //always sort newest to oldest
+    ScanIndexForward: false,
   }
 
   return r
 }
 
-function markAllRead(messages: Message[], when: number): Promise<void> {
-  var CONDITION = 'attribute_exists(message_id) AND attribute_not_exists(#read) AND recipient_email = :recipient_email';
-  function stamp(request, reply) {
-    var messageID = request.body.data.id;
+function markRead(id: string, ts: number): Promise<void> {
+  //attribute_exists(message_id) ensures there is no insert if the message does
+  //not exist for any reason
+  let condition = 'attribute_exists(message_id)'
+  let expression = 'SET #read = :ts'
 
-    _.messages.update(messageID, 'SET #read = :now', {
-        ':now': {N: Date.now().toString()},
-        ':recipient_email': {S: request.caller.email},
-      }, {
+  return new Promise(function(resolve, reject) {
+    let params = {
+      TableName: 'messages',
+      Key: {
+        message_id: {S: id},
+      },
+      UpdateExpression: expression,
+      ConditionExpression: condition,
+      ExpressionAttributeValues: {
+        ':ts': {N: ts.toString()},
+      },
+      ExpressionAttributeNames: {
         '#read': 'read',
-      }, CONDITION)
-      .then(function() {
-        reply.succeed();
-      })
-  }
+      },
+    };
+
+    dynamo.updateItem(params, function(err) {
+      if (err) {
+        reject(err)
+        return
+      }
+      resolve()
+    })
+  })
 }
 
 function parse(item: MessageItem): Message {
@@ -203,4 +221,4 @@ function read(id: string): Promise<Message> {
   });
 }
 
-module.exports = {save, read, queryEmail, queryUnread}
+module.exports = {save, markRead, read, queryEmail, queryUnread}

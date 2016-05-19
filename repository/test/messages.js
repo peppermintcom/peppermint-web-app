@@ -3,8 +3,52 @@ import {expect} from 'chai'
 import fixtures from '../dynamo/test/fixtures'
 import domain from '../../domain'
 import timestamp from '../../utils/timestamp'
+import accounts from '../accounts'
+import messages from '../messages'
 
 describe('message entity', function() {
+  describe('markRead', function() {
+    describe('user has 3 read messages, 3 unread messages from yesterday, 3 unread messages from today', function() {
+      describe('mark last message from yesterday', function() {
+        it('should mark all messages from yesterday as read.', function() {
+          let lastWeek = Date.now() - (1000 * 60 * 60 * 168)
+          let yesterday = Date.now() - (1000 * 60 * 60 * 24)
+          let account
+
+          return fixtures.account()
+            .then(function(_account) {
+              account = _account
+
+              delete account.highwater
+              return accounts.save(account)
+            })
+            .then(function() {
+              return Promise.all([
+                fixtures.message({recipient: account, handled: true, read: true, created: lastWeek}),
+                fixtures.message({recipient: account, handled: true, read: true, created: lastWeek}),
+                fixtures.message({recipient: account, handled: true, read: true, created: lastWeek}),
+                fixtures.message({recipient: account, handled: true, read: false, created: yesterday - 10000}),
+                fixtures.message({recipient: account, handled: true, read: false, created: yesterday - 1000}),
+                fixtures.message({recipient: account, handled: true, read: false, created: yesterday}),
+                fixtures.message({recipient: account, handled: true, read: false, created: Date.now() - 10000}),
+                fixtures.message({recipient: account, handled: true, read: false, created: Date.now() - 1000}),
+                fixtures.message({recipient: account, handled: true, read: false, created: Date.now()}),
+              ])
+            })
+            .then(function(_messages) {
+              return messages.markRead(account, _messages[5])
+            })
+            .then(function() {
+              return messages.unread(account)
+            })
+            .then(function(unreads) {
+              expect(unreads).to.have.length(3)
+            })
+        })
+      })
+    })
+  })
+
   describe('domain.newMessage', function() {
     it('should return a Message.', function() {
       return Promise.all([

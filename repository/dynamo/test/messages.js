@@ -36,6 +36,26 @@ describe('dynamo messages repository', function() {
     });
   });
 
+  describe('markRead', function() {
+    it('should set the "read" attribute on a message', function() {
+      let id
+      let ts = Date.now()
+
+      return fixtures.message({handled: true, read: false})
+        .then(function(message) {
+          id = message.message_id
+
+          return messages.markRead(id, ts)
+        })
+        .then(function() {
+          return messages.read(id)
+        })
+        .then(function(message) {
+          expect(message).to.have.property('read', ts)
+        })
+    })
+  })
+
   describe('read', function() {
     describe('message has minimum allowed attributes', function() {
       it('should restore the saved message.', function() {
@@ -94,7 +114,7 @@ describe('dynamo messages repository', function() {
 
       describe('query bob qua sender past week', function() {
         it('should return the message.', function() {
-          return messages.query({
+          return messages.queryEmail({
             email: bob.email,
             role: 'sender',
             order: 'reverse',
@@ -114,7 +134,7 @@ describe('dynamo messages repository', function() {
 
       describe('query ann qua recipient past week', function() {
         it('should return the message.', function() {
-          return messages.query({
+          return messages.queryEmail({
             email: ann.email,
             role: 'recipient',
             order: 'reverse',
@@ -134,7 +154,7 @@ describe('dynamo messages repository', function() {
 
       describe('query bob qua recipient past week', function() {
         it('should return an empty set.', function() {
-          return messages.query({
+          return messages.queryEmail({
             email: bob.email,
             role: 'recipient',
             order: 'reverse',
@@ -151,7 +171,7 @@ describe('dynamo messages repository', function() {
 
       describe('query ann qua recipient past week', function() {
         it('should return an empty set.', function() {
-          return messages.query({
+          return messages.queryEmail({
             email: ann.email,
             role: 'sender',
             order: 'reverse',

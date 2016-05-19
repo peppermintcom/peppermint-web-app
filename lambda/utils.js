@@ -177,6 +177,14 @@ let log = (x: any): void => {
   console.log(util.inspect(x, {depth: null}));
 }
 
+let termLog = (err: Error, request: Object, state: Object): Promise<void> => {
+  if (err) {
+    log(err);
+  }
+  log(state);
+  return Promise.resolve()
+}
+
 export default {
   use,
   validateAPIKey,
@@ -188,4 +196,5 @@ export default {
   errForbidden,
   errNotFound,
   log,
+  termLog,
 }

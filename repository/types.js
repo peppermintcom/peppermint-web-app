@@ -21,6 +21,5 @@ export type QueryMessagesByEmail = {
 
 export type QueryMessagesUnread = {
   recipient_email: string;
-  last_message_id: string;
   start_time: number;
 }

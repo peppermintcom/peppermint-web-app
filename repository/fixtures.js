@@ -137,7 +137,7 @@ type messageConfig = {
   read_count: number;
 }
 function messages(options: messageConfig): Promise<Message[]> {
-  let count = Math.max(options.handled_count, options.read_count)
+  let count = Math.max(options.handled_count || 0, options.read_count || 0)
   let configs = []
   const MONTH = 1000 * 60 * 60 * 24 * 30
   let start = Date.now() - MONTH
@@ -152,6 +152,8 @@ function messages(options: messageConfig): Promise<Message[]> {
     }))
   }
 
+  console.log(count)
+  console.log(configs)
   return Promise.all(configs)
 }
 

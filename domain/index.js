@@ -215,6 +215,7 @@ export type Account = {
   registered?: Timestamp;
   verified?: ?Timestamp;
   verification_source?: ?string;
+  highwater?: ?Timestamp;
 }
 
 //AccountParts is the data required for newAccount.
@@ -237,6 +238,7 @@ function newAccount(a: AccountParts): Account {
     registered: Date.now(),
     verification_source: a.verification_source,
     verified: a.verification_source ? Date.now() : null,
+    highwater: Date.now(),
   };
 }
 
