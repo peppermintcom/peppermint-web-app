@@ -1,6 +1,7 @@
 //@flow
 import util from 'util'
 import lodash from 'lodash'
+import domain from '../domain'
 import tv4 from 'tv4'
 import apps from '../utils/apps'
 import jwt from '../utils/jwt'
@@ -62,18 +63,22 @@ function use(actions: action[], done: Function): Function {
         cb(null, state.response)
       })
     })
-    .catch(function(err) {
+    .catch(function(err: Object) {
+      //API Gateway lets you sneak in a body on error responses by setting it as
+      //the name property
       if (err.detail) {
         //JSON-API error objects
         err.name = JSON.stringify({detail: err.detail})
       }
+      
+      //give the lambda function one last chance to log or cleanup
       return done(err, req, state)
       .then(function() {
         cb(err)
       }, function() {
         cb(err)
       })
-    });
+    })
   };
 }
 

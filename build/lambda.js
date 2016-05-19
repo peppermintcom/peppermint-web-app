@@ -31,6 +31,7 @@ var nozip = [
 var strangled = {
   NewMessage: true,
   SearchMessages: true,
+  ReadThrough: true,
 };
 
 module.exports = function() {

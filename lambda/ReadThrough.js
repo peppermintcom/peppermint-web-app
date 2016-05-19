@@ -1,5 +1,6 @@
 //@flow
 
+import domain from '../domain'
 import spec from '../resources/reads/post/spec'
 import readThrough from '../procedures/commands/readThrough'
 import _ from './utils'
@@ -22,5 +23,20 @@ function mark(state: Object): Promise<void> {
   return readThrough({
     recipient_id: state.identity.account_id,
     message_id: state.body.data.id,
+  })
+  .catch(function(err) {
+    var next: ?Object;
+
+    switch (err.message) {
+    case domain.ErrNotFoundMessage:
+      var e: Object = new Error('400')
+      e.detail = 'Message not found'
+      throw e
+    case domain.ErrForbidden:
+      var e: Object = new Error('403')
+      e.detail = 'Forbidden'
+      throw e
+    }
+    throw err
   })
 }

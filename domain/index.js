@@ -7,6 +7,9 @@ var ErrNotFound = new Error('Entity not found.');
 var ErrAPIKey = new Error('Unknown API key.');
 var ErrConflict = new Error('Conflict with existing entity.');
 
+var ErrForbidden = 'Authenticated user may not perform the requested action.'
+var ErrNotFoundMessage = 'Entity not found.'
+
 //milliseoncds since the epoch
 export type Timestamp = number;
 
@@ -250,6 +253,8 @@ export default {
   ErrNotFound,
   ErrAPIKey,
   ErrConflict,
+  ErrForbidden,
+  ErrNotFoundMessage,
   newUpload,
   makeUpload,
   newRecorder,

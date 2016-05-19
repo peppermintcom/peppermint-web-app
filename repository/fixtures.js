@@ -152,8 +152,6 @@ function messages(options: messageConfig): Promise<Message[]> {
     }))
   }
 
-  console.log(count)
-  console.log(configs)
   return Promise.all(configs)
 }
 

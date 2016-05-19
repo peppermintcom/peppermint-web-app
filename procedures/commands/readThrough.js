@@ -1,4 +1,5 @@
 //@flow
+import domain from '../../domain'
 import messages from '../../repository/messages'
 import accounts from '../../repository/accounts'
 
@@ -25,8 +26,8 @@ export default function(req: Request): Promise<void> {
     let message = results[0]
     let recipient = results[1]
 
-    if (message.recipient.account_id !== recipient.account_id) {
-      throw new Error('Forbidden')
+    if (message.recipient.email !== recipient.email) {
+      throw new Error(domain.ErrForbidden)
     }
 
     return messages.markRead(recipient, message)

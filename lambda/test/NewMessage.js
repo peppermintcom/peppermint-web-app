@@ -3,7 +3,7 @@ import type {Account} from '../../domain'
 import type {UploadConfig, ReceiverConfig} from '../../repository/fixtures'
 
 import {expect} from 'chai'
-import {NewMessage} from '../bundle'
+import {NewMessage} from '../bundle.js'
 import accounts from '../../repository/accounts'
 import recorders from '../../repository/recorders'
 import fixtures from '../../repository/fixtures'
