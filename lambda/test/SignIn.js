@@ -3,9 +3,11 @@ import tv4 from 'tv4'
 import defs from '../../definitions'
 import {SignIn} from '../bundle.js'
 import domain from '../../domain'
-import fixtures from '../../repository/fixtures'
+import fixtures from '../../procedures/test/fixtures'
 import accounts from '../../repository/accounts'
+import recorders from '../../repository/recorders'
 import jwts from '../../utils/jwt'
+import token from '../../utils/randomtoken'
 import {peppermintScheme} from '../../utils/test'
 import * as spec from '../../resources/jwts/post/spec'
 
@@ -15,7 +17,59 @@ const FACEBOOK = 2;
 describe('lambda:SignIn', function() {
   describe('no include param', function() {
 
-    describe.only('goole', function() {
+    describe('recorder credentials', function() {
+      it('should succeed.', function(done) {
+        let gcmToken = token(64)
+        let recorder, key
+
+        fixtures.recorder().then(function(result) {
+          recorder = result[0]
+          key = result[1]
+
+          return recorders.updateGCMToken(recorder.client_id, gcmToken)
+        })
+        .then(function(r) {
+          SignIn({
+            Authorization: peppermintScheme(recorder.client_id, key),
+            api_key: fixtures.API_KEY,
+          }, null, function(err, res) {
+            if (err) {
+              return done(err)
+            }
+            if (!tv4.validate(res, spec.responses['200'])) {
+              throw tv4.error
+            }
+            expect(res.data.relationships).not.to.have.property('account');
+            expect(res.data.relationships).to.have.property('recorder');
+            expect(res.data.relationships.recorder.data.id).to.equal(recorder.recorder_id);
+            expect(res.included).to.have.length(1);
+            if (!tv4.validate(res.included[0], defs.recorders.schemaNoKey)) {
+              console.log(tv4.error)
+              return done(tv4.error);
+            }
+            done();
+          })
+        })
+        .catch(done)
+      })
+
+      describe('recorder is registered with GCM.', function() {
+        it('should succeed and include gcm_registration_token in recorder resource', function(done) {
+          handler({
+            Authorization: _.peppermintScheme(receiver.recorder_client_id, receiver.recorder_key),
+            api_key: _.fake.API_KEY,
+          }, {
+            fail: done,
+            succeed: function(result) {
+              expect(result.included[0].attributes).to.have.property('gcm_registration_token', receiver.gcm_registration_token);
+              done();
+            },
+          });
+        });
+      });
+    })
+
+    describe('goole', function() {
       var email = 'andrew@areed.io';
       var name = 'Andrew Reed';
       //https://developers.google.com/oauthplayground/

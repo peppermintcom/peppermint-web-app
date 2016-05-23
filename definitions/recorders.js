@@ -31,6 +31,7 @@ var attributesSchemaNoKey = {
     recorder_client_id: {type: 'string'},
     recorder_ts: timestamp,
     description: {type: 'string'},
+    gcm_registration_token: {type: 'string'},
   },
   required: ['recorder_client_id', 'recorder_ts'],
   additionalProperties: false,

@@ -159,7 +159,7 @@ function format(r: Recorder): RecorderItem {
 function parse(item: RecorderItem): Recorder {
   var registered = item.registered ? item.registered.N : item.recorder_ts.N;
 
-  return {
+  return domain.makeRecorder({
     recorder_id: item.recorder_id.S,
     client_id: item.client_id.S,
     api_key: item.api_key.S,
@@ -167,7 +167,7 @@ function parse(item: RecorderItem): Recorder {
     registered: +registered,
     description: item.description ? item.description.S : null,
     gcm_registration_token: item.gcm_registration_token ? item.gcm_registration_token.S : null,
-  };
+  });
 }
 
 module.exports = {save, read, readByID, updateGCMToken};

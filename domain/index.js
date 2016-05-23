@@ -36,8 +36,8 @@ let recorderProto = {
     if (this.client_id) {
       attrs.recorder_client_id = this.client_id
     }
-    if (this.recorder_ts) {
-      attrs.recorder_ts = timestamp(this.recorder_ts)
+    if (this.registered) {
+      attrs.recorder_ts = timestamp(this.registered)
     }
     if (this.description) {
       attrs.description = this.description
