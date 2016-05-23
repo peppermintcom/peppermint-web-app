@@ -1,23 +1,24 @@
 //@flow
 import type {Recorder, Account} from '../../domain'
 
+import domain from '../../domain'
 import recorders from '../../repository/recorders'
 import accounts from '../../repository/accounts'
 import auth from '../../utils/auth'
-import _ from '../../utils'
+import bcrypt from '../../utils/bcrypt'
+import jwts from '../../utils/jwt'
+import uuid from '../../utils/uuid'
 
 type Creds = {
   user?: string;
   password?: string;
 }
 
-type AccessToken = string;
-
 export type Request = {
   recorder?: Creds;
   account?: Creds;
-  google?: AccessToken;
-  facebook?: AccessToken;
+  google?: Creds;
+  facebook?: Creds;
 }
 
 type Response = {
@@ -62,8 +63,8 @@ export default function(req: Request): Promise<Response> {
     //recorder.user is the client_id, the key in the recorders table
     req.recorder ? recorders.read(req.recorder.user) : Promise.resolve(null),
     req.account ? accounts.read(req.account.user) : Promise.resolve(null),
-    req.google ? auth.google(req.google).then(accounts.upsert) : Promise.resolve(null),
-    req.facebook ? auth.facebook(req.facebook).then(accounts.upsert) : Promise.resolve(null),
+    req.google ? auth.google(req.google).then(upsert) : Promise.resolve(null),
+    req.facebook ? auth.facebook(req.facebook).then(upsert) : Promise.resolve(null),
   ])
   .then(function(results) {
     let recorder: ?Recorder = results[0];
@@ -77,8 +78,8 @@ export default function(req: Request): Promise<Response> {
     }
 
     return Promise.all([
-      req.account ? _.bcryptCheck(req.account.password, account && account.pass_hash) : Promise.resolve(),
-      req.recorder ? _.bcryptCheck(req.recorder.password, recorder && recorder.recorder_key_hash) : Promise.resolve(),
+      req.account ? bcrypt.check(req.account.password, account && account.pass_hash) : Promise.resolve(),
+      req.recorder ? bcrypt.check(req.recorder.password, recorder && recorder.recorder_key_hash) : Promise.resolve(),
     ])
     .then(function(results) {
       let accountOK = results[0];
@@ -97,11 +98,28 @@ export default function(req: Request): Promise<Response> {
         delete account.pass_hash;
       }
  
+      let id = uuid()
+
       return {
-        access_token: _.jwt.creds(account && account.account_id, recorder && recorder.recorder_id, _.uuid()),
+        token_id: id,
+        access_token: jwts.creds(account && account.account_id, recorder && recorder.recorder_id, id),
         account: account,
         recorder: recorder,
       };
     });
   });
+}
+
+//call domain.newAccount on Facebook/Google auth result
+type thirdPartyAuth = {
+  email: string;
+  full_name: string;
+  source: 'facebook' | 'google';
+}
+function upsert(identity: Object) {
+  return accounts.upsert(domain.newAccount({
+    email: identity.email,
+    full_name: identity.full_name,
+    verification_source: identity.source,
+  }))
 }

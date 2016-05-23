@@ -1,9 +1,50 @@
-//@flow
 import {expect} from 'chai'
 import fake from '../../domain/fake'
+import fixtures from '../fixtures'
 import accounts from '../accounts'
 
 describe('repository accounts', function() {
+  describe('isReceiver', function() {
+    describe('false', function() {
+      it('should return false.', function() {
+        return Promise.all([
+          fixtures.account(),
+          fixtures.recorder()
+        ])
+        .then(function(results) {
+          let account = results[0]
+          let recorder = results[1]
+
+          return accounts.isReceiver(account.account_id, recorder.recorder_id)
+        })
+        .then(function(is) {
+          expect(is).to.equal(false)
+        })
+      })
+    })
+
+    describe('true', function() {
+      it('should return true.', function() {
+        return Promise.all([
+          fixtures.account(),
+          fixtures.recorder()
+        ])
+        .then(function(results) {
+          let account = results[0]
+          let recorder = results[1]
+
+          return accounts.link(recorder.recorder_id, account.account_id)
+        })
+        .then(function(receiver) {
+          return accounts.isReceiver(receiver.account_id, receiver.recorder_id)
+        })
+        .then(function(is) {
+          expect(is).to.equal(true)
+        })
+      })
+    })
+  })
+
   describe('upsert', function() {
     describe('account does not exist', function() {
       it('should save and return the account argument.', function() {

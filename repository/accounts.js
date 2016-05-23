@@ -30,7 +30,7 @@ function upsert (a: Account): Promise<Account> {
     .catch(function(err) {
       if (err == domain.ErrNotFound) {
         //the insert if the account does not exist
-        return dynamo.save(a);
+        return dynamo.save(a)
       }
       else throw err;
     });
@@ -65,12 +65,23 @@ function getReceivers(accountID: string): Promise<Recorder[]> {
     })
 }
 
+//check whether the recorder is linked to the account as receiver, regardless of
+//whether the recorder has a gcm_registration_token.
+function isReceiver(accountID: string, recorderID: string): Promise<boolean> {
+  return receivers.readNull(recorderID, accountID)
+    .then(function(receiver) {
+      return !!receiver
+    })
+}
+
 export default {
   upsert,
   read: dynamo.read,
   readByID: dynamo.readByID,
   save: dynamo.save,
+  delete: dynamo.delete,
   recorders: getRecorders,
   receivers: getReceivers,
+  isReceiver: isReceiver,
   link: receivers.save,
 }

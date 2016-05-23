@@ -2,13 +2,10 @@ require('es6-promise').polyfill();
 var util = require('util');
 var conf = require('./conf.js');
 var _ = require('lodash');
-var bcrypt = require('bcryptjs');
 var errors = require('./errors');
 var jwt = require('./jwt');
 var token = require('./randomtoken');
-
-//while using js
-const BCRYPT_COST = 8;
+var bcrypt = require('./bcrypt')
 
 exports.apps = require('./apps');
 exports.auth = require('./auth');
@@ -30,41 +27,14 @@ exports.parseTime = require('./parseTime');
 exports.uploads = require('./uploads');
 exports.jwt = jwt;
 exports.errors = errors;
+exports.bcryptCheck = bcrypt.check
+exports.bcryptHash = bcrypt.hash
 
 exports.log = function(x) {
   console.log(util.inspect(x, {depth: null}));
 };
 
-/**
- * @param {String} plaintext
- */
-exports.bcryptHash = function(plaintext) {
-  return new Promise(function(resolve, reject) {
-    bcrypt.hash(plaintext, BCRYPT_COST, function(err, hash) {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(hash);
-    });
-  });
-};
 
-/**
- * @param {String} plain
- * @param {String} hash
- */
-exports.bcryptCheck = function(plain, hash) {
-  return new Promise(function(resolve, reject) {
-    bcrypt.compare(plain, hash, function(err, ok) {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(ok);
-    });
-  });
-};
 
 /**
  * Checks and parses the JWT from an Authorization Bearer header.

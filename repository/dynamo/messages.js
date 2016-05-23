@@ -124,16 +124,16 @@ function parse(item: MessageItem): Message {
     recorder: r,
   });
 
-  var sender: Account = {
+  var sender: Account = domain.makeAccount({
     email: item.sender_email.S,
-  }
+  })
   if (item.sender_name) {
     sender.full_name = item.sender_name.S;
   }
 
-  var recipient: Account = {
+  var recipient: Account = domain.makeAccount({
     email: item.recipient_email.S,
-  }
+  })
 
   return domain.makeMessage({
     message_id: item.message_id.S,

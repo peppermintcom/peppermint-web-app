@@ -3,6 +3,7 @@ import type {Entity} from '../../domain'
 import type {QueryConfig, QueryResult} from '../types'
 import type {Query, ParseEntity, FormatRequest, EncodePosition} from './types'
 
+import domain from '../../domain'
 import dynamo from './client'
 import _ from '../utils'
 
@@ -69,4 +70,13 @@ function decode64Obj(s: string): Object {
   return JSON.parse(Buffer(decodeURIComponent(s), 'base64').toString('utf8'));
 }
 
-module.exports = Object.assign({}, _, {queryResult, queryer, accmQuery, encode64Obj, decode64Obj});
+//read a record but convert ErrNoEntity to null without an error. Use inside a
+//catch block after a read operation.
+function nullOK(err) {
+  if (err.message === domain.ErrNoEntity) {
+    return null
+  }
+  throw err
+}
+
+module.exports = Object.assign({}, _, {queryResult, queryer, accmQuery, encode64Obj, decode64Obj, nullOK});

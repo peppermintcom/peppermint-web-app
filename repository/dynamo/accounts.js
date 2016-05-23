@@ -39,6 +39,21 @@ function save(a: Account, options?: SaveConfig): Promise<Account> {
   });
 }
 
+function del(email: string): Proimse<void> {
+  return new Promise(function(resolve, reject) {
+    dynamo.deleteItem({
+      TableName: 'accounts',
+      Key: {email: {S: email}},
+    }, function(err) {
+      if (err) {
+        reject(err)
+        return
+      }
+      resolve()
+    })
+  })
+}
+
 function setHighwater(email: string, ts: number): Promise<void> {
   return new Promise(function(resolve, reject) {
     let params = {
@@ -122,10 +137,12 @@ function format(a: Account): AccountItem {
     email: {S: a.email},
     account_id: {S: a.account_id},
     full_name: {S: a.full_name},
-    password: {S: a.pass_hash},
     registration_ts: {N: a.registered.toString()},
   };
 
+  if (a.pass_hash) {
+    item.password = {S: a.pass_hash}
+  }
   if (a.verified) {
     item.verification_ts = {N: a.verified.toString()};
   }
@@ -140,7 +157,7 @@ function format(a: Account): AccountItem {
 }
 
 function parse(item: AccountItem): Account {
-  return {
+  return domain.makeAccount({
     email: item.email.S,
     account_id: item.account_id.S,
     full_name: item.full_name.S,
@@ -149,7 +166,7 @@ function parse(item: AccountItem): Account {
     verified: item.verification_ts ? +item.verification_ts.N : null,
     verification_source: item.verification_ip ? item.verification_ip.S : null,
     highwater: item.highwater ? +item.highwater.N : null,
-  };
+  });
 }
 
-module.exports = {save, setHighwater, read, readByID};
+module.exports = {save, delete: del, setHighwater, read, readByID};

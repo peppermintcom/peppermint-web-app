@@ -1,14 +1,17 @@
 // @flow
-import token from '../utils/randomtoken'
+import uuid from '../utils/uuid'
 import timestamp from '../utils/timestamp'
 import _ from './utils'
 
+//depreacted - use messages
 var ErrNotFound = new Error('Entity not found.');
 var ErrAPIKey = new Error('Unknown API key.');
 var ErrConflict = new Error('Conflict with existing entity.');
 
+//error messages
 var ErrForbidden = 'Authenticated user may not perform the requested action.'
-var ErrNotFoundMessage = 'Entity not found.'
+var ErrNotFoundMessage = 'Entity not found.' //deprecated - use ErrNoEntity
+var ErrNoEntity = 'Entity not found.'
 
 //milliseoncds since the epoch
 export type Timestamp = number;
@@ -25,6 +28,31 @@ export type Recorder = {
   gcm_registration_token?: ?string;
 }
 
+let recorderProto = {
+  //never include recorder_key
+  resource: function() {
+    let attrs: Object = {}
+
+    if (this.client_id) {
+      attrs.recorder_client_id = this.client_id
+    }
+    if (this.recorder_ts) {
+      attrs.recorder_ts = timestamp(this.recorder_ts)
+    }
+    if (this.description) {
+      attrs.description = this.description
+    }
+    if (this.gcm_registration_token) {
+      attrs.gcm_registration_token = this.gcm_registration_token
+    }
+
+    return {
+      type: 'recorders',
+      id: this.recorder_id,
+      attributes: attrs,
+    }
+  }
+};
 export type RecorderParts = {
   api_key: string;
   client_id: string;
@@ -35,9 +63,9 @@ export type RecorderParts = {
 //if missing.
 function newRecorder(r: RecorderParts): Recorder {
   return {
-    recorder_id: token(22),
+    recorder_id: uuid(),
     registered: Date.now(),
-    client_id: r.client_id || token(22),
+    client_id: r.client_id || uuid(),
     recorder_key_hash: r.recorder_key_hash,
     api_key: r.api_key,
     description: r.description || null,
@@ -46,7 +74,7 @@ function newRecorder(r: RecorderParts): Recorder {
 }
 
 function makeRecorder(r: Recorder): Recorder {
-  return r;
+  return Object.assign(Object.create(recorderProto), r);
 }
 
 export type ContentType = 'audio/mpeg' | 'audio/mp3' | 'audio/mp4';
@@ -96,7 +124,7 @@ var uploadProto = (function() {
 function newUpload(u: UploadParts): Upload {
   var upload = Object.create(uploadProto);
 
-  upload.upload_id = token(22);
+  upload.upload_id = uuid();
   upload.content_type = u.content_type;
   upload.recorder = u.recorder;
   upload.initialized = Date.now();
@@ -167,8 +195,8 @@ let messageProto = {
       attrs.duration = this.upload.duration
     }
 
-    if (this.transcription) {
-      attrs.transcription = this.transcription.text
+    if (this.upload.transcription) {
+      attrs.transcription = this.upload.transcription.text
     }
 
     if (this.read) {
@@ -193,7 +221,7 @@ export type MessageParts = {
 function newMessage(m: MessageParts): Message {
   let message: Object = Object.create(messageProto)
 
-  message.message_id = token(22)
+  message.message_id = uuid()
   message.upload = m.upload
   message.created = Date.now()
   message.recipient = m.recipient
@@ -214,17 +242,33 @@ export type Account = {
   account_id?: string;
   email?: string;
   full_name?: string;
-  pass_hash?: string;
+  pass_hash?: ?string;
   registered?: Timestamp;
   verified?: ?Timestamp;
   verification_source?: ?string;
   highwater?: ?Timestamp;
+  resource: Function;
+}
+
+let accountProto = {
+  resource: function() {
+    return {
+      type: 'accounts',
+      id: this.account_id,
+      attributes: {
+        email: this.email,
+        full_name: this.full_name,
+        registration_ts: timestamp(this.registration_ts),
+        is_verified: !!this.verified,
+      },
+    }
+  }
 }
 
 //AccountParts is the data required for newAccount.
 export type AccountParts = {
   email: string;
-  pass_hash: string;
+  pass_hash?: string;
   full_name: string;
   verification_source: ?string;
 }
@@ -233,28 +277,33 @@ export type AccountParts = {
 //is already verified - e.g. if email was confirmed by Google - it also sets the
 //verified timestamp.
 function newAccount(a: AccountParts): Account {
-  return {
-    account_id: token(22),
-    email: a.email.toLowerCase(),
-    full_name: a.full_name,
-    pass_hash: a.pass_hash,
-    registered: Date.now(),
-    verification_source: a.verification_source,
-    verified: a.verification_source ? Date.now() : null,
-    highwater: Date.now(),
-  };
+  let account: Account = Object.create(accountProto)
+
+  account.account_id = uuid()
+  account.email = a.email.toLowerCase()
+  account.full_name = a.full_name
+  account.pass_hash = a.pass_hash || null
+  account.registered = Date.now()
+  account.verification_source = a.verification_source
+  account.verified = a.verification_source ? Date.now() : null
+  account.highwater = Date.now()
+
+  return account
 }
 
-function makeAccount(a: Account): Account {
-  return a;
+function makeAccount(a: Object): Account {
+  return Object.assign(Object.create(accountProto), a);
 }
 
 export default {
   ErrNotFound,
   ErrAPIKey,
   ErrConflict,
+
   ErrForbidden,
   ErrNotFoundMessage,
+  ErrNoEntity,
+
   newUpload,
   makeUpload,
   newRecorder,

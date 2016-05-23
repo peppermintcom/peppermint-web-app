@@ -2,7 +2,9 @@
 import type {S} from './types'
 import type {Recorder} from '../../domain'
 
+import domain from '../../domain'
 import dynamo from './client'
+import _ from './utils'
 
 type Item = {
   recorder_id: S;
@@ -28,6 +30,32 @@ let save = (recorderID: string, accountID: string): Promise<Receiver> => {
       resolve(r)
     })
   })
+}
+
+let read = (recorderID: string, accountID: string): Promise<Receiver> => {
+  return new Promise(function(resolve, reject) {
+    dynamo.getItem({
+      TableName: 'receivers',
+      Key: {
+        recorder_id: {S: recorderID},
+        account_id: {S: accountID},
+      },
+    }, function(err, data) {
+      if (err) {
+        reject(err)
+        return
+      }
+      if (!data || !data.Item) {
+        reject(new Error(domain.ErrNoEntity))
+        return
+      }
+      resolve(parse(data.Item))
+    })
+  })
+}
+
+let readNull = (recorderID: string, accountID: string): Promise<?Receiver> => {
+  return read(recorderID, accountID).catch(_.nullOK)
 }
 
 let recorder_ids = (accountID: string): Promise<Recorder[]> => {
@@ -62,5 +90,7 @@ let format = (r: Receiver): Item => ({
 
 export default {
   save,
+  read,
+  readNull,
   recorder_ids
 }
