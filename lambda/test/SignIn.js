@@ -17,6 +17,36 @@ const FACEBOOK = 2;
 describe('lambda:SignIn', function() {
   describe('no include param', function() {
 
+    describe('account credentials', function() {
+      it('should succeed.',  function(done) {
+        fixtures.account().then(function(results) {
+          let account = results[0]
+          let password = results[1]
+
+          SignIn({
+            Authorization: peppermintScheme(null, null, account.email, password),
+            api_key: fixtures.API_KEY,
+          }, null, function(err, res) {
+            try {
+              expect(res.data.relationships).not.to.have.property('recorder')
+              expect(res.data.relationships).to.have.property('account')
+              expect(res.data.relationships.account.data.id).to.equal(account.account_id)
+              expect(res.included).to.have.length(1)
+            } catch(e) {
+              return done(e)
+            }
+            if (!tv4.validate(res.included[0], defs.accounts.schema)) {
+              return done(tv4.error);
+            }
+            if (!tv4.validate(res, spec.responses['200'])) {
+              return done(tv4.error)
+            }
+            done()
+          })
+        })
+      })
+    })
+
     describe('recorder credentials', function() {
       it('should succeed.', function(done) {
         let gcmToken = token(64)
