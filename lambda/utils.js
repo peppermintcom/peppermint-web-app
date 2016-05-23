@@ -1,12 +1,22 @@
 //@flow
+import util from 'util'
 import lodash from 'lodash'
+import domain from '../domain'
+import tv4 from 'tv4'
 import apps from '../utils/apps'
 import jwt from '../utils/jwt'
+import bodySchema from '../utils/bodySchema'
 
 //status 400
-let ErrAPIKey = new Error('Invalid API Key')
+let ErrAPIKey: Object = new Error('400')
+ErrAPIKey.detail = 'Invalid API Key'
+
 //status 401
-let ErrAuthorizationHeader = new Error('Authorization header should be formatted: Bearer <JWT>')
+let ErrAuthorizationHeader: Object = new Error('401')
+ErrAuthorizationHeader.detail = 'Authorization header should be formatted: Bearer <JWT>'
+
+let ErrAuth: Object = new Error('401')
+ErrAuth.detail = 'Error: Signature verification failed'
 
 type handler = {
   fn: Function;
@@ -40,48 +50,35 @@ async function run(state: Object, actions: action[]): Promise<Object> {
 //Adapt a batch of Promise routines to the format expected by new Lambda Node.js
 //programming environment. One of the handlers must define a "response" property
 //on the state, which will be returned to the caller.
-function use(actions: action[]): Function {
+function use(actions: action[], done: Function): Function {
   return function (req: Object, context: Object, cb: Function) {
-    run(req, actions)
+    let state = lodash.cloneDeep(req)
+
+    run(state, actions)
     .then(function(state) {
-      //state === req because run mutates req
-      cb(null, state.response);
+      return done(null, req, state)
+      .then(function() {
+        cb(null, state.response)
+      }, function() {
+        cb(null, state.response)
+      })
     })
-    .catch(function(err) {
-      //TODO error processing
-      cb(err);
-      /*
-      //known Peppermint errors
-      if (err.status) {
-        var e = new Error(err.status);
-
-        e.name = JSON.stringify(_.pick(err, 'detail', 'title', 'code'));
-        reply.fail(e);
-        return;
+    .catch(function(err: Object) {
+      //API Gateway lets you sneak in a body on error responses by setting it as
+      //the name property
+      if (err.detail) {
+        //JSON-API error objects
+        err.name = JSON.stringify({detail: err.detail})
       }
-      //other errors can be passed on if they have a message property
-      if (err.message) {
-
-        //format name as jsonapi error if plain string
-        try {
-          JSON.parse(err.name);
-        } catch(e) {
-          //err.name is not already a JSON stringified error object with a
-          //detail property so make it one
-          err.name = JSON.stringify({detail: err.name});
-        }
-
-        reply.fail(err);
-        return;
-      }
-      //errors without a message property will be mapped to the default
-      //(OK) acction by Gateway, so add something that will be picked up
-      //by an error integration in Lambda error regex.
-      console.log('unknown error:');
-      console.log(util.inspect(err, {depth: null}));
-      reply.fail(new Error('Internal Server Error'));
-      */
-    });
+      
+      //give the lambda function one last chance to log or cleanup
+      return done(err, req, state)
+      .then(function() {
+        cb(err)
+      }, function() {
+        cb(err)
+      })
+    })
   };
 }
 
@@ -107,10 +104,31 @@ function validateAPIKey(state: Object): Promise<null> {
   })
 }
 
+//Checks for JSON-API content type.
+function validateContentType(state: Object): Promise<null> {
+  if (state['Content-Type'] !== 'application/vnd.api+json') {
+    let err: Object = new Error('415')
+
+    err.detail = 'Use "application/vnd.api+json"';
+    return Promise.reject(err)
+  }
+  return Promise.resolve(null)
+}
+
+//Returns a task runner to check state.body against a JSON schema.
+function bodyValidator(spec: Object): Function {
+  let schema = bodySchema(spec.parameters)
+
+  return function(state: Object): Promise<null> {
+    if (!tv4.validate(state.body, schema)) {
+      return Promise.reject(errInvalid(tv4.error.message))
+    }
+    return Promise.resolve(null)
+  }
+}
+
 /**
  * Checks and parses the JWT from an Authorization Bearer header.
- * Adds a "JWT" property to the request if authentication is ok.
- * @param {Authorization} string
  */
 type identity = {
   account_id?: string;
@@ -129,8 +147,7 @@ function authenticate(state: Object): Promise<identity> {
     let parsed = jwt.verify(parts[1]);
 
     if (parsed.err) {
-      //status 401
-      reject(new Error(parsed.err.toString()));
+      reject(ErrAuth)
       return
     }
 
@@ -138,8 +155,51 @@ function authenticate(state: Object): Promise<identity> {
   });
 };
 
+let err = (message: string, detail: string): Object => {
+  let err: Object = new Error(message)
+
+  err.detail = detail
+  return err
+}
+
+let errInvalid = (detail: string): Object => {
+  return err('400', detail)
+}
+
+let errAuth = (detail: string): Object => {
+  return err('401', detail)
+}
+
+let errForbidden = (detail: string): Object => {
+  return err('403', detail)
+}
+
+let errNotFound = (detail: string): Object => {
+  return err('404', detail)
+}
+
+let log = (x: any): void => {
+  console.log(util.inspect(x, {depth: null}));
+}
+
+let termLog = (err: Error, request: Object, state: Object): Promise<void> => {
+  if (err) {
+    log(err);
+  }
+  log(state);
+  return Promise.resolve()
+}
+
 export default {
   use,
   validateAPIKey,
+  validateContentType,
+  bodyValidator,
   authenticate,
+  errInvalid,
+  errAuth,
+  errForbidden,
+  errNotFound,
+  log,
+  termLog,
 }

@@ -19,13 +19,12 @@ describe('timestamp', function() {
 });
 
 describe('token', function() {
-  it('should generate base64url strings.', function() {
+  it('should generate base62url strings.', function() {
     var t = _.token(1024);
-    expect(t).to.match(/^[a-zA-Z0-9\-_]{1024}$/);
+    expect(t).to.match(/^[a-zA-Z0-9]{1024}$/);
     expect(t).to.match(/[a-z]/);
     expect(t).to.match(/[A-Z]/);
     expect(t).to.match(/[0-9]/);
-    expect(t).to.match(/[\-_]/);
   });
 });
 

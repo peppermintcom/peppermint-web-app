@@ -5,6 +5,7 @@ _.gcm = require('./gcmstub');
 var UPLOAD_KEY = exports.UPLOAD_KEY = 'gTZleGAi_j2x7SLH4aMMEZ/aYbmwmOJPKVeVFivpWu67U.mp3';
 var AUDIO_URL = exports.AUDIO_URL = 'http://go.peppermint.com/' + UPLOAD_KEY;
 var API_KEY = exports.API_KEY = 'abc123';
+var register = require('../resources/accounts/post').handler;
 exports.API_KEY_ANDROID = 'android-dev';
 exports.API_KEY_IOS = 'ios-dev';
 

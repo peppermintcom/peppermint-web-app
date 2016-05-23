@@ -1,6 +1,6 @@
 //@flow
 import {expect} from 'chai'
-import fake from '../fake'
+import fake from '../../domain/fake'
 import accounts from '../accounts'
 
 describe('repository accounts', function() {

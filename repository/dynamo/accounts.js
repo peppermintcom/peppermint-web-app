@@ -1,7 +1,7 @@
-import type {Account} from '../domain'
+import type {Account} from '../../domain'
 import type {SaveConfig} from '../types'
 
-import domain from '../domain'
+import domain from '../../domain'
 import dynamo from './client'
 
 export type AccountItem = {
@@ -12,6 +12,7 @@ export type AccountItem = {
   registration_ts: N;
   verification_ts?: N;
   verification_ip?: S;
+  highwater?: N;
 }
 
 function save(a: Account, options?: SaveConfig): Promise<Account> {
@@ -36,6 +37,35 @@ function save(a: Account, options?: SaveConfig): Promise<Account> {
       resolve(a);
     });
   });
+}
+
+function setHighwater(email: string, ts: number): Promise<void> {
+  return new Promise(function(resolve, reject) {
+    let params = {
+      TableName: 'accounts',
+      Key: {
+        email: {S: email.toLowerCase()},
+      },
+      UpdateExpression: 'SET highwater = :highwater',
+      ConditionExpression: 'attribute_not_exists(highwater) OR highwater < :highwater',
+      ExpressionAttributeValues: {
+        ':highwater': {N: ts.toString()},
+      },
+    };
+
+    dynamo.updateItem(params, function(err) {
+      if (err) {
+        if (err.code === 'ConditionalCheckFailedException') {
+          //success
+          resolve();
+          return
+        }
+        reject(err)
+        return
+      }
+      resolve()
+    })
+  })
 }
 
 function read(email: string): Promise<Account> {
@@ -102,6 +132,9 @@ function format(a: Account): AccountItem {
   if (a.verification_source) {
     item.verification_ip = {S: a.verification_source};
   }
+  if (a.highwater) {
+    item.highwater = {N: a.highwater.toString()};
+  }
 
   return item;
 }
@@ -111,11 +144,12 @@ function parse(item: AccountItem): Account {
     email: item.email.S,
     account_id: item.account_id.S,
     full_name: item.full_name.S,
-    pass_hash: item.password.S,
+    pass_hash: item.password ? item.password.S: null,
     registered: +item.registration_ts.N,
     verified: item.verification_ts ? +item.verification_ts.N : null,
     verification_source: item.verification_ip ? item.verification_ip.S : null,
+    highwater: item.highwater ? +item.highwater.N : null,
   };
 }
 
-module.exports = {save, read, readByID};
+module.exports = {save, setHighwater, read, readByID};

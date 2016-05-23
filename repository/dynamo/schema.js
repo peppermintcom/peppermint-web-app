@@ -40,6 +40,51 @@ var recorders = {
   ],
 };
  
+var receivers = {
+  AttributeDefinitions: [{
+    AttributeName: 'recorder_id',
+    AttributeType: 'S',
+  }, {
+    AttributeName: 'account_id',
+    AttributeType: 'S',
+  }],
+  KeySchema: [{
+    AttributeName: 'recorder_id',
+    KeyType: 'HASH',
+  }, {
+    AttributeName: 'account_id',
+    KeyType: 'RANGE',
+  }],
+  TableName: 'receivers',
+  ProvisionedThroughput: {
+    ReadCapacityUnits: 10,
+    WriteCapacityUnits: 10,
+  },
+  GlobalSecondaryIndexes: [{
+    IndexName: 'recorder_id-index',
+    KeySchema: [{
+      AttributeName: 'recorder_id',
+      KeyType: 'HASH',
+    }],
+    Projection: { ProjectionType: 'ALL' },
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 10,
+      WriteCapacityUnits: 10,
+    },
+  }, {
+    IndexName: 'account_id-index',
+    KeySchema: [{
+      AttributeName: 'account_id',
+      KeyType: 'HASH',
+    }],
+    Projection: { ProjectionType: 'ALL' },
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 10,
+      WriteCapacityUnits: 10,
+    },
+  }],
+};
+
 var uploads = {
   AttributeDefinitions: [
     {
@@ -205,6 +250,7 @@ var messages = {
 
 module.exports = {
   recorders: recorders,
+  receivers: receivers,
   uploads: uploads,
   accounts: accounts,
   transcriptions: transcriptions,

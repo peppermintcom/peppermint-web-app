@@ -1,7 +1,7 @@
 // @flow
 import type {Query, DynamoQueryRequest, N, S} from './types'
-import type {Recorder, Account, Message, Upload} from '../domain'
-import type {QueryResult, QueryConfig, QueryMessagesByEmail} from '../types'
+import type {Recorder, Account, Message, Upload} from '../../domain'
+import type {QueryResult, QueryConfig, QueryMessagesByEmail, QueryMessagesUnread} from '../types'
 
 type MessageItem = {
   message_id: S;
@@ -16,7 +16,7 @@ type MessageItem = {
   read?: N;
 };
 
-import domain from '../domain'
+import domain from '../../domain'
 import url from 'url'
 import dynamo from './client'
 import token from '../../utils/randomtoken'
@@ -26,8 +26,7 @@ let encodePosition = _.encode64Obj;
 let decodePosition = _.decode64Obj;
 
 let queryEmail: Query = _.queryer(formatEmailQuery, parse, encodePosition);
-//may be expanded to support dynamic dispatch in the future
-let query = queryEmail;
+let queryUnread: Query = _.queryer(formatUnreadQuery, parse, encodePosition);
 
 //Query messages with a given email involved as either sender or recipient.
 //Filters out messages that have not finished uploading by checking for the
@@ -49,6 +48,7 @@ function formatEmailQuery(params: QueryMessagesByEmail, options: QueryConfig): D
     },
     FilterExpression: 'attribute_exists(handled)',
     Limit: options.limit,
+    ScanIndexForward: params.order !== 'reverse',
   };
 
   if (options.position) {
@@ -56,6 +56,60 @@ function formatEmailQuery(params: QueryMessagesByEmail, options: QueryConfig): D
   }
 
   return r;
+}
+
+//return all unread messages over a given time period
+function formatUnreadQuery(params: QueryMessagesUnread, options: QueryConfig): DynamoQueryRequest {
+  let r: DynamoQueryRequest = {
+    TableName: 'messages',
+    IndexName: 'recipient_email-created-index',
+    KeyConditionExpression: 'recipient_email = :recipient_email AND created > :since',
+    FilterExpression: 'attribute_not_exists(#read) AND attribute_exists(handled)',
+    ExpressionAttributeValues: {
+      ':recipient_email': {S: params.recipient_email.toLowerCase()},
+      ':since': {N: params.start_time.toString()},
+    },
+    ExpressionAttributeNames: {
+      '#read': 'read',
+    },
+    Limit: 200,
+    //always sort newest to oldest
+    ScanIndexForward: false,
+  }
+
+  return r
+}
+
+function markRead(id: string, ts: number): Promise<void> {
+  //attribute_exists(message_id) ensures there is no insert if the message does
+  //not exist for any reason
+  let condition = 'attribute_exists(message_id)'
+  let expression = 'SET #read = :ts'
+
+  return new Promise(function(resolve, reject) {
+    let params = {
+      TableName: 'messages',
+      Key: {
+        message_id: {S: id},
+      },
+      UpdateExpression: expression,
+      ConditionExpression: condition,
+      ExpressionAttributeValues: {
+        ':ts': {N: ts.toString()},
+      },
+      ExpressionAttributeNames: {
+        '#read': 'read',
+      },
+    };
+
+    dynamo.updateItem(params, function(err) {
+      if (err) {
+        reject(err)
+        return
+      }
+      resolve()
+    })
+  })
 }
 
 function parse(item: MessageItem): Message {
@@ -167,4 +221,4 @@ function read(id: string): Promise<Message> {
   });
 }
 
-module.exports = {save, read, query}
+module.exports = {save, markRead, read, queryEmail, queryUnread}

@@ -15,7 +15,7 @@ function body(id) {
 }
 
 describe('POST /reads', function() {
-  var sender, recipient, recorder, message;
+  var sender, recipient, recorder, message, msgs;
   var headers;
 
   before(function() {
@@ -29,7 +29,7 @@ describe('POST /reads', function() {
       recorder = results[2];
 
       return Promise.all([
-        _.fake.messages({sender: sender, recipient: recipient, unread: 1}),
+        _.fake.messages({sender: sender, recipient: recipient, unread: 5}),
         _.http('POST', '/jwts', null, {
           Authorization: _.peppermintScheme(null, null, recipient.email, recipient.password),
           'X-Api-Key': _.fake.API_KEY,
@@ -45,10 +45,16 @@ describe('POST /reads', function() {
       ]);
     })
     .then(function(results) {
-      message = results[0][0];
       recipient.jwt = results[1].body.data.attributes.token;
       sender.jwt = results[2].body.data.attributes.token;
       recorder.jwt = results[3].body.data.attributes.token;
+      msgs = results[0].sort(function(msg1, msg2) {
+        if (msg1.created < msg2.created) return -1;
+        if (msg2.created < msg1.created) return 1;
+        return 0;
+      })
+      //5 messages, get the middle one in terms of created time
+      message = msgs[2]
 
       headers = function() {
         return {
@@ -60,20 +66,28 @@ describe('POST /reads', function() {
     });
   });
 
-  it('should mark the message as read.', function() {
+  it('should mark the message and all precdeing messages as read.', function() {
     return post(body(message.message_id), headers())
       .then(function(response) {
         expect(response.statusCode).to.equal(204);
         expect(response.headers).not.to.have.property('content-type');
         expect(response.body).to.be.undefined;
 
-        return _.messages.get(message.message_id);
+        return Promise.all(msgs.map(function(msg) {
+          return _.messages.get(msg.message_id);
+        }))
       })
-      .then(function(message) {
-        expect(message).to.have.property('read');
-        //10 minute window to allow for clock differences
-        expect(message.read).to.be.within(Date.now() - 300000, Date.now() + 300000);
-      });
+      .then(function(results) {
+        console.log(results)
+        for (var i = 0; i < 3; i++) {
+          expect(results[i]).to.have.property('read');
+          //10 minute window to allow for clock differences
+          expect(results[i].read).to.be.within(Date.now() - 300000, Date.now() + 300000)
+        }
+        for (var i = 3; i < 5; i++) {
+          expect(results[i].read).not.to.be.ok;
+        }
+      })
   });
 
   describe('common client errors', function() {
@@ -99,7 +113,7 @@ describe('POST /reads', function() {
   });
 
   describe('Authorization header authenticates a different account than the recipient', function() {
-    _.fail(403, 'Authenticated user is not recipient of the specified message', spec, function() {
+    _.fail(403, 'Forbidden', spec, function() {
       return {
         method: 'POST',
         url: '/reads',

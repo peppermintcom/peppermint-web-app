@@ -1,4 +1,4 @@
-import type {Entity} from './domain'
+import type {Entity} from '../domain'
 
 export type SaveConfig = {
   checkConflict?: boolean;
@@ -17,4 +17,9 @@ export type QueryMessagesByEmail = {
   order: 'chronological' | 'reverse';
   start_time: number;
   end_time: number;
+}
+
+export type QueryMessagesUnread = {
+  recipient_email: string;
+  start_time: number;
 }

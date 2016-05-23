@@ -1,6 +1,6 @@
 //@flow
 import {expect} from 'chai'
-import fake from '../../../repository/fake'
+import fake from '../../../domain/fake'
 import authenticate, {Errors} from '../authenticate'
 import registerRecorder from '../registerRecorder'
 import registerAccount from '../registerAccount'

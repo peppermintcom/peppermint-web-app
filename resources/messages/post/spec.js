@@ -2,12 +2,12 @@ var defs = require('definitions');
 var headers = require('definitions/headers');
 var responses = require('definitions/responses');
 var integrations = require('definitions/integrations');
-var _ = require('utils');
+var _ = require('lodash');
 
 exports.tags = ['messages', 'inter-app'];
 exports.summary = 'Send a message to an app.';
 exports.description = 'Checks if there is an installed app associated with an email, then sends the message to that app if found.';
-exports.operationId = 'CreateMessage';
+exports.operationId = 'NewMessage';
 exports.consumes = exports.produces = ['application/vnd.api+json'];
 
 exports.parameters = [
@@ -54,7 +54,7 @@ exports.responses = {
 
 exports['x-amazon-apigateway-integration'] = {
   type: 'aws',
-  uri : 'arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:819923996052:function:CreateMessage/invocations',
+  uri : 'arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:819923996052:function:NewMessage/invocations',
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {

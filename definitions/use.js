@@ -1,4 +1,4 @@
-var _ = require('utils');
+var _ = require('lodash');
 
 module.exports = function(model, permitted, required) {
   return _.assign({}, model, {

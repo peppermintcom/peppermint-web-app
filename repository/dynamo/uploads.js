@@ -1,10 +1,10 @@
 //@flow
-import type {Upload, Account} from '../domain'
+import type {Upload, Account} from '../../domain'
 import type {S, N} from './types'
 
 import url from 'url'
 import dynamo from './client'
-import domain from '../domain'
+import domain from '../../domain'
 import _ from '../utils'
 
 type UploadItem = {

@@ -1,6 +1,6 @@
 //@flow
+import type {Account} from '../domain'
 import type {QueryResult} from '../repository/types'
-import type {Account} from '../repository/domain'
 
 import url from 'url'
 import accountMessages from '../procedures/queries/accountMessages'
@@ -12,8 +12,10 @@ import _ from './utils'
 const RECIPIENT = 'recipient'
 const SENDER = 'sender'
 
-let ErrForbidden = new Error('Forbidden')
-let ErrInvalid = new Error('Bad Request')
+let ErrForbidden: Object = new Error('403')
+ErrForbidden.detail = 'Forbidden'
+let ErrInvalid: Object = new Error('400')
+ErrInvalid.detail = 'Bad Request'
 
 export default _.use([
   [
@@ -35,7 +37,13 @@ export default _.use([
   [
     {key: 'response', fn: respond},
   ],
-])
+], function(err, req, state) {
+  if (err) {
+    _.log(err)
+  }
+  _.log(state)
+  return Promise.resolve()
+})
 
 function role(state: Object): Promise<'recipient' | 'sender'> {
   return new Promise(function(resolve, reject) {
@@ -74,16 +82,25 @@ function lookupAccount(state: Object): Promise<Account> {
 }
 
 function query(state: Object): Promise<QueryResult> {
-  let since: number = state.since ? parseTime(state.since).valueOf() : 0;
-  let until: number = state.until ? parseTime(state.until).valueOf() : Date.now() + 60000;
-  let limit = state.limit ? Math.min(state.limit, 200) : 200;
+  let since: number = state.since && parseTime(state.since)
+  let until: number = state.until && parseTime(state.until)
+  let limit: number = state.limit && +state.limit
   let position = state.position;
+
+  since = (since && since.valueOf()) || 0
+  until = (until && until.valueOf()) || Date.now() + 60000
+  limit = (limit && Math.min(limit, 200)) || 200
+
+  //dynamo query does not allow since to be greater than until
+  if (since > until) {
+    until = since
+  }
 
   return accountMessages({
     email: state.caller.email,
     role: state.role,
     position: position,
-    order: state.reverse ? 'reverse' : 'chronological',
+    order: state.order === 'reverse' ? 'reverse' :  'chronological',
     start_time: since,
     end_time: until,
     limit: limit,
@@ -118,18 +135,35 @@ function respond(state): Promise<Object> {
 
 //returns a link to the next page of results in this query
 function next(state: Object): string {
+  let q: Object = {
+    position: position(state),
+  }
+
+  if (state.since) {
+    q.since = state.since
+  }
+  if (state.until) {
+    q.until = state.until
+  }
+  if (state.limit) {
+    q.limit = state.limit
+  }
+  if (state.order) {
+    q.order = state.order
+  }
+  if (state.sender_id) {
+    q.sender = state.sender_id
+  }
+  if (state.recipient_id) {
+    q.recipient = state.recipient_id
+  }
+
   return url.format({
     protocol: 'https',
     host: 'qdkkavugcd.execute-api.us-west-2.amazonaws.com',
     pathname: '/prod/v1/messages',
-    query: {
-      position: position(state),
-      since: state.since,
-      until: state.until,
-      recipient: state.recipient_id && state.messages.recipient.position,
-      sender: state.sender_id && state.messages.sender.position,
-    },
-  });
+    query: q,
+  })
 }
 
 //compute the query position parameter from messages query results

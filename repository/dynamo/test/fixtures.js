@@ -1,20 +1,21 @@
 //@flow
-import type {Upload, Recorder, Message, Account} from '../../domain'
+import type {Upload, Recorder, Message, Account} from '../../../domain'
 
-import fake from '../../fake'
-import domain from '../../domain'
+import fake from '../../../domain/fake'
+import domain from '../../../domain'
 import recorders from '../recorders'
 import uploads from '../uploads'
 import messages from '../messages'
 import accounts from '../accounts'
+import receivers from '../receivers'
 import dynamo from '../client'
 
 function recorder(): Promise<Recorder> {
   return recorders.save(fake.recorder());
 }
 
-function account(verification_source?: string): Promise<Account> {
-  return accounts.save(fake.account(verification_source));
+function account(verification_source?: string, highwater?: number): Promise<Account> {
+  return accounts.save(fake.account(verification_source, highwater));
 };
 
 function upload(r?: Recorder, c?: Account): Promise<Upload> {
@@ -22,6 +23,13 @@ function upload(r?: Recorder, c?: Account): Promise<Upload> {
   .then(function(recorder) {
     return uploads.save(fake.upload(recorder, c))
   })
+}
+
+function receiver(r: Recorder, a : Account): Promise<Object> {
+  if (!a.account_id) {
+    throw new Error('account_id required')
+  }
+  return receivers.save(r.recorder_id, a.account_id)
 }
 
 type MessageConfig = {
@@ -53,4 +61,4 @@ function message(options: MessageConfig): Promise<Message> {
   })
 }
 
-export default {recorder, account, upload, message}
+export default {recorder, account, upload, message, receiver}

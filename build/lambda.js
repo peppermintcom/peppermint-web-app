@@ -28,6 +28,12 @@ var nozip = [
   'lambda.zip',
 ];
 
+var strangled = {
+  NewMessage: true,
+  SearchMessages: true,
+  ReadThrough: true,
+};
+
 module.exports = function() {
   //include all node_modules in the zip except devDependencies and blacklisted
   var nodeModules = fs.readdirSync(path.join(__dirname, '../node_modules'));
@@ -57,6 +63,13 @@ module.exports = function() {
         });
     var name = require('../' + relativeDir + '/spec').operationId;
     var args = ['-rFS', dest].concat(deps).concat(include);
+
+    //new lambda functions defined in lambda directory
+    if (strangled[name]) {
+      console.log('skipping ' + name)
+      cb();
+      return
+    }
 
     spawnSync('zip', args);
     var code = fs.readFileSync(path.join(relativeDir, 'lambda.zip'));

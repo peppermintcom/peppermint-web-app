@@ -11,7 +11,7 @@ color:#3abca4; padding:15px 0 15px 15px; font-weight: normal"><img align="left"
                                                                    Account</h1>
  <hr/>
  <p style="margin-bottom:0; padding:15px 0 0 15px; font-family:'open-sans',
- sans-serif; font-size:15px; ">Hi {{name}},</p>
+ sans-serif; font-size:15px; ">Hi <%= name %></p>
 
  <p style="padding:5px 0 15px 15px; font-family:'open-sans', sans-serif;
  font-size:15px; line-height:24px;">You recently registered for Peppermint. To
@@ -21,7 +21,7 @@ color:#3abca4; padding:15px 0 15px 15px; font-weight: normal"><img align="left"
  <a style="color:#fff; margin-left:15px; padding:10px 25px;
  font-family:'open-sans', sans-serif; font-size:15px; text-decoration:none;
  background-color:#3abca4; border-radius:5px;"
-    href="https://peppermint.com/verify-email?at={{token}}">Confirm Your
+    href="https://peppermint.com/verify-email?at=<%= token %>">Confirm Your
     Account</a>
 
 

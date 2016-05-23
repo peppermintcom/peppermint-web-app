@@ -42,6 +42,13 @@ exports.parameters = [
     required: false,
   },
   {
+    name: 'limit',
+    'in': 'query',
+    type: 'number',
+    description: 'Maximum number of results to return. Actual results may be lower depending on capacity available on the backend.',
+    required: false,
+  },
+  {
     name: 'order',
     'in': 'query',
     type: 'string',
@@ -75,11 +82,11 @@ exports.responses = {
 
 exports['x-amazon-apigateway-integration'] = {
   type: 'aws',
-  uri : 'arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:819923996052:function:GetMessages/invocations',
+  uri : 'arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:819923996052:function:SearchMessages/invocations',
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {
-    'application/json': '{"api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')", "recipient_id": "$input.params(\'recipient\')", "sender_id": "$input.params(\'sender\')", "since": "$util.urlDecode($input.params(\'since\'))", "position": "$input.params(\'position\')", "order": "$input.params(\'order\')"}',
+    'application/json': '{"api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')", "recipient_id": "$input.params(\'recipient\')", "sender_id": "$input.params(\'sender\')", "until": "$util.urlDecode($input.params(\'until\'))", "since": "$util.urlDecode($input.params(\'since\'))", "position": "$util.urlDecode($input.params(\'position\'))", "order": "$input.params(\'order\')", "limit": "$input.params(\'limit\')"}',
   },
   responses: {
     'default': integrations.jsonAPI.Ok,
