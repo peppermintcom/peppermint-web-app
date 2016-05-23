@@ -167,8 +167,8 @@ let messageProto = {
       attrs.duration = this.upload.duration
     }
 
-    if (this.transcription) {
-      attrs.transcription = this.transcription.text
+    if (this.upload.transcription) {
+      attrs.transcription = this.upload.transcription.text
     }
 
     if (this.read) {
