@@ -28,26 +28,26 @@ type Response = {
 }
 
 export var Errors = {
-  MultipleAccountStrategies: new Error('Only 1 of account, google, or facebook may be supplied.'),
-  NoCredentials: new Error('Either account or recorder credentials must be supplied.'),
-  NoAccount: new Error('Account not found.'),
-  NoRecorder: new Error('Recorder not found.'),
-  WrongAccountPassword: new Error('Account password is incorrect.'),
-  WrongRecorderKey: new Error('Recorder key is incorrect.'),
-  ProviderAccessTokenRejected: new Error('Third-party authentication provider rejected access token.'),
+  MultipleAccountStrategies: 'Only 1 of account, google, or facebook may be supplied.',
+  NoCredentials: 'Either account or recorder credentials must be supplied.',
+  NoAccount: 'Account not found.',
+  NoRecorder: 'Recorder not found.',
+  WrongAccountPassword: 'Account password is incorrect.',
+  WrongRecorderKey: 'Recorder key is incorrect.',
+  ProviderAccessTokenRejected: 'Third-party authentication provider rejected access token.',
 };
 
 //TODO return type should be more precise
 export function validate(req: Request): ?Object {
   //only 1 of account, google, or facebook may be defined
   if (req.account && (req.google || req.facebook)) {
-    return Errors.MultipleAccountStrategies;
+    return new Error(Errors.MultipleAccountStrategies);
   }
   if (req.google && req.facebook) {
-    return Errors.MultipleAccountStrategies;
+    return new Error(Errors.MultipleAccountStrategies);
   }
   if (!(req.recorder || req.account || req.google || req.facebook)) {
-    return Errors.NoCredentials;
+    return new Error(Errors.NoCredentials);
   }
 }
 
@@ -61,8 +61,8 @@ export default function(req: Request): Promise<Response> {
 
   return Promise.all([
     //recorder.user is the client_id, the key in the recorders table
-    req.recorder ? recorders.read(req.recorder.user) : Promise.resolve(null),
-    req.account ? accounts.read(req.account.user) : Promise.resolve(null),
+    req.recorder ? recorders.readNull(req.recorder.user) : Promise.resolve(null),
+    req.account ? accounts.readNull(req.account.user) : Promise.resolve(null),
     req.google ? auth.google(req.google).then(upsert) : Promise.resolve(null),
     req.facebook ? auth.facebook(req.facebook).then(upsert) : Promise.resolve(null),
   ])
@@ -71,10 +71,10 @@ export default function(req: Request): Promise<Response> {
     let account: ?Account = results[1] || results[2] || results[3];
 
     if (req.recorder && !recorder) {
-      throw Errors.NoRecorder;
+      throw new Error(Errors.NoRecorder);
     }
     if (req.account && !account) {
-      throw Errors.NoAccount;
+      throw new Error(Errors.NoAccount);
     }
 
     return Promise.all([
@@ -86,10 +86,10 @@ export default function(req: Request): Promise<Response> {
       let recorderOK = results[1];
 
       if (req.account && !accountOK) {
-        throw Errors.WrongAccountPassword;
+        throw new Error(Errors.WrongAccountPassword);
       }
       if (req.recorder && !recorderOK) {
-        throw Errors.WrongRecorderKey;
+        throw new Error(Errors.WrongRecorderKey);
       }
       if (recorder) {
         delete recorder.recorder_key_hash;

@@ -3,6 +3,7 @@ import type {SaveConfig} from '../types'
 
 import domain from '../../domain'
 import dynamo from './client'
+import _ from './utils'
 
 export type AccountItem = {
   email: S;
@@ -104,6 +105,10 @@ function read(email: string): Promise<Account> {
   });
 }
 
+function readNull(email: string): Promise<?Account> {
+  return read(email).catch(_.nullOK)
+}
+
 function readByID(accountID: string): Promise<Account> {
   return new Promise(function(resolve, reject) {
     dynamo.query({
@@ -169,4 +174,4 @@ function parse(item: AccountItem): Account {
   });
 }
 
-module.exports = {save, delete: del, setHighwater, read, readByID};
+module.exports = {save, delete: del, setHighwater, read, readNull, readByID};

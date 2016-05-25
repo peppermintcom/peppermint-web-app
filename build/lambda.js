@@ -32,6 +32,7 @@ var strangled = {
   NewMessage: true,
   SearchMessages: true,
   ReadThrough: true,
+  SignIn: true,
 };
 
 module.exports = function() {

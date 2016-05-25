@@ -14,8 +14,105 @@ import * as spec from '../../resources/jwts/post/spec'
 const GOOGLE = 1;
 const FACEBOOK = 2;
 
-describe('lambda:SignIn', function() {
+describe.only('lambda:SignIn', function() {
   describe('no include param', function() {
+
+    describe('missing Authorization header', function() {
+      it('should fail with a Bad Request error.', function(done) {
+        SignIn({
+          api_key: fixtures.API_KEY,
+        }, null, function(err, result) {
+          expect(err).to.have.property('message', '401')
+          expect(JSON.parse(err.name)).to.have.property('detail', 'Authorization header required')
+          done()
+        })
+      })
+    })
+
+    describe('unparseable Authorization headers', function() {
+      it('should fail with a Bad Request error.', function(done) {
+        SignIn({
+          Authorization: 'Peppermint recorder=',
+          api_key: fixtures.API_KEY,
+        }, null, function(err, result) {
+          expect(err).to.have.property('message', '400');
+          expect(JSON.parse(err.name)).to.have.property('detail', 'Authorization header does not follow Peppermint scheme');
+          done();
+        })
+      })
+    })
+
+    describe('unregistered account', function() {
+      it('should fail with a Not Found error.', function(done) {
+        SignIn({
+          Authorization: peppermintScheme(null, null, 'xxxxxx', 'xxxxxxxx'),
+          api_key: fixtures.API_KEY,
+        }, null, function(err, result) {
+          expect(err).to.have.property('message', '404');
+          expect(JSON.parse(err.name)).to.have.property('detail', 'Account not found.');
+          done();
+        })
+      })
+
+      describe('with registered recorder', function() {
+        it('should fail with a Not Found error.', function(done) {
+          fixtures.recorder().then(function(results) {
+            let recorder = results[0]
+            let key = results[1]
+
+            SignIn({
+              Authorization: peppermintScheme(recorder.client_id, key, 'xxxxx', 'xxxxxx'),
+              api_key: fixtures.API_KEY,
+            }, null, function(err, result) {
+              expect(err).to.have.property('message', '404');
+              expect(JSON.parse(err.name)).to.have.property('detail', 'Account not found.');
+              done();
+            })
+          })
+        })
+      })
+    })
+
+    describe('unregistered recorder', function() {
+      it('should fail with a Not Found error.', function(done) {
+        SignIn({
+          Authorization: peppermintScheme('xxxxxxxxx', 'xxxxxxxxx'),
+          api_key: fixtures.API_KEY,
+        }, null, function(err, result) {
+          try {
+            expect(result).not.to.be.ok
+            expect(err).to.have.property('message', '404')
+            expect(JSON.parse(err.name)).to.have.property('detail', 'Recorder not found.');
+          } catch(e) {
+            return done(e)
+          }
+          done()
+        })
+      })
+
+      describe('with valid account credentials', function() {
+        it('should fail with a Not Found error.', function(done) {
+          fixtures.account().then(function(result) {
+            let account = result[0]
+            let password = result[1]
+
+            SignIn({
+              Authorization: peppermintScheme('xxxxx', 'xxxxxxx', account.email, password),
+              api_key: fixtures.API_KEY,
+            }, null, function(err, result) {
+              try {
+                expect(result).not.to.be.ok
+                expect(err).to.have.property('message', '404')
+                expect(JSON.parse(err.name)).to.have.property('detail', 'Recorder not found.')
+              } catch(e) {
+                return done(e)
+              }
+              done()
+            })
+          })
+        })
+      })
+    })
 
     describe('account credentials', function() {
       it('should succeed.',  function(done) {
@@ -42,6 +139,29 @@ describe('lambda:SignIn', function() {
               return done(tv4.error)
             }
             done()
+          })
+        })
+      })
+
+      describe('wrong password', function() {
+        it('should fail with an Unauthorized error.', function(done) {
+          fixtures.account().then(function(results) {
+            let account = results[0]
+            let password = results[1]
+
+            SignIn({
+              Authorization: peppermintScheme(null, null, account.email, 'x' + password),
+              api_key: fixtures.API_KEY,
+            }, null, function(err, res) {
+              try {
+                expect(res).not.to.be.ok
+                expect(err).to.have.property('message', '401')
+                expect(JSON.parse(err.name)).to.have.property('detail', 'Account password is incorrect.')
+              } catch(e) {
+                return done(e)
+              }
+              done()
+            })
           })
         })
       })
@@ -83,20 +203,156 @@ describe('lambda:SignIn', function() {
         .catch(done)
       })
 
-      describe('recorder is registered with GCM.', function() {
-        it('should succeed and include gcm_registration_token in recorder resource', function(done) {
-          handler({
-            Authorization: _.peppermintScheme(receiver.recorder_client_id, receiver.recorder_key),
-            api_key: _.fake.API_KEY,
-          }, {
-            fail: done,
-            succeed: function(result) {
-              expect(result.included[0].attributes).to.have.property('gcm_registration_token', receiver.gcm_registration_token);
-              done();
-            },
-          });
-        });
-      });
+      describe('wrong key', function() {
+        it('should fail with an Unauthorized error.', function(done) {
+          fixtures.recorder().then(function(result) {
+            let recorder = result[0]
+            let key = result[1]
+            
+            SignIn({
+              Authorization: peppermintScheme(recorder.client_id, 'x' + key),
+              api_key: fixtures.API_KEY,
+            }, null, function(err, res) {
+              try {
+                expect(res).not.to.be.ok
+                expect(err).to.have.property('message')
+                expect(JSON.parse(err.name)).to.have.property('detail', 'Recorder key is incorrect.')
+              } catch(e) {
+                done(e)
+              }
+              done()
+            })
+          })
+        })
+      })
+    })
+
+    describe('dual recorder-account credentials', function() {
+      describe('no receiver link', function() {
+        it('should return jwt and recorder and account entities.', function(done) {
+          Promise.all([
+            fixtures.recorder(),
+            fixtures.account(),
+          ])
+          .then(function(results) {
+            let recorder = results[0][0]
+            let key = results[0][1]
+            let account = results[1][0]
+            let password = results[1][1]
+
+            SignIn({
+              Authorization: peppermintScheme(recorder.client_id, key, account.email, password),
+              api_key: fixtures.API_KEY,
+            }, null, function(err, result) {
+              if (err) return done(err)
+
+              expect(result.data.relationships).to.have.property('recorder');
+              expect(result.data.relationships).to.have.property('account');
+              expect(result.data.relationships.recorder.data.id).to.equal(recorder.recorder_id);
+              expect(result.data.relationships.account.data.id).to.equal(account.account_id);
+              expect(result.included).to.have.length(2);
+              done(tv4.validate(result, spec.responses['200']) ? null : tv4.error);
+            })
+          })
+          .catch(done)
+        })
+      })
+ 
+      describe('linked as receiver', function() {
+        it('should include receiver relationship on included account entity.', function(done) {
+          Promise.all([
+            fixtures.recorder(),
+            fixtures.account(),
+          ])
+          .then(function(results) {
+            let recorder = results[0][0]
+            let key = results[0][1]
+            let account = results[1][0]
+            let password = results[1][1]
+
+            return accounts.link(recorder.recorder_id, account.account_id)
+            .then(function() {
+              SignIn({
+                Authorization: peppermintScheme(recorder.client_id, key, account.email, password),
+                api_key: fixtures.API_KEY,
+              }, null, function(err, result) {
+                if (err) return done(err)
+                let _account = result.included.find(function(resource) {
+                  return resource.type === 'accounts'
+                })
+                let _recorder = result.included.find(function(resource) {
+                  return resource.type === 'recorders'
+                })
+                expect(_account.relationships).to.deep.equal({
+                  receivers: {data: [{type: 'recorders', id: recorder.recorder_id}]},
+                });
+                expect(_recorder.id).to.equal(recorder.recorder_id)
+                expect(_account.id).to.equal(account.account_id)
+                done();
+              })
+            })
+          })
+          .catch(done)
+        })
+      })
+
+      describe('incorrect key', function() {
+        it('should fail with an Unauthorized error.', function(done) {
+          Promise.all([
+            fixtures.recorder(),
+            fixtures.account(),
+          ])
+          .then(function(results) {
+            let recorder = results[0][0]
+            let key = results[0][1]
+            let account = results[1][0]
+            let password = results[1][1]
+
+            SignIn({
+              Authorization: peppermintScheme(recorder.client_id, 'x' + key, account.email, password),
+              api_key: fixtures.API_KEY,
+            }, null, function(err, res) {
+              try {
+                expect(res).not.to.be.ok
+                expect(err).to.have.property('message', '401')
+                expect(JSON.parse(err.name)).to.have.property('detail', 'Recorder key is incorrect.')
+              } catch(e) {
+                return done(e)
+              }
+              done()
+            })
+          })
+        })
+      })
+
+      describe('inccorrect password', function() {
+        it('should fail with an Unauthorized error.', function(done) {
+          Promise.all([
+            fixtures.recorder(),
+            fixtures.account(),
+          ])
+          .then(function(results) {
+            let recorder = results[0][0]
+            let key = results[0][1]
+            let account = results[1][0]
+            let password = results[1][1]
+
+            SignIn({
+              Authorization: peppermintScheme(recorder.client_id, key, account.email, 'x' + password),
+              api_key: fixtures.API_KEY,
+            }, null, function(err, res) {
+              try {
+                expect(res).not.to.be.ok
+                expect(err).to.have.property('message', '401')
+                expect(JSON.parse(err.name)).to.have.property('detail', 'Account password is incorrect.')
+              } catch(e) {
+                return done(e)
+              }
+              done()
+            })
+          })
+        })
+      })
     })
 
     describe('goole', function() {

@@ -4,6 +4,7 @@ import type {S, N} from './types'
 
 import domain from '../../domain'
 import dynamo from './client'
+import _ from './utils'
 
 type RecorderItem = {
   recorder_id: S;
@@ -59,6 +60,10 @@ function read(clientID: string): Promise<Recorder> {
       resolve(parse(data.Item));
     });
   });
+}
+
+function readNull(clientID: string): Promise<?Recorder> {
+  return read(clientID).catch(_.nullOK)
 }
 
 function readByID(recorderID: string): Promise<Recorder> {
@@ -170,4 +175,4 @@ function parse(item: RecorderItem): Recorder {
   });
 }
 
-module.exports = {save, read, readByID, updateGCMToken};
+module.exports = {save, read, readNull, readByID, updateGCMToken};

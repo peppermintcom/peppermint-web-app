@@ -4,13 +4,17 @@
 //use the account messages query to look them up, then attach them.
 import type {QueryResult} from '../repository/types'
 
-import Authenticate from '../procedures/commands/authenticate'
+import Authenticate, {Errors} from '../procedures/commands/authenticate'
 import accounts from '../repository/accounts'
 import _ from './utils'
 import auth from '../utils/auth'
 
 export default _.use([
-  [{fn: _.validateAPIKey}, {fn: parseInclude, key: 'include'}],
+  [
+    {fn: _.validateAPIKey},
+    {fn: validatePeppermintAuthHeader},
+    {fn: parseInclude, key: 'include'},
+  ],
   [{fn: decode, key: 'credentials'}],
   [{fn: authenticate, key: 'identity'}],
   [{fn: lookupIsReceiver, key: 'isReceiver'}],
@@ -54,12 +58,41 @@ function parseInclude(state: Object): inclusions {
   return include
 }
 
+function validatePeppermintAuthHeader(state: Object): Promise<void> {
+  if (!state.Authorization) {
+    return Promise.reject(_.errAuth('Authorization header required'))
+  }
+  if (!auth.isValid(state.Authorization)) {
+    return Promise.reject(_.errInvalid('Authorization header does not follow Peppermint scheme'))
+  }
+  return Promise.resolve()
+}
+
 function decode(state: Object): Promise<Object> {
   return Promise.resolve(auth.decode(state.Authorization))
 }
 
 function authenticate(state: Object): Promise<Object> {
   return Authenticate(state.credentials)
+    .catch(function(err) {
+      switch (err.message) {
+      case Errors.MultipleAccountStrategies:
+        throw _.errInvalid(err.message)
+      case Errors.NoCredentials:
+        throw _.errInvalid(err.message)
+      case Errors.NoAccount:
+        throw _.errNotFound(err.message)
+      case Errors.NoRecorder:
+        throw _.errNotFound(err.message)
+      case Errors.WrongAccountPassword:
+        throw _.errAuth(err.message)
+      case Errors.WrongRecorderKey:
+        throw _.errAuth(err.message)
+      case Errors.ProviderAccessTokenRejected:
+        throw _.errAuth(err.message)
+      }
+      throw err
+    })
 }
 
 //if state.include.sent attach an array of recent sent messages and next link
@@ -68,18 +101,11 @@ function lookupSent(state: Object): Promise<?QueryResult> {
   return Promise.resolve(null)
 }
 
-//if state.include.received attach an array of most recently received messages
-//and a next page link
-function lookupIsReceiver(state: Object): Promise<?QueryResult> {
-  //queryAccountMessages();
-  return Promise.resolve(null)
-}
-
 //returns true iff both an account and recorder are authenticated in the request
 //and they are linked by the receiver relationship
 //if both an account and recorder are authenticated by the request, check if
 //they have a receiver relationship
-function lookupReceiver(state: Object): Promise<boolean> {
+function lookupIsReceiver(state: Object): Promise<boolean> {
   if (!state.identity.account || !state.identity.recorder) {
     return Promise.resolve(false)
   }

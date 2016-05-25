@@ -77,6 +77,7 @@ function isReceiver(accountID: string, recorderID: string): Promise<boolean> {
 export default {
   upsert,
   read: dynamo.read,
+  readNull: dynamo.readNull,
   readByID: dynamo.readByID,
   save: dynamo.save,
   delete: dynamo.delete,
