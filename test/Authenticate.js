@@ -10,7 +10,7 @@ var defs = require('definitions');
 const GOOGLE = 1;
 const FACEBOOK = 2;
 
-describe('POST /jwts', function() {
+describe.only('POST /jwts', function() {
   var recorder, account;
   var recorderUser, recorderPass, accountUser, accountPass;
 
@@ -394,7 +394,7 @@ describe('POST /jwts', function() {
           .then(function(res) {
             expect(res.statusCode).to.equal(401);
             expect(res.body).to.deep.equal({
-              errors: [{detail: 'recorder key'}],
+              errors: [{detail: 'Recorder key is incorrect.'}],
             });
             expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
             if (!tv4.validate(res.body, jsonapischema)) {
@@ -417,7 +417,7 @@ describe('POST /jwts', function() {
         .then(function(res) {
           expect(res.statusCode).to.equal(404);
           expect(res.body).to.deep.equal({
-            errors: [{detail: 'Recorder not found'}],
+            errors: [{detail: 'Recorder not found.'}],
           });
           expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
           if (!tv4.validate(res.body, jsonapischema)) {
@@ -481,7 +481,7 @@ describe('POST /jwts', function() {
           .then(function(res) {
             expect(res.statusCode).to.equal(401);
             expect(res.body).to.deep.equal({
-              errors: [{detail: 'account password'}],
+              errors: [{detail: 'Account password is incorrect.'}],
             });
             expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
             if (!tv4.validate(res.body, jsonapischema)) {
@@ -558,7 +558,7 @@ describe('POST /jwts', function() {
           .then(function(res) {
             expect(res.statusCode).to.equal(401);
             expect(res.body).to.deep.equal({
-              errors: [{detail: 'account password'}],
+              errors: [{detail: 'Account password is incorrect.'}],
             });
             expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
             if (!tv4.validate(res.body, jsonapischema)) {
@@ -580,7 +580,7 @@ describe('POST /jwts', function() {
           .then(function(res) {
             expect(res.statusCode).to.equal(401);
             expect(res.body).to.deep.equal({
-              errors: [{detail: 'recorder key'}],
+              errors: [{detail: 'Recorder key is incorrect.'}],
             });
             expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
             if (!tv4.validate(res.body, jsonapischema)) {
@@ -602,7 +602,7 @@ describe('POST /jwts', function() {
           .then(function(res) {
             expect(res.statusCode).to.equal(401);
             //detail could be either about recorder key or account password
-            expect(res.body.errors[0].detail).to.match(/account password|recorder key/);
+            expect(res.body.errors[0].detail).to.match(/Account password|Recorder key/);
             expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
             if (!tv4.validate(res.body, jsonapischema)) {
               throw tv4.error;
@@ -625,7 +625,7 @@ describe('POST /jwts', function() {
           .then(function(res) {
             expect(res.statusCode).to.equal(404);
             expect(res.body).to.deep.equal({
-              errors: [{detail: 'Account not found'}],
+              errors: [{detail: 'Account not found.'}],
             });
             expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
             if (!tv4.validate(res.body, jsonapischema)) {
@@ -649,7 +649,7 @@ describe('POST /jwts', function() {
           .then(function(res) {
             expect(res.statusCode).to.equal(404);
             expect(res.body).to.deep.equal({
-              errors: [{detail: 'Recorder not found'}],
+              errors: [{detail: 'Recorder not found.'}],
             });
             expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
             if (!tv4.validate(res.body, jsonapischema)) {

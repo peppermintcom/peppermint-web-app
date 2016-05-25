@@ -258,7 +258,7 @@ let accountProto = {
       attributes: {
         email: this.email,
         full_name: this.full_name,
-        registration_ts: timestamp(this.registration_ts),
+        registration_ts: timestamp(this.registered),
         is_verified: !!this.verified,
       },
     }
