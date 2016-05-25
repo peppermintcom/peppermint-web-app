@@ -38,6 +38,7 @@ gulp.task('spike', function() {
   src = 'resources/reads/post/index.js';
   src = 'resources/uploads/get/index.js';
   src = 'resources/messages/post/index.js';
+  src = 'resources/transcriptions/post/index.js';
   return gulp.src(src)
     .pipe(lambda());
 });

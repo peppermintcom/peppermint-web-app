@@ -12,6 +12,7 @@ exports.consumes = exports.produces = ['application/json'];
 
 exports.parameters = [
   headers.AuthorizationBearer,
+  headers.ContentType,
   {
     name: 'X-Api-Key',
     'in': 'header',
@@ -56,6 +57,7 @@ exports.responses = {
   '400': responses.BadRequest,
   '401': responses.Unauthorized,
   '403': responses.Forbidden,
+  '415': responses.Unsupported,
   '500': responses.Internal,
 };
 
@@ -65,13 +67,14 @@ exports['x-amazon-apigateway-integration'] = {
   httpMethod: 'POST',
   credentials: 'arn:aws:iam::819923996052:role/APIGatewayLambdaExecRole',
   requestTemplates: {
-    'application/json': '{"body": $input.json(\'$\'), "ip": "$context.identity.sourceIp", "api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')"}',
+    'application/json': '{"Content-Type": "$input.params(\'Content-Type\')", "body": $input.json(\'$\'), "ip": "$context.identity.sourceIp", "api_key": "$input.params(\'X-Api-Key\')", "Authorization": "$input.params(\'Authorization\')"}',
   },
   responses: {
     'default': integrations.Created,
     'Bad Request.*': integrations.BadRequest,
     'Unauthorized.*': integrations.Unauthorized,
     'Forbidden.*': integrations.Forbidden,
-    '^(?!Bad Request|Unauthorized|Forbidden)(.|\\n)+': integrations.Internal,
+    '415': integrations.Unsupported,
+    '^(?!Bad Request|Unauthorized|Forbidden|415)(.|\\n)+': integrations.Internal,
   },
 };

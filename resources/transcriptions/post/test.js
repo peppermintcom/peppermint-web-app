@@ -25,6 +25,7 @@ describe('lambda:CreateTranscription', function() {
 
     it('should return the transcription.', function(done) {
       handler({
+        'Content-Type': 'application/json',
         ip: '127.0.0.1',
         api_key: _.fake.API_KEY,
         Authorization: Auth,
@@ -55,6 +56,7 @@ describe('lambda:CreateTranscription', function() {
           ip: '127.0.0.1',
           api_key: _.fake.API_KEY,
           Authorization: Auth,
+          'Content-Type': 'application/json',
           body: _.omit(body, 'audio_url'),
         }, {
           succeed: function() {
@@ -74,6 +76,7 @@ describe('lambda:CreateTranscription', function() {
           ip: '127.0.0.1',
           api_key: _.fake.API_KEY,
           Authorization: Auth,
+          'Content-Type': 'application/json',
           body: _.assign({}, body, {audio_url: 'http://go.peppermint.com/a.mp3'}),
         }, {
           succeed: function() {
@@ -93,6 +96,7 @@ describe('lambda:CreateTranscription', function() {
           ip: '127.0.0.1',
           api_key: _.fake.API_KEY,
           Authorization: Auth,
+          'Content-Type': 'application/json',
           body: _.omit(body, 'language'),
         }, {
           succeed: function() {
@@ -112,6 +116,7 @@ describe('lambda:CreateTranscription', function() {
           ip: '127.0.0.1',
           api_key: _.fake.API_KEY,
           Authorization: Auth,
+          'Content-Type': 'application/json',
           body: _.assign({}, body, {language: 'English US'}),
         }, {
           succeed: function() {
@@ -131,6 +136,7 @@ describe('lambda:CreateTranscription', function() {
           ip: '127.0.0.1',
           api_key: _.fake.API_KEY,
           Authorization: Auth,
+          'Content-Type': 'application/json',
           body: _.omit(body, 'confidence'),
         }, {
           succeed: function() {
@@ -150,6 +156,7 @@ describe('lambda:CreateTranscription', function() {
           ip: '127.0.0.1',
           api_key: _.fake.API_KEY,
           Authorization: Auth,
+          'Content-Type': 'application/json',
           body: _.omit(body, 'text'),
         }, {
           succeed: function() {
@@ -170,6 +177,7 @@ describe('lambda:CreateTranscription', function() {
         handler({
           ip: '127.0.0.1',
           Authorization: Auth,
+          'Content-Type': 'application/json',
           body: body,
         }, {
           succeed: function() {
@@ -188,6 +196,7 @@ describe('lambda:CreateTranscription', function() {
         handler({
           ip: '127.0.0.1',
           Authorization: Auth,
+          'Content-Type': 'application/json',
           api_key: _.fake.API_KEY + 'x',
           body: body,
         }, {
@@ -208,6 +217,7 @@ describe('lambda:CreateTranscription', function() {
           ip: '127.0.0.1',
           api_key: _.fake.API_KEY,
           body: body,
+          'Content-Type': 'application/json',
         }, {
           succeed: function() {
             done(new Error('success without api_key'));
@@ -226,6 +236,7 @@ describe('lambda:CreateTranscription', function() {
           ip: '127.0.0.1',
           api_key: _.fake.API_KEY,
           Authorization: Auth + 'x',
+          'Content-Type': 'application/json',
           body: body,
         }, {
           succeed: function() {
@@ -247,6 +258,7 @@ describe('lambda:CreateTranscription', function() {
           ip: '127.0.0.1',
           api_key: _.fake.API_KEY,
           Authorization: 'Bearer ' + _.jwt.creds(null, 'other'),
+          'Content-Type': 'application/json',
           body: body,
         }, {
           succeed: function() {
@@ -260,5 +272,20 @@ describe('lambda:CreateTranscription', function() {
       });
     });
   });
-  //TODO forbidden
+
+  describe('wrong content-type', function() {
+    it('should 415.', function(done) {
+      handler({
+        'Content-Type': 'application/vnd.api+json',
+      }, {
+        succeed: function() {
+          done(new Error('success with wrong content-type'))
+        },
+        fail: function(err) {
+          expect(err).to.match(/415/)
+          done()
+        },
+      })
+    })
+  })
 });

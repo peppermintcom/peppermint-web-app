@@ -7,6 +7,11 @@ var bodySchema = _.bodySchema(require('./spec').parameters);
 var BASE = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1/transcriptions';
 
 exports.handler = function(request, reply) {
+  if (request['Content-Type'] !== 'application/json') {
+    reply.fail('415')
+    return;
+  }
+
   var jwt = _.authenticate(request.Authorization);
 
   if (jwt.err) {

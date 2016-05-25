@@ -14,7 +14,7 @@ import * as spec from '../../resources/jwts/post/spec'
 const GOOGLE = 1;
 const FACEBOOK = 2;
 
-describe.only('lambda:SignIn', function() {
+describe('lambda:SignIn', function() {
   describe('no include param', function() {
 
     describe('missing Authorization header', function() {

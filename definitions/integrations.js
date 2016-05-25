@@ -83,6 +83,14 @@ exports.Conflict = {
   responseTemplates: {},
 };
 
+exports.Unsupported = {
+  statusCode: '415',
+  responseParameters: {
+    'method.response.header.Access-Control-Allow-Origin': "'*'",
+  },
+  responseTemplates: {},
+};
+
 exports.RateLimited = {
   statusCode: '429',
   responseParamters: {
