@@ -10,7 +10,7 @@ var defs = require('definitions');
 const GOOGLE = 1;
 const FACEBOOK = 2;
 
-describe.only('POST /jwts', function() {
+describe('POST /jwts', function() {
   var recorder, account;
   var recorderUser, recorderPass, accountUser, accountPass;
 
@@ -504,7 +504,7 @@ describe.only('POST /jwts', function() {
         .then(function(res) {
           expect(res.statusCode).to.equal(404);
           expect(res.body).to.deep.equal({
-            errors: [{detail: 'Account not found'}],
+            errors: [{detail: 'Account not found.'}],
           });
           expect(res.headers).to.have.property('content-type', 'application/vnd.api+json');
           if (!tv4.validate(res.body, jsonapischema)) {
