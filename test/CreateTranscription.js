@@ -129,4 +129,13 @@ describe('POST /transcriptions', function() {
       });
     });
   });
+
+  describe('wrong content-type', function() {
+    it('should 415.', function() {
+      return post(body, _.assign({}, headers, {'Content-Type': 'application/vnd.api+json'}))
+        .then(function(res) {
+          expect(res.statusCode).to.equal(415)
+        })
+    })
+  })
 });

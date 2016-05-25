@@ -7,6 +7,7 @@ var bodySchema = _.bodySchema(require('./spec').parameters);
 var BASE = 'https://qdkkavugcd.execute-api.us-west-2.amazonaws.com/prod/v1/transcriptions';
 
 exports.handler = function(request, reply) {
+  console.log(request)
   if (request['Content-Type'] !== 'application/json') {
     reply.fail('415')
     return;
