@@ -6,6 +6,7 @@ import type {QueryConfig, QueryResult} from '../types'
 export type S = {S: string};
 export type N = {N: string};
 export type B = {B: string};
+export type SS = {SS: string[]};
 export type DynamoValue = S | N | B;
 export type Item = { [key: string]: DynamoValue }
 

@@ -1,4 +1,12 @@
 //@flow
+//This routine always saves a new message to the messages table and may also
+//pass the message to GCM for delivery if it is ready. It is ready when the
+//upload has completed and the postprocessing function has added a duration to
+//the upload object. This routine and the postprocessing routine run around the
+//same time so we must use strong consistency to check whether the
+//postprocessing is complete, indicated by the postprocessed timestamp on the
+//upload item. If incomplete, set the pending_message_ids on the upload to
+//signal the postprocessing routine to deliver the message.
 import type {Recorder, Upload, Account, Message} from '../domain'
 
 import url from 'url'
@@ -18,16 +26,15 @@ export default _.use([
   [{fn: allow}],
   [{fn: lookupRecipientReceivers, key: 'receivers'}, {fn: lookupUpload, key: 'upload'}],
   [{fn: newMessage, key: 'message'}],
+  [{fn: saveMessage}],
+  //saveMessage must complete before savePendingMessageID so that whenever
+  //postprocessing reads pending_message_ids on the upload it is guaranteed to
+  //be able to read the message
+  [{fn: savePendingMessageID, key: 'isDelivered'}],
   [{fn: maybeDeliver, key: 'delivery'}],
-  [{fn: save, key: 'message'}],
+  [{fn: saveDeliveryResults, key: 'message'}],
   [{fn: format, key: 'response'}],
-], function(err, request, state) {
-  if (err) {
-    _.log(err);
-  }
-  _.log(state);
-  return Promise.resolve()
-})
+], _.termLog)
 
 //ensure the auth token authenticates an account, not just a recorder
 function validateAccountAuth(state: Object): Promise<null> {
@@ -117,10 +124,26 @@ function newMessage(state: Object): Promise<Message> {
   })
 }
 
-//Pass the message to GCM if ready for delivery. If the upload has a
-//postprocessed timestamp it is ready for delivery.
+//Save the undelivered message.
+function saveMessage(state: Object): Promise<Message> {
+  return messages.save(state.message)
+}
+
+//attempts to save the message_id to the upload as pending. Fails if
+//postprocessing is complete and the message must be sent by this routine.
+function savePendingMessageID(state: Object): Promise<boolean> {
+  return uploads.addPendingMessageID(state.upload.pathname(), state.message.message_id)
+    .then(function(upload) {
+      //null if failed
+      return !!upload
+    })
+}
+
+//Pass the message to GCM if ready for delivery. The savePendingMessageID task
+//will have set isDelivered to false if this routine is responsible for
+//delivery.
 function maybeDeliver(state: Object): Promise<?Object> {
-  if (!state.upload.postprocessed) {
+  if (state.isDelivered) {
     return Promise.resolve(null)
   }
 
@@ -135,16 +158,17 @@ function maybeDeliver(state: Object): Promise<?Object> {
     })
 }
 
-//save message to repository. This might mutate the message object to add
-//handled results.
-function save(state: Object): Promise<Message> {
-  let handling: Object = {}
-
-  if (state.delivery) {
-    handling.handled = Date.now()
-    handling.handled_by = 'lambda.NewMessage'
-    handling.outcome = 'GCM success count: ' + state.delivery.success
+//update the message entity if it was delivered. The maybeDeliver task sets a
+//delivery field on the state if it delivered the message.
+function saveDeliveryResults(state: Object): Promise<Message> {
+  if (!state.delivery) {
+    return Promise.resolve(state.message)
   }
+
+  let handling: Object = {}
+  handling.handled = Date.now()
+  handling.handled_by = 'lambda.NewMessage'
+  handling.outcome = 'GCM success count: ' + state.delivery.success
 
   return messages.save(Object.assign(state.message, handling))
 }

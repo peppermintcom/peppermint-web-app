@@ -44,7 +44,24 @@ function transcriptionID(pathname: string): string {
   return fileParts[0];
 }
 
+function addPendingMessageID(pathname: string, messageID: string): Promise<?Upload> {
+  //can only be set on uploads that have not completed postprocessing
+  return uploads.update(pathname, {
+    messageID: messageID,
+  }, {
+    postprocessed: null,
+  })
+  .catch(function(err) {
+    if (err.code == 'ConditionalCheckFailedException') {
+      return null
+    }
+    //lambda seems to crash when throwing existing errors
+    throw new Error(err.message)
+  })
+}
+
 module.exports = {
   read,
-  save: uploads.save
+  save: uploads.save,
+  addPendingMessageID,
 };

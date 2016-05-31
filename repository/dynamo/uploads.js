@@ -1,6 +1,6 @@
 //@flow
 import type {Upload, Account} from '../../domain'
-import type {S, N} from './types'
+import type {S, N, SS} from './types'
 
 import url from 'url'
 import dynamo from './client'
@@ -15,6 +15,13 @@ type UploadItem = {
   postprocessed?: N;
   seconds?: N;
   uploaded?: N;
+  pending_message_ids?: SS;
+}
+type UpdateAttrs = {
+  messageID: string;
+}
+type UploadConditions = {
+  postprocessed?: null;
 }
 
 function read(pathname: string): Promise<Upload> {
@@ -24,6 +31,7 @@ function read(pathname: string): Promise<Upload> {
       Key: {
         pathname: {S: pathname},
       },
+      ConsistentRead: true,
     }, function(err, data) {
       if (err) {
         reject(err);
@@ -53,6 +61,31 @@ function save(u: Upload): Promise<Upload> {
   });
 }
 
+function update(pathname: string, attrs: UpdateAttrs, conditions: UploadConditions): Promise<Upload> {
+  return new Promise(function(resolve, reject) {
+    let updates = formatUpdate(attrs)
+    let params: Object = {
+      TableName: 'uploads',
+      Key: {pathname: {S: pathname}},
+      UpdateExpression: updates.expression,
+      ExpressionAttributeValues: updates.values,
+      ReturnValues: 'ALL_NEW',
+    }
+
+    if (conditions) {
+      params.ConditionExpression = formatConditions(conditions)
+    }
+
+    dynamo.updateItem(params, function(err, data) {
+      if (err) {
+        reject(err)
+        return
+      }
+      resolve(parse(data.Attributes))
+    })
+  })
+}
+
 function parse(item: UploadItem): Upload {
   var parts = _.decodePathname(item.pathname.S);
 
@@ -80,6 +113,7 @@ function parse(item: UploadItem): Upload {
     uploaded: item.uploaded ? +item.uploaded.N : null,
     duration: item.seconds ? +item.seconds.N : null,
     postprocessed: item.postprocessed ? +item.postprocessed.N : null,
+    pending_message_ids: item.pending_message_ids ? item.pending_message_ids.SS : [],
   });
 }
 
@@ -113,4 +147,29 @@ function format(upload: Upload): UploadItem {
   return item;
 }
 
-module.exports = {read, save};
+function formatUpdate(attrs: UpdateAttrs): Object {
+  let expressions = []
+  let values = {}
+
+  if (attrs.messageID) {
+    expressions.push('ADD pending_message_ids :messageID')
+    values[':messageID'] = {SS: [attrs.messageID]}
+  }
+ 
+  return {
+    expression: expressions.join(', '),
+    values: values,
+  };
+}
+
+function formatConditions(conditions: Object): string {
+  let expressions = []
+
+  if (conditions.postprocessed === null) {
+    expressions.push('attribute_not_exists(postprocessed)')
+  }
+
+  return expressions.join(',')
+}
+
+module.exports = {read, save, update};

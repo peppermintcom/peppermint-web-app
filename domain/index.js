@@ -94,6 +94,7 @@ export type Upload = {
   //uploads can be created without an account
   creator?: ?Account;
   messages?: Message[];
+  pending_message_ids?: string[];
   pathname: () => string;
 }
 
@@ -134,6 +135,7 @@ function newUpload(u: UploadParts): Upload {
   upload.postprocessed = null;
   upload.transcription = null;
   upload.messages = [];
+  upload.pending_message_ids = [];
 
   return upload;
 }

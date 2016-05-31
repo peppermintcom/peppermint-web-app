@@ -207,6 +207,7 @@ function read(id: string): Promise<Message> {
       Key: {
         message_id: {S: id},
       },
+      ConsistentRead: true,
     }, function(err, data) {
       if (err) {
         reject(err);

@@ -7,7 +7,7 @@ if (conf.NODE_ENV === 'development') {
   //dynamodb-local
   //we don't have a real database in us-east-1
   options.region = 'us-east-1';
-  options.endpoint = 'http://localhost:8000';
+  options.endpoint = 'http://127.0.0.1:8000';
 } else if (conf.NODE_ENV === 'production') {
   //production dynamodb
   options.region = 'us-west-2';

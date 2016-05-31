@@ -36,6 +36,7 @@ function read(id: string): Promise<Transcription> {
       Key: {
         transcription_id: {S: id},
       },
+      ConsistentRead: true,
     }, function(err, data) {
       if (err) {
         reject(err);

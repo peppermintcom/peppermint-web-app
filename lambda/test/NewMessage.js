@@ -10,7 +10,7 @@ import fixtures from '../../repository/fixtures'
 import Messages from '../../repository/messages'
 import Recorders from '../../repository/recorders'
 
-describe('lambda:NewMessage', function() {
+describe.only('lambda:NewMessage', function() {
   describe('recipient can receive on Android', function() {
     it('should deliver a message via GCM.', function() {
       return fix({
