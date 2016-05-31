@@ -9,8 +9,9 @@ import recorders from '../../repository/recorders'
 import fixtures from '../../repository/fixtures'
 import Messages from '../../repository/messages'
 import Recorders from '../../repository/recorders'
+import Uploads from '../../repository/uploads'
 
-describe.only('lambda:NewMessage', function() {
+describe('lambda:NewMessage', function() {
   describe('recipient can receive on Android', function() {
     it('should deliver a message via GCM.', function() {
       return fix({
@@ -22,6 +23,13 @@ describe.only('lambda:NewMessage', function() {
         return Messages.read(response.data.id)
           .then(function(message) {
             expect(message.handled).to.be.within(Date.now() - 1000, Date.now())
+
+            return Uploads.read(message.upload.pathname())
+          })
+          .then(function(upload) {
+            //because this routine delivered the message, the upload must not
+            //have pending_message_ids
+            expect(upload.pending_message_ids).to.deep.equal([])
           })
       })
     })
@@ -38,6 +46,11 @@ describe.only('lambda:NewMessage', function() {
         return Messages.read(response.data.id)
           .then(function(message) {
             expect(message.handled).to.be.within(Date.now() - 1000, Date.now())
+
+            return Uploads.read(message.upload.pathname())
+          })
+          .then(function(upload) {
+            expect(upload.pending_message_ids).to.deep.equal([])
           })
       })
     })
@@ -60,6 +73,11 @@ describe.only('lambda:NewMessage', function() {
           .then(function(message) {
             expect(message.handled).to.be.within(Date.now() - 1000, Date.now())
             expect(message.outcome).to.match(/4$/)
+
+            return Uploads.read(message.upload.pathname())
+          })
+          .then(function(upload) {
+            expect(upload.pending_message_ids).to.deep.equal([])
           })
       })
     })
@@ -85,6 +103,11 @@ describe.only('lambda:NewMessage', function() {
           .then(function(message) {
             expect(message.handled).to.be.within(Date.now() - 1000, Date.now())
 
+            return Uploads.read(message.upload.pathname())
+          })
+          .then(function(upload) {
+            expect(upload.pending_message_ids).to.deep.equal([])
+
             return Recorders.read(recorder.client_id)
           })
           .then(function(_recorder) {
@@ -98,6 +121,7 @@ describe.only('lambda:NewMessage', function() {
   describe('recipient has a bad android receiver.', function() {
     it('should fail to deliver the message.', function() {
       let recorder
+      let upload
 
       return fix({
         upload: {postprocessed: true},
@@ -107,6 +131,7 @@ describe.only('lambda:NewMessage', function() {
       })
       .then(function(fixed) {
         recorder = fixed.receivers[0].recorder
+        upload = fixed.upload
         return fixed
       })
       .then(run)
@@ -118,6 +143,11 @@ describe.only('lambda:NewMessage', function() {
       })
       .then(function(recorder) {
         expect(recorder.gcm_registration_token).to.equal(null)
+
+        return Uploads.read(upload.pathname())
+      })
+      .then(function(upload) {
+        expect(upload.pending_message_ids).to.deep.equal([])
       })
     })
   })
@@ -148,6 +178,11 @@ describe.only('lambda:NewMessage', function() {
             expect(message.handled).to.be.within(Date.now() - 1000, Date.now())
             expect(message.handled_by).to.be.ok
             expect(message.outcome).to.match(/4$/)
+
+            return Uploads.read(message.upload.pathname())
+          })
+          .then(function(upload) {
+            expect(upload.pending_message_ids).to.deep.equal([])
           })
       })
     })
@@ -155,7 +190,7 @@ describe.only('lambda:NewMessage', function() {
 
   describe('upload is not ready', function() {
     it('should save the message for future delivery.', function() {
-      let fixed
+      let res
 
       return fix({
         upload: {postprocessed: false},
@@ -168,16 +203,19 @@ describe.only('lambda:NewMessage', function() {
           {client: 'iOS', state: 'bad'},
         ],
       })
-      .then(function(_fixed) {
-        fixed = _fixed
-        return fixed
-      })
       .then(run)
       .then(function(response) {
+        res = response
+
         return Messages.read(response.data.id)
       })
       .then(function(message) {
         expect(message.handled).to.equal(null)
+
+        return Uploads.read(message.upload.pathname())
+      })
+      .then(function(upload) {
+        expect(upload.pending_message_ids).to.deep.equal([res.data.id])
       })
     })
   })

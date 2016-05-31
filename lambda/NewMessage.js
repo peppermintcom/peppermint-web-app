@@ -30,7 +30,7 @@ export default _.use([
   //saveMessage must complete before savePendingMessageID so that whenever
   //postprocessing reads pending_message_ids on the upload it is guaranteed to
   //be able to read the message
-  [{fn: savePendingMessageID, key: 'isDelivered'}],
+  [{fn: savePendingMessageID, key: 'isUploadReady'}],
   [{fn: maybeDeliver, key: 'delivery'}],
   [{fn: saveDeliveryResults, key: 'message'}],
   [{fn: format, key: 'response'}],
@@ -129,21 +129,24 @@ function saveMessage(state: Object): Promise<Message> {
   return messages.save(state.message)
 }
 
-//attempts to save the message_id to the upload as pending. Fails if
-//postprocessing is complete and the message must be sent by this routine.
+//Attempts to save the message_id to the upload as pending. This will fail if
+//the upload is already postprocessed and this routine is responsible for
+//delivery. Return true iff this routine is responsible for delivery.
 function savePendingMessageID(state: Object): Promise<boolean> {
   return uploads.addPendingMessageID(state.upload.pathname(), state.message.message_id)
     .then(function(upload) {
-      //null if failed
-      return !!upload
+      //null means the pending message id was not added to the upload because it
+      //is already postprocessed so return true to indicate upload is ready for
+      //delivery.
+      return !upload
     })
 }
 
 //Pass the message to GCM if ready for delivery. The savePendingMessageID task
-//will have set isDelivered to false if this routine is responsible for
+//will have set isUploadReady to true if this routine is responsible for
 //delivery.
 function maybeDeliver(state: Object): Promise<?Object> {
-  if (state.isDelivered) {
+  if (!state.isUploadReady) {
     return Promise.resolve(null)
   }
 
