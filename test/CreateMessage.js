@@ -4,7 +4,7 @@ var jsonapischema = require('./jsonapischema');
 var spec = require('../resources/messages/post/spec');
 var _ = require('./utils');
 
-describe('POST /messages', function() {
+describe.only('POST /messages', function() {
   var post = _.partial(_.http, 'POST', '/messages');
   var sender, recipient, jwt, recorder, recorderJWT;
 

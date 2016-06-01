@@ -4,11 +4,13 @@ var options = {apiVersion: '2012-08-10'};
 var conf = require('../../utils/conf')
 
 if (conf.NODE_ENV === 'development') {
+  console.log('using development dynamo client')
   //dynamodb-local
   //we don't have a real database in us-east-1
   options.region = 'us-east-1';
   options.endpoint = 'http://127.0.0.1:8000';
 } else if (conf.NODE_ENV === 'production') {
+  console.log('using production dynamo client')
   //production dynamodb
   options.region = 'us-west-2';
   //Fix dynamo EPROTO error
@@ -17,7 +19,8 @@ if (conf.NODE_ENV === 'development') {
   options.httpOptions = {
     agent: new https.Agent({
       rejectUnauthorized: true,
-      keepAlive: true,
+      //no keepAlive on AWS Lambda
+      //keepAlive: true,
       secureProtocol: 'TLSv1_method',
       ciphers: 'ALL',
     }),
