@@ -14,6 +14,9 @@ import Messages from '../repository/messages'
 import spec from '../resources/messages/post/spec'
 import _ from './utils'
 
+//so ffprobe is on the path
+process.env.PATH += ':' + process.env.LAMBDA_TASK_ROOT + '/lambda';
+
 export default _.use([
   [{fn: fetch, key: 'fetch_time'}],
   [{fn: probe, key: 'meta'}],
