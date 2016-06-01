@@ -4,6 +4,23 @@ import token from '../../utils/randomtoken'
 import uploads from '../uploads'
 
 describe('repository uploads', function() {
+  describe('update', function() {
+    it('should save the properties to the upload.', function() {
+      return fixtures.upload().then(function(upload) {
+        return uploads.update(upload.pathname(), {
+          postprocessed: Date.now(),
+          uploaded: Date.now() - 500,
+          seconds: 6,
+        })
+      })
+      .then(function(upload) {
+        expect(upload.postprocessed).to.be.ok
+        expect(upload.uploaded).to.be.ok
+        expect(upload.duration).to.equal(6)
+      })
+    })
+  })
+
   describe('addPendingMessageID', function() {
     describe('not postprocessed', function() {
       it('should save the pending message.', function() {

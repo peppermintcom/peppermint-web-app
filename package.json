@@ -5,12 +5,12 @@
   "main": "index.js",
   "scripts": {
     "build": "flow && webpack && npm test",
-    "test": "mocha -t 10000 --bail --compilers js:babel-register --recursive utils/ resources/ postprocessing/ repository/ procedures/ lambda/test/",
+    "test": "mocha -t 10000 --bail --compilers js:babel-register --recursive utils/ resources/ repository/ procedures/ lambda/test/",
     "integration-tests": "mocha -t 20000 --bail test/",
     "start": "gulp serve",
     "swagger": "gulp swagger",
     "webpack": "webpack",
-    "deploy-lambda": "webpack && zip -rFS lambda/lambda.zip lambda/bundle.js utils/conf.js utils/conf.json && aws s3 --profile peppermint mv lambda/lambda.zip s3://peppermint-lambda/lambda.zip && echo https://s3-us-west-2.amazonaws.com/peppermint-lambda/lambda.zip"
+    "deploy-lambda": "webpack && zip -rFS lambda/lambda.zip lambda/bundle.js utils/conf.js utils/conf.json lambda/ffprobe && aws s3 --profile peppermint mv lambda/lambda.zip s3://peppermint-lambda/lambda.zip && echo https://s3-us-west-2.amazonaws.com/peppermint-lambda/lambda.zip"
   },
   "repository": {
     "type": "git",
@@ -51,10 +51,11 @@
     "bcryptjs": "^2.3.0",
     "emailjs": "^1.0.1",
     "es6-promise": "^3.0.2",
+    "flow-bin": "^0.26.0",
     "jwt-simple": "^0.3.1",
     "lodash": "^4.6.1",
     "randomstring": "^1.1.0",
-    "request": "^2.69.0",
+    "request": "^2.72.0",
     "tv4": "^1.2.7"
   }
 }

@@ -64,4 +64,5 @@ module.exports = {
   read,
   save: uploads.save,
   addPendingMessageID,
+  update: uploads.update,
 };

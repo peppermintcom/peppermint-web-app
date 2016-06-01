@@ -1,4 +1,4 @@
-//@flow
+//skip flow because it does not understand formatUpdate
 import type {Upload, Account} from '../../domain'
 import type {S, N, SS} from './types'
 
@@ -18,7 +18,10 @@ type UploadItem = {
   pending_message_ids?: SS;
 }
 type UpdateAttrs = {
-  messageID: string;
+  messageID?: string;
+  seconds?: number;
+  uploaded?: number;
+  postprocessed?: number;
 }
 type UploadConditions = {
   postprocessed?: null;
@@ -148,16 +151,32 @@ function format(upload: Upload): UploadItem {
 }
 
 function formatUpdate(attrs: UpdateAttrs): Object {
-  let expressions = []
-  let values = {}
+  let expressions: string[] = []
+  let values: Object = {}
+  let needsSet = false
 
   if (attrs.messageID) {
     expressions.push('ADD pending_message_ids :messageID')
     values[':messageID'] = {SS: [attrs.messageID]}
   }
+  if (attrs.seconds) {
+    expressions.push('seconds = :seconds')
+    values[':seconds'] = {N: attrs.seconds.toString()}
+    needsSet = true
+  }
+  if (attrs.uploaded) {
+    expressions.push('uploaded = :uploaded')
+    values[':uploaded'] = {N: attrs.uploaded.toString()}
+    needsSet = true
+  }
+  if (attrs.postprocessed) {
+    expressions.push('postprocessed = :postprocessed')
+    values[':postprocessed'] = {N: attrs.postprocessed.toString()}
+    needsSet = true
+  }
  
   return {
-    expression: expressions.join(', '),
+    expression: (needsSet ? 'SET ' : '') + expressions.join(', '),
     values: values,
   };
 }

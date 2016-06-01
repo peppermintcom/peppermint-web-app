@@ -11,6 +11,7 @@ import _jwt from '../utils/jwt'
 import _token from '../utils/randomtoken'
 import gcmMocks from '../utils/gcmMocks'
 
+const UPLOAD_KEY = 'rqChdm4DpdCKkJHKbeVzhH/BgHX49oM3NG7fz8cuRr6K8.mp3'
 const API_KEY = 'abc123'
 const ANDROID_API_KEY = 'android-dev'
 const IOS_API_KEY = 'ios-dev'
@@ -163,6 +164,7 @@ function jwt(accountID?: string, recorderID?: string): string {
 
 export default {
   API_KEY,
+  UPLOAD_KEY,
   recorder,
   upload,
   account,
