@@ -1,4 +1,5 @@
 import {expect} from 'chai'
+import domainUtils from '../../domain/utils'
 import fixtures from '../fixtures'
 import token from '../../utils/randomtoken'
 import uploads from '../uploads'
@@ -17,6 +18,25 @@ describe('repository uploads', function() {
         expect(upload.postprocessed).to.be.ok
         expect(upload.uploaded).to.be.ok
         expect(upload.duration).to.equal(6)
+      })
+    })
+
+    describe('has transcription', function() {
+      it('should include transcription in response.', function() {
+        return fixtures.upload({transcription: true}).then(function(upload) {
+          return uploads.update(upload.pathname(), {
+            postprocessed: Date.now(),
+            uploaded: Date.now() - 500,
+            seconds: 6,
+          })
+          .then(function(upload) {
+            expect(upload.postprocessed).to.be.ok
+            expect(upload.uploaded).to.be.ok
+            expect(upload.duration).to.equal(6)
+            expect(upload.transcription).to.be.ok
+            expect(upload.transcription.text).to.be.ok
+          })
+        })
       })
     })
   })

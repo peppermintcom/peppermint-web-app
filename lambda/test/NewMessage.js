@@ -15,7 +15,7 @@ describe('lambda:NewMessage', function() {
   describe('recipient can receive on Android', function() {
     it('should deliver a message via GCM.', function() {
       return fix({
-        upload: {postprocessed: true},
+        upload: {postprocessed: true, transcription: true},
         receivers: [{client: 'android', state: 'good'}],
       })
       .then(run)
@@ -38,7 +38,7 @@ describe('lambda:NewMessage', function() {
   describe('recipient can receive on iOS', function() {
     it('should deliver a message via GCM.', function() {
       return fix({
-        upload: {postprocessed: true},
+        upload: {postprocessed: true, transcription: true},
         receivers: [{client: 'iOS', state: 'good'}],
       })
       .then(run)

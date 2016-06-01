@@ -17,13 +17,13 @@ type UploadItem = {
   uploaded?: N;
   pending_message_ids?: SS;
 }
-type UpdateAttrs = {
+export type UpdateAttrs = {
   messageID?: string;
   seconds?: number;
   uploaded?: number;
   postprocessed?: number;
 }
-type UploadConditions = {
+export type UploadConditions = {
   postprocessed?: null;
 }
 

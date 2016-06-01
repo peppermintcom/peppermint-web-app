@@ -5,6 +5,7 @@ import fixtures from '../../repository/fixtures'
 import Uploads from '../../repository/uploads'
 import Messages from '../../repository/messages'
 import Recorders from '../../repository/recorders'
+import transcriptions from '../../repository/dynamo/transcriptions'
 
 const KEY = fixtures.UPLOAD_KEY;
 const AUDIO_URL = 'http://go.peppermint.com/' + KEY;
@@ -34,6 +35,8 @@ describe('lambda:Postprocess', function() {
   describe('pending message id', function() {
     describe('recipient has android receiver', function() {
       it('should deliver the message.', function() {
+        let delivery
+
         return fix({
           upload: {},
           receivers: [{client: 'android', state: 'good'}],
@@ -41,6 +44,8 @@ describe('lambda:Postprocess', function() {
         })
         .then(run)
         .then(function(res) {
+          delivery = res.deliveries[0]
+
           return Promise.all([
             Uploads.read(KEY),
             Messages.read(res.messages[0].message_id)
@@ -57,19 +62,25 @@ describe('lambda:Postprocess', function() {
           expect(message.handled).to.be.within(Date.now() - 1000, Date.now())
           expect(message.handled_by).to.equal('lambda:Postprocess')
           expect(message.outcome).to.equal('GCM success count: 1')
+
+          expect(delivery.android.message.data.transcription).to.equal('fake test transcription')
         })
       })
     })
 
-    describe('recipient has ios receiver', function() {
+    describe('recipient has ios receiver and upload has transcription', function() {
+      let delivery
+
       it('should deliver the message.', function() {
         return fix({
-          upload: {},
+          upload: {transcription: true},
           receivers: [{client: 'ios', state: 'good'}],
           pendingMessages: true,
         })
         .then(run)
         .then(function(res) {
+          delivery = res.deliveries[0]
+
           return Promise.all([
             Uploads.read(KEY),
             Messages.read(res.messages[0].message_id)
@@ -86,6 +97,9 @@ describe('lambda:Postprocess', function() {
           expect(message.handled).to.be.within(Date.now() - 1000, Date.now())
           expect(message.handled_by).to.equal('lambda:Postprocess')
           expect(message.outcome).to.equal('GCM success count: 1')
+
+          expect(delivery.iOS.message.notification.title).to.equal('Peppermint Audio Message')
+          expect(delivery.iOS.message.notification.body).to.equal('fake test transcription')
         })
       })
     })
@@ -270,10 +284,21 @@ function fix(config: Config) {
     upload.upload_id = parts.id
     upload.recorder.recorder_id = parts.recorder_id
     upload.content_type = parts.content_type
-    return Uploads.save(upload)
+
+    if (upload.transcription) {
+      upload.transcription.upload = upload
+    }
+
+    return Promise.all([
+      Uploads.save(upload),
+      upload.transcription ? transcriptions.save(upload.transcription) : Promise.resolve()
+    ])
   })
-  .then(function(_upload) {
-    upload = _upload
+  .then(function(results) {
+    upload = results[0]
+    let tx = results[1]
+
+    upload.transcription = tx
 
     //fix the receivers
     return Promise.all(config.receivers.map(function(r) {
@@ -301,7 +326,7 @@ function fix(config: Config) {
       })
       .then(function(message) {
         return Uploads.addPendingMessageID(upload.pathname(), message.message_id)
-          .then(function(upload) {
+          .then(function() {
             return {
               upload: upload,
               bob: bob,

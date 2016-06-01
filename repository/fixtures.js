@@ -10,6 +10,7 @@ import Messages from './messages'
 import _jwt from '../utils/jwt'
 import _token from '../utils/randomtoken'
 import gcmMocks from '../utils/gcmMocks'
+import transcriptions from './dynamo/transcriptions'
 
 const UPLOAD_KEY = 'rqChdm4DpdCKkJHKbeVzhH/BgHX49oM3NG7fz8cuRr6K8.mp3'
 const API_KEY = 'abc123'
@@ -35,6 +36,7 @@ export type UploadConfig = {
   recorder?: Recorder;
   creator?: Account;
   postprocessed?: boolean;
+  transcription?: boolean;
 }
 function upload(config?: UploadConfig): Promise<Upload> {
   return ((config && config.recorder) ? Promise.resolve(config.recorder) : recorder())
@@ -48,6 +50,26 @@ function upload(config?: UploadConfig): Promise<Upload> {
     }
 
     return uploads.save(upload)
+      .then(function(upload) {
+        if (!(config && config.transcription)) {
+          return upload
+        }
+
+        let tx = domain.newTranscription({
+          upload: upload,
+          confidence: 0.777,
+          language: 'en-US',
+          text: 'fake test transcription',
+          ip_address: '127.0.0.1',
+          api_key: 'abc123',
+        })
+
+        return transcriptions.save(tx)
+          .then(function(tx) {
+            upload.transcrption = tx
+            return upload
+          })
+      })
   })
 }
 

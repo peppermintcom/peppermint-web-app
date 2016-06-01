@@ -147,22 +147,35 @@ function makeUpload(u: Object): Upload {
 export type Transcription = {
   upload: Upload;
   text: string;
-  confidence?: number;
   language?: string;
+  confidence?: number;
+  ip_address?: string;
+  api_key?: string;
+  timestamp?: number;
 }
 
 export type TranscriptionParts = {
-  confidence?: number;
-  language?: string;
-  text: string;
   upload: Upload;
+  text: string;
+  language: string;
+  confidence: number;
+  ip_address: string;
+  api_key: string;
 }
 
 function newTranscription(t: TranscriptionParts): Transcription {
-  return t;
+  return {
+    timestamp: Date.now(),
+    upload: t.upload,
+    text: t.text,
+    language: t.language,
+    confidence: t.confidence,
+    ip_address: t.ip_address,
+    api_key: t.api_key,
+  }
 }
 
-function makeTranscription(t: Transcription): Transcription {
+function makeTranscription(t: Object): Transcription {
   return t;
 }
 

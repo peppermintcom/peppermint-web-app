@@ -53,7 +53,7 @@ describe('authenticate command', function() {
           throw new Error('success with wrong recorder key');
         })
         .catch(function(err) {
-          expect(err).to.equal(Errors.WrongRecorderKey);
+          expect(err.message).to.equal(Errors.WrongRecorderKey);
         });
       });
     });
@@ -112,7 +112,7 @@ describe('authenticate command', function() {
           throw new Error('success with incorrect password')
         })
         .catch(function(err) {
-          expect(err).to.equal(Errors.WrongAccountPassword)
+          expect(err.message).to.equal(Errors.WrongAccountPassword)
         })
       });
     });

@@ -68,15 +68,23 @@ function iOS(receivers: Recorder[], message: Message): Promise<?Object> {
 function formatiOS(message: Message): Promise<Object> {
   return messages.recentUnreadCount(message.recipient.email, message.message_id)
   .then(function(count) {
-    let who: string = message.sender.full_name || message.sender.email || 'someone'
+    let body = ''
+
+    if (message.upload.transcription) {
+      body = message.upload.transcription.text
+    } else {
+      let who: string = message.sender.full_name || message.sender.email || 'someone'
+
+      body = who + ' sent you a message'
+    }
 
     return {
       priority: 'high',
       notification: {
         badge : count.toString(),
         sound : 'notification.aiff',
-        title: 'You have a new message',
-        body: who + ' sent you a message',
+        title: 'Peppermint Audio Message',
+        body: body,
         click_action : 'AudioMessage',
         sender_name: message.sender.full_name,
         sender_email: message.sender.email,

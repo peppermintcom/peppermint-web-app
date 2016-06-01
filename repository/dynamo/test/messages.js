@@ -199,13 +199,9 @@ function expectEqual(m1, m2) {
       recorder_id: m2.upload.recorder.recorder_id,
     },
   }));
-  expect(m1.sender).to.deep.equal({
-    email: m2.sender.email,
-    full_name: m2.sender.full_name,
-  });
-  expect(m1.recipient).to.deep.equal({
-    email: m2.recipient.email,
-  });
+  expect(m1.sender.email).to.equal(m2.sender.email)
+  expect(m1.sender.full_name).to.equal(m2.sender.full_name)
+  expect(m1.recipient.email).to.equal(m2.recipient.email)
   expect(m1).to.have.property('handled', m2.handled);
   expect(m1).to.have.property('handled_by', m2.handled_by);
   expect(m1).to.have.property('outcome', m2.outcome);

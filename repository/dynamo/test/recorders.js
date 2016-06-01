@@ -22,7 +22,13 @@ describe('dynamo recorders', function() {
         .then(function(recorder) {
           return recorders.read(recorder.client_id)
             .then(function(_r) {
-              expect(_r).to.deep.equal(recorder);
+              expect(_r.recorder_id).to.equal(recorder.recorder_id)
+              expect(_r.client_id).to.equal(recorder.client_id)
+              expect(_r.api_key).to.equal(recorder.api_key)
+              expect(_r.recorder_key_hash).to.equal(recorder.recorder_key_hash)
+              expect(_r.registered).to.equal(recorder.registered)
+              expect(_r.description).to.equal(recorder.description)
+              expect(_r.gcm_registration_token).to.equal(recorder.gcm_registration_token)
             });
         });
     });

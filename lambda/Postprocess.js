@@ -121,6 +121,9 @@ function deliverPendingMessages(state: Object): Promise<?Object[]> {
     if (!receivers.length) {
       return Promise.resolve(null)
     }
+    //use full upload from state.upload, which includes transcription if it
+    //exists
+    message.upload = state.upload
     return push(receivers, message)
   }))
 }

@@ -44,7 +44,7 @@ describe('registerAccount command', function() {
         throw new Error('success with duplicate email');
       })
       .catch(function(err) {
-        expect(err).to.equal(Errors.Conflict);
+        expect(err.message).to.equal(Errors.Conflict.message);
       });
     });
   });
