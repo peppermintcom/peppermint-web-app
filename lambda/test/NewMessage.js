@@ -12,6 +12,23 @@ import Recorders from '../../repository/recorders'
 import Uploads from '../../repository/uploads'
 
 describe('lambda:NewMessage', function() {
+  describe('recipient does not have a receiver', function() {
+    it('should fail with a 404 error.', function() {
+      return fix({
+        upload: {postprocessed: true},
+        receivers: [],
+      })
+      .then(run)
+      .then(function(response) {
+        throw new Error('success without receiver')
+      })
+      .catch(function(err) {
+        expect(err.message).to.equal('404')
+        expect(err.detail).to.equal('Recipient cannot receive messages via Peppermint')
+      })
+    })
+  })
+
   describe('recipient can receive on Android', function() {
     it('should deliver a message via GCM.', function() {
       return fix({

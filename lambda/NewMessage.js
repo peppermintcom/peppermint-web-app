@@ -52,8 +52,8 @@ function validateAccountAuth(state: Object): Promise<null> {
 //It is a 400 error if either does not exist.
 function lookupAccounts(state: Object): Promise<{sender: Account, recipient: Account}> {
   return Promise.all([
-    accounts.read(state.body.data.attributes.sender_email),
-    accounts.read(state.body.data.attributes.recipient_email),
+    accounts.readNull(state.body.data.attributes.sender_email),
+    accounts.readNull(state.body.data.attributes.recipient_email),
   ])
   .then(function(results) {
     let accounts = {
@@ -69,9 +69,6 @@ function lookupAccounts(state: Object): Promise<{sender: Account, recipient: Acc
     }
     
     return accounts
-  })
-  .catch(function(err) {
-    throw _.errNotFound('Recipient cannot receive messages via Peppermint')
   })
 }
 

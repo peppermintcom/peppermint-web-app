@@ -1,3 +1,7 @@
+//@flow
+import type {Upload, Recorder, Transcription} from '../../domain'
+import type {N, S} from './types'
+
 type TranscriptionItem = {
   transcription_id: S;
   recorder_id: S;
@@ -78,7 +82,7 @@ function discard(id: string): Promise<void> {
 }
 
 function format(t: Transcription): TranscriptionItem {
-  let item = {
+  let item: TranscriptionItem = {
     transcription_id: {S: t.upload.upload_id},
     text: {S: t.text},
     recorder_id: {S: t.upload.recorder.recorder_id},
@@ -115,7 +119,7 @@ function parse(item: TranscriptionItem): Transcription {
 
   return domain.makeTranscription({
     upload: u,
-    text: item.text.S,
+    text: item.text ? item.text.S : '',
     api_key: item.api_key ? item.api_key.S : null,
     confidence: item.confidence ? +item.confidence.N : null,
     ip_address: item.ip_address ? item.ip_address.S : null,

@@ -12,7 +12,6 @@ var dynamo = new aws.DynamoDB({
     httpOptions: {
       agent: new https.Agent({
         rejectUnauthorized: true,
-        keepAlive: true,
         secureProtocol: 'TLSv1_method',
         ciphers: 'ALL',
       }),

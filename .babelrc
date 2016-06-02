@@ -1,4 +1,4 @@
 {
-  "presets": ["es2015", "stage-3" /* for async await */],
+  "presets": ["es2015-node4", "stage-3" /* for async await */],
   "plugins": ["transform-flow-strip-types"]
 }

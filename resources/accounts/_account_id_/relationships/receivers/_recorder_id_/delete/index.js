@@ -17,6 +17,13 @@ function allow(request, reply) {
     });
     return;
   }
+  if (!request.account_id) {
+    reply.fail({
+      status: '400',
+      detail: 'Account ID required'
+    })
+    return;
+  }
   reply.succeed(request);
 }
 

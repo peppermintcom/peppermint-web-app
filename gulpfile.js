@@ -33,12 +33,13 @@ gulp.task('deploy', ['swagger'], gateway);
 gulp.task('publishSpec', ['swaggerUI'], publishSpec);
 
 gulp.task('spike', function() {
-  var src = 'resources/accounts/_account_id_/relationships/receivers/_recorder_id_/delete/index.js';
+  var src = ''
   src = 'resources/accounts/verify/post/index.js';
   src = 'resources/reads/post/index.js';
   src = 'resources/uploads/get/index.js';
   src = 'resources/messages/post/index.js';
   src = 'resources/transcriptions/post/index.js';
+  src = 'resources/accounts/_account_id_/relationships/receivers/_recorder_id_/delete/index.js';
   return gulp.src(src)
     .pipe(lambda());
 });
