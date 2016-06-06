@@ -27,7 +27,7 @@ describe('lambda:Postprocess', function() {
       .then(function(upload) {
         expect(upload.duration).to.equal(3)
         expect(upload.postprocessed).to.be.within(Date.now() - TIMEOUT, Date.now())
-        expect(upload.uploaded).to.be.below(upload.postprocessed)
+        expect(upload.uploaded).to.be.within(Date.now() - TIMEOUT, upload.postprocessed)
       })
     })
   })
@@ -38,7 +38,7 @@ describe('lambda:Postprocess', function() {
         let delivery
 
         return fix({
-          upload: {},
+          upload: {transcription: true},
           receivers: [{client: 'android', state: 'good'}],
           pendingMessages: true,
         })
@@ -57,7 +57,7 @@ describe('lambda:Postprocess', function() {
 
           expect(upload.duration).to.equal(3)
           expect(upload.postprocessed).to.be.within(Date.now() - TIMEOUT, Date.now())
-          expect(upload.uploaded).to.be.below(upload.postprocessed)
+          expect(upload.uploaded).to.be.within(Date.now() - TIMEOUT, upload.postprocessed)
 
           expect(message.handled).to.be.within(Date.now() - 1000, Date.now())
           expect(message.handled_by).to.equal('lambda:Postprocess')
@@ -92,7 +92,7 @@ describe('lambda:Postprocess', function() {
 
           expect(upload.duration).to.equal(3)
           expect(upload.postprocessed).to.be.within(Date.now() - TIMEOUT, Date.now())
-          expect(upload.uploaded).to.be.below(upload.postprocessed)
+          expect(upload.uploaded).to.be.within(Date.now() - TIMEOUT, upload.postprocessed)
 
           expect(message.handled).to.be.within(Date.now() - 1000, Date.now())
           expect(message.handled_by).to.equal('lambda:Postprocess')
@@ -133,7 +133,7 @@ describe('lambda:Postprocess', function() {
 
           expect(upload.duration).to.equal(3)
           expect(upload.postprocessed).to.be.within(Date.now() - TIMEOUT, Date.now())
-          expect(upload.uploaded).to.be.below(upload.postprocessed)
+          expect(upload.uploaded).to.be.within(Date.now() - TIMEOUT, upload.postprocessed)
 
           expect(message.handled).to.be.within(Date.now() - 1000, Date.now())
           expect(message.handled_by).to.equal('lambda:Postprocess')
@@ -174,7 +174,7 @@ describe('lambda:Postprocess', function() {
 
           expect(upload.duration).to.equal(3)
           expect(upload.postprocessed).to.be.within(Date.now() - TIMEOUT, Date.now())
-          expect(upload.uploaded).to.be.below(upload.postprocessed)
+          expect(upload.uploaded).to.be.within(Date.now() - TIMEOUT, upload.postprocessed)
 
           expect(message.handled).to.be.within(Date.now() - 1000, Date.now())
           expect(message.handled_by).to.equal('lambda:Postprocess')
@@ -219,7 +219,7 @@ describe('lambda:Postprocess', function() {
 
           expect(upload.duration).to.equal(3)
           expect(upload.postprocessed).to.be.within(Date.now() - TIMEOUT, Date.now())
-          expect(upload.uploaded).to.be.below(upload.postprocessed)
+          expect(upload.uploaded).to.be.within(Date.now() - TIMEOUT, upload.postprocessed)
 
           expect(message.handled).to.be.within(Date.now() - 1000, Date.now())
           expect(message.handled_by).to.be.ok

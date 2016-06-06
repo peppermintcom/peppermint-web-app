@@ -18,7 +18,7 @@ import _ from './utils'
 process.env.PATH += ':' + process.env.LAMBDA_TASK_ROOT + '/lambda';
 
 export default _.use([
-  [{fn: fetch, key: 'fetch_time'}],
+  [{fn: fetch, key: 'fetch_time'}, {fn: start, key: 'start'}],
   [{fn: probe, key: 'meta'}],
   [{fn: updateUpload, key: 'upload'}],
   [{fn: lookupPendingMessages, key: 'pendingMessages'}],
@@ -28,6 +28,11 @@ export default _.use([
   [{fn: updateMessages}],
   [{fn: format, key: 'response'}],
 ], _.termLog)
+
+//start returns the start time, used as the uploaded timestamp
+function start(state: Object): Promise<number> {
+  return Promise.resolve(Date.now())
+}
 
 //fetch gets the upload over public http, ensuring that all clients have access
 //to the upload by the time this returns. It saves the upload to /tmp.

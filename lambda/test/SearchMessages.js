@@ -10,7 +10,7 @@ import parseTime from '../../utils/parseTime'
 var WEEK = 1000 * 60 * 60 * 24 * 7;
 const begin = '2016-01-01 00:00:00';
 
-describe.only('lambda:SearchMessages', function() {
+describe('lambda:SearchMessages', function() {
   describe('no messages have been sent', function() {
     let bob = null;
 

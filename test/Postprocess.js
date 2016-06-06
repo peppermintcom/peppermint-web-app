@@ -47,6 +47,7 @@ describe('Postprocess putObject hook', function() {
         .then(function(upload) {
           expect(upload).to.have.property('seconds', 6);
           expect(upload.created).to.be.ok;
+          expect(upload.uploaded).to.be.ok;
           done();
         })
         .catch(done);
