@@ -178,6 +178,10 @@ let errNotFound = (detail: string): Object => {
   return err('404', detail)
 }
 
+let errConflict = (detail: string): Object => {
+  return err('409', detail)
+}
+
 let log = (x: any): void => {
   console.log(util.inspect(x, {depth: null}));
 }
@@ -200,6 +204,7 @@ export default {
   errAuth,
   errForbidden,
   errNotFound,
+  errConflict,
   log,
   termLog,
 }

@@ -10,6 +10,7 @@ import fixtures from '../../repository/fixtures'
 import Messages from '../../repository/messages'
 import Recorders from '../../repository/recorders'
 import Uploads from '../../repository/uploads'
+import token from '../../utils/randomtoken'
 
 describe('lambda:NewMessage', function() {
   describe('recipient does not have a receiver', function() {
@@ -69,6 +70,41 @@ describe('lambda:NewMessage', function() {
           .then(function(upload) {
             expect(upload.pending_message_ids).to.deep.equal([])
           })
+      })
+    })
+
+    describe('client-supplied id', function() {
+      it('should succeed exactly once.', function() {
+        let id = token(20)
+        let fixed
+
+        return fix({
+          upload: {postprocessed: true},
+          receivers: [{client: 'iOS', state: 'good'}],
+          id: id,
+        })
+        .then(function(_fixed) {
+          fixed = _fixed
+          return fixed
+        })
+        .then(run)
+        .then(function(response) {
+          expect(response.data.id).to.equal(id)
+
+          return Messages.read(id)
+            .then(function(message) {
+              expect(message.handled).to.be.ok
+            })
+        })
+        .then(function() {
+          return run(fixed)
+        })
+        .then(function(res) {
+          throw new Error('success with dupe')
+        })
+        .catch(function(err) {
+          expect(err.message).to.equal('409')
+        })
       })
     })
   })
@@ -241,6 +277,7 @@ describe('lambda:NewMessage', function() {
 type Config = {
   receivers: ReceiverConfig[];
   upload: UploadConfig;
+  id?: string;
 }
 function fix(config: Config) {
   return Promise.all([
@@ -263,6 +300,7 @@ function fix(config: Config) {
         bob: bob,
         ann: ann,
         receivers: receivers,
+        id: config.id,
       }
     })
   })
@@ -270,19 +308,25 @@ function fix(config: Config) {
 
 function run(fixed) {
   return new Promise(function(resolve, reject) {
+    let data: Object = {
+      type: 'messages',
+      attributes: {
+        sender_email: fixed.bob.email,
+        recipient_email: fixed.ann.email,
+        audio_url: 'http://go.peppermint.com/' + fixed.upload.pathname(),
+      },
+    }
+
+    if (fixed.id) {
+      data.id = fixed.id
+    }
+
     NewMessage({
       api_key: fixtures.API_KEY,
       'Content-Type': 'application/vnd.api+json',
       Authorization: 'Bearer ' + fixtures.jwt(fixed.bob.account_id),
       body: {
-        data: {
-          type: 'messages',
-          attributes: {
-            sender_email: fixed.bob.email,
-            recipient_email: fixed.ann.email,
-            audio_url: 'http://go.peppermint.com/' + fixed.upload.pathname(),
-          },
-        },
+        data: data,
       },
     }, null, function(err, response) {
       if (err) {

@@ -138,6 +138,7 @@ exports.jsonAPI = {
   Unauthorized: _.assign({statusCode: '401'}, jsonAPIError),
   Forbidden: _.assign({statusCode: '403'}, jsonAPIError),
   NotFound: _.assign({statusCode: '404'}, jsonAPIError),
+  Conflict: _.assign({statusCode: '409'}, jsonAPIError),
   Unsupported: _.assign({statusCode: '415'}, jsonAPIError),
 };
 

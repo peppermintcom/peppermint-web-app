@@ -25,11 +25,6 @@ describe('GET /messages', function() {
     });
   });
 
-  //delete the fake messages
-  after(function() {
-    //return _.messages.delByAudioURL(_.fake.AUDIO_URL);
-  });
-
   describe('sender sent 42 messages in the past month', function() {
     var senderJWT;
 

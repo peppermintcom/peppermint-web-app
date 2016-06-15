@@ -39,6 +39,59 @@ describe('POST /messages', function() {
     });
   });
 
+  describe('client-supplied id is a dupe', function() {
+    var msg;
+    var rcvrID, accntID
+
+    before(function() {
+      return _.fake.messages({
+        sender: sender,
+        recipient: recipient,
+        unread: 1,
+      })
+      .then(function(data) {
+        msg = data[0];
+      });
+    })
+
+    before(function() {
+      return _.fake.receiver()
+        .then(function(receiver) {
+          rcvrID = receiver.recorder_id
+          accntID = recipient.account_id
+          return _.receivers.link(rcvrID, accntID)
+        })
+    })
+
+    after(function() {
+      return _.receivers.unlink(rcvrID, accntID)
+    })
+
+    it('should fail with a 409 error.', function() {
+      return post({
+        data: {
+          type: 'messages',
+          id: msg.message_id,
+          attributes: {
+            sender_email: msg.sender_email,
+            recipient_email: msg.recipient_email,
+            audio_url: msg.audio_url,
+          },
+        },
+      }, {
+        'X-Api-Key': _.fake.API_KEY,
+        Authorization: 'Bearer ' + jwt,
+        'Content-Type': 'application/vnd.api+json',
+      })
+      .then(function(response) {
+        expect(response.statusCode).to.equal(409)
+        expect(response.body).to.deep.equal({
+          errors: [{detail: 'Message ID exists'}],
+        })
+      })
+    })
+  })
+
   describe('audio_url is not a canonical_url', function() {
     _.fail(400, 'String does not match pattern: ^http://go.peppermint.com', spec, function() {
       return {

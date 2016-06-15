@@ -163,5 +163,6 @@ exports.jsonAPI = {
   Unauthorized: _.assign({description: 'Unauthorized'}, jsonAPIClientError),
   Forbidden: _.assign({description: 'Forbidden'}, jsonAPIClientError),
   NotFound: _.assign({description: 'Not Found'}, jsonAPIClientError),
+  Conflict: _.assign({description: 'Conflict'}, jsonAPIClientError),
   Unsupported: _.assign({description: 'Unsupported Media Type'}, jsonAPIClientError),
 };

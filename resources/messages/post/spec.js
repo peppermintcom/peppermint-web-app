@@ -48,6 +48,7 @@ exports.responses = {
   '404': _.assign({}, responses.jsonAPI.NotFound, {
     description: 'The recipient email is not associated with an installed app. This is a common response.',
   }),
+  '409': responses.jsonAPI.Conflict,
   '415': responses.jsonAPI.Unsupported,
   '500': responses.plain.Internal,
 };
@@ -66,7 +67,8 @@ exports['x-amazon-apigateway-integration'] = {
     '401': integrations.jsonAPI.Unauthorized,
     '403': integrations.jsonAPI.Forbidden,
     '404': integrations.jsonAPI.NotFound,
+    '409': integrations.jsonAPI.Conflict,
     '415': integrations.jsonAPI.Unsupported,
-    '^(?!400|401|403|404|415)(.|\\n)+': integrations.plain.Internal,
+    '^(?!400|401|403|404|409|415)(.|\\n)+': integrations.plain.Internal,
   },
 };

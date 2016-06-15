@@ -119,16 +119,23 @@ function newMessage(state: Object): Promise<Message> {
       recipient: state.accounts.recipient,
     }))
   })
-  .then(function(message) {
+  .then(function(message: Message) {
     if (state.body.data.id) {
       message.message_id = state.body.data.id
     }
+    return message
   })
 }
 
 //Save the undelivered message.
 function saveMessage(state: Object): Promise<Message> {
-  return messages.save(state.message)
+  return messages.save(state.message, {checkConflict: true})
+    .catch(function(err) {
+      if (err.message === domain.ErrConflict) {
+        throw _.errConflict('Message ID exists')
+      }
+      throw err
+    })
 }
 
 //Attempts to save the message_id to the upload as pending. This will fail if

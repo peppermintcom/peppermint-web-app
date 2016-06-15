@@ -184,7 +184,7 @@ function format(message: Message): MessageItem {
 }
 
 function save(message: Message, options: SaveConfig): Promise<Message> {
-  let params = {
+  let params: Object = {
     TableName: 'messages',
     Item: format(message),
   }
