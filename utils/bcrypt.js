@@ -17,6 +17,9 @@ exports.hash = function(plaintext) {
   });
 };
 exports.check = function(plain, hash) {
+  if (typeof plain !== 'string' || typeof hash !== 'string') {
+    return false;
+  }
   return new Promise(function(resolve, reject) {
     bcrypt.compare(plain, hash, function(err, ok) {
       if (err) {
