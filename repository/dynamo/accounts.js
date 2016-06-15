@@ -29,7 +29,7 @@ function save(a: Account, options?: SaveConfig): Promise<Account> {
     dynamo.putItem(params, function(err) {
       if (err) {
         if (err.code === 'ConditionalCheckFailedException') {
-          reject(domain.ErrConflict);
+          reject(new Error(domain.ErrConflict));
           return;
         }
         reject(err);

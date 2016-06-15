@@ -67,7 +67,7 @@ function lookupAccounts(state: Object): Promise<{sender: Account, recipient: Acc
     if (!accounts.recipient) {
       throw _.errNotFound('Recipient cannot receive messages via Peppermint')
     }
-    
+ 
     return accounts
   })
 }
@@ -118,6 +118,11 @@ function newMessage(state: Object): Promise<Message> {
       sender: state.accounts.sender,
       recipient: state.accounts.recipient,
     }))
+  })
+  .then(function(message) {
+    if (state.body.data.id) {
+      message.message_id = state.body.data.id
+    }
   })
 }
 

@@ -6,12 +6,11 @@ import _ from './utils'
 //depreacted - use messages
 var ErrNotFound = new Error('Entity not found.');
 var ErrAPIKey = new Error('Unknown API key.');
-var ErrConflict = new Error('Conflict with existing entity.');
 
 //error messages
 var ErrForbidden = 'Authenticated user may not perform the requested action.'
-var ErrNotFoundMessage = 'Entity not found.' //deprecated - use ErrNoEntity
 var ErrNoEntity = 'Entity not found.'
+var ErrConflict = 'Conflict with existing entity.'
 
 //milliseoncds since the epoch
 export type Timestamp = number;
@@ -313,11 +312,10 @@ function makeAccount(a: Object): Account {
 export default {
   ErrNotFound,
   ErrAPIKey,
-  ErrConflict,
 
   ErrForbidden,
-  ErrNotFoundMessage,
   ErrNoEntity,
+  ErrConflict,
 
   newUpload,
   makeUpload,

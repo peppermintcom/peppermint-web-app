@@ -1,7 +1,7 @@
 // @flow
 import type {Query, DynamoQueryRequest, N, S} from './types'
 import type {Recorder, Account, Message, Upload} from '../../domain'
-import type {QueryResult, QueryConfig, QueryMessagesByEmail, QueryMessagesUnread} from '../types'
+import type {SaveConfig, QueryResult, QueryConfig, QueryMessagesByEmail, QueryMessagesUnread} from '../types'
 
 type MessageItem = {
   message_id: S;
@@ -183,15 +183,24 @@ function format(message: Message): MessageItem {
   return item;
 }
 
+function save(message: Message, options: SaveConfig): Promise<Message> {
+  let params = {
+    TableName: 'messages',
+    Item: format(message),
+  }
 
-function save(message: Message): Promise<Message> {
+  if (options && options.checkConflict) {
+    params.ConditionExpression = 'attribute_not_exists(message_id)';
+  }
+
   return new Promise(function(resolve, reject) {
-    dynamo.putItem({
-      TableName: 'messages',
-      Item: format(message),
-    }, function(err) {
+    dynamo.putItem(params, function(err) {
       if (err) {
-        reject(err);
+        if (err.code === 'ConditionalCheckFailedException') {
+          reject(new Error(domain.ErrConflict))
+          return
+        }
+        reject(err)
         return;
       }
       resolve(message);

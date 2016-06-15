@@ -23,7 +23,7 @@ type Response = {
 
 export var Errors = {
   APIKey: domain.ErrAPIKey,
-  Conflict: domain.ErrConflict,
+  Conflict: new Error(domain.ErrConflict),
 }
 
 export function validate(req: Request): ?Object {

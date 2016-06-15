@@ -28,7 +28,7 @@ function mark(state: Object): Promise<void> {
     var next: ?Object;
 
     switch (err.message) {
-    case domain.ErrNotFoundMessage:
+    case domain.ErrNoEntity:
       var e: Object = new Error('400')
       e.detail = 'Message not found'
       throw e

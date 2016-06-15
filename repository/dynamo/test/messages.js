@@ -12,9 +12,9 @@ import dynamo from '../client'
 
 describe('dynamo messages repository', function() {
   describe('save', function() {
-    it('should save a message.', function() {
-      var message;
+    var message;
 
+    it('should save a message.', function() {
       return Promise.all([
         fixtures.account(),
         fixtures.account(),
@@ -34,6 +34,18 @@ describe('dynamo messages repository', function() {
         expect(_m).to.equal(message);
       });
     });
+
+    describe('duplicate with checkConflict option', function() {
+      it('should fail to save with a conflict error.', function() {
+        return messages.save(message, {checkConflict: true})
+          .then(function() {
+            throw new Error('saved dupe')
+          })
+          .catch(function(err) {
+            expect(err.message).to.equal(domain.ErrConflict)
+          })
+      })
+    })
   });
 
   describe('markRead', function() {

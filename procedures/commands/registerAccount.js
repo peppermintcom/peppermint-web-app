@@ -17,7 +17,7 @@ type Response = {
 }
 
 export var Errors = {
-  Conflict: domain.ErrConflict,
+  Conflict: new Error(domain.ErrConflict),
 }
 
 //hash the password, save the account record, and send a verification email to

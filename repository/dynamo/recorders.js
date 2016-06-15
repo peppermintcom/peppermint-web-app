@@ -30,7 +30,7 @@ function save(r: Recorder, options?: SaveConfig): Promise<Recorder> {
     dynamo.putItem(params, function(err) {
       if (err) {
         if (err.code === 'ConditionalCheckFailedException') {
-          reject(domain.ErrConflict);
+          reject(new Error(domain.ErrConflict));
           return;
         }
         reject(err);
